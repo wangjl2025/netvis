@@ -456,6 +456,82 @@ body {
   transition:color var(--t-fast);
 }
 .footer a:hover { color:var(--text-1); }
+.footer a { cursor:pointer; }
+
+/* ── 关于 / 反馈 轻量弹窗 ── */
+.info-modal-backdrop {
+  position:fixed; inset:0; z-index:9000;
+  background:rgba(6,9,20,0.82);
+  backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.18s ease;
+}
+.info-modal-backdrop.open {
+  opacity:1; pointer-events:auto;
+}
+.info-modal {
+  background:var(--bg-card);
+  border:1px solid var(--border-1);
+  border-radius:16px;
+  padding:32px 36px;
+  max-width:440px; width:90%;
+  position:relative;
+  transform:translateY(12px);
+  transition:transform 0.18s ease;
+  box-shadow:0 24px 64px rgba(0,0,0,0.55);
+}
+.info-modal-backdrop.open .info-modal {
+  transform:translateY(0);
+}
+.info-modal-close {
+  position:absolute; top:14px; right:16px;
+  background:none; border:none; cursor:pointer;
+  color:var(--text-4); font-size:18px; line-height:1;
+  padding:4px 6px; border-radius:6px;
+  transition:color var(--t-fast), background var(--t-fast);
+}
+.info-modal-close:hover { color:var(--text-1); background:var(--bg-hover); }
+.info-modal h2 {
+  font-size:17px; font-weight:700; color:var(--text-1);
+  margin:0 0 18px; display:flex; align-items:center; gap:8px;
+}
+.info-modal p {
+  font-size:13.5px; color:var(--text-2); line-height:1.75;
+  margin:0 0 12px;
+}
+.info-modal .info-meta {
+  margin-top:18px; padding-top:16px;
+  border-top:1px solid var(--border-1);
+  font-size:12.5px; color:var(--text-4);
+  display:flex; flex-direction:column; gap:5px;
+}
+.info-modal .info-meta span { display:flex; align-items:center; gap:6px; }
+.info-modal .info-email-row {
+  display:flex; align-items:center; gap:10px;
+  margin-top:14px; padding:10px 14px;
+  background:var(--bg-hover); border-radius:8px;
+  border:1px solid var(--border-1);
+}
+.info-modal .info-email-row code {
+  flex:1; font-size:13px; color:var(--accent-cyan);
+  font-family:var(--font-mono, monospace);
+  word-break:break-all;
+}
+.info-modal .copy-btn {
+  background:var(--bg-card); border:1px solid var(--border-1);
+  border-radius:6px; padding:4px 10px;
+  font-size:12px; color:var(--text-2); cursor:pointer;
+  transition:color var(--t-fast), border-color var(--t-fast);
+  white-space:nowrap;
+}
+.info-modal .copy-btn:hover { color:var(--accent-cyan); border-color:var(--accent-cyan); }
+.info-modal blockquote {
+  margin:14px 0 0; padding:10px 14px;
+  border-left:3px solid var(--accent-cyan);
+  background:rgba(0,200,200,0.05); border-radius:0 6px 6px 0;
+  font-size:13px; color:var(--text-3); font-style:italic; line-height:1.7;
+}
 
 /* ============================================================
    协议列表页
@@ -1907,11 +1983,41 @@ body {
   <footer class="footer" role="contentinfo">
     <div>© 2026 NetViz · 网络协议可视化学习平台</div>
     <nav aria-label="页脚链接" style="display:flex;gap:20px">
-      <a href="#">关于</a>
-      <a href="#">GitHub</a>
-      <a href="#">反馈</a>
+      <a onclick="openInfoModal('about')" role="button" tabindex="0">关于</a>
+      <a href="https://github.com/wangjl2025/netvis" target="_blank" rel="noopener">GitHub</a>
+      <a onclick="openInfoModal('feedback')" role="button" tabindex="0">反馈</a>
     </nav>
   </footer>
+
+  <!-- ── 关于弹窗 ── -->
+  <div class="info-modal-backdrop" id="aboutModal" role="dialog" aria-modal="true" aria-label="关于 NetViz"
+       onclick="if(event.target===this)closeInfoModal('about')">
+    <div class="info-modal">
+      <button class="info-modal-close" onclick="closeInfoModal('about')" aria-label="关闭">✕</button>
+      <h2>🖥️ 关于 NetViz</h2>
+      <p>NetViz 是一个面向学习者的网络协议可视化平台，帮助大家通过步进动画和交互练习，真正搞懂那些教科书上枯燥的协议原理。</p>
+      <blockquote>"希望这个工具能让你少走一点弯路。"</blockquote>
+      <div class="info-meta">
+        <span>👤 作者：家家乐</span>
+        <span>📅 创建时间：2026 年 3 月</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 反馈弹窗 ── -->
+  <div class="info-modal-backdrop" id="feedbackModal" role="dialog" aria-modal="true" aria-label="意见与反馈"
+       onclick="if(event.target===this)closeInfoModal('feedback')">
+    <div class="info-modal">
+      <button class="info-modal-close" onclick="closeInfoModal('feedback')" aria-label="关闭">✕</button>
+      <h2>💌 意见与反馈</h2>
+      <p>欢迎各位网友批评指正！本项目还很年轻，难免有错误和不足的地方，恳请大家不吝赐教。</p>
+      <p>无论是发现了知识点错误、功能 Bug，还是有任何改进建议，都非常欢迎来信交流。您的每一条反馈对我都是莫大的鼓励 🙏</p>
+      <div class="info-email-row">
+        <code id="feedbackEmail">wangaihau@qq.com</code>
+        <button class="copy-btn" onclick="copyEmail()">📋 复制</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 
@@ -2658,6 +2764,14 @@ body {
             </div>
             <div class="conn-banner" id="dns-banner" role="status" style="margin-top:12px">🌐 第 1 / 8 步 — 浏览器向递归解析器发起查询…</div>
           </div>
+        </div>
+
+        <!-- NAT 专属模式切换条（仅切换到 NAT 时显示，复用 dns-mode-bar 样式） -->
+        <div class="dns-mode-bar" id="natModeBar" style="display:none; padding:0 2px 2px;">
+          <span class="dns-mode-label">转换类型：</span>
+          <button class="dns-mode-btn active" id="nat-mode-snat" onclick="switchNatMode('snat',this)">📤 SNAT（出口 NAT）</button>
+          <button class="dns-mode-btn" id="nat-mode-dnat" onclick="switchNatMode('dnat',this)">📥 DNAT（端口转发）</button>
+          <span class="dns-mode-hint" id="nat-mode-hint">内网→公网，共享同一公网 IP</span>
         </div>
 
         <!-- ══════════════════════════════════════
@@ -3670,6 +3784,23 @@ function switchProtocol(pid, btnEl) {
     }
   }
 
+  /* NAT 模式切换条：切换到 NAT 时显示，离开时隐藏并重置 */
+  const natModeBar = document.getElementById('natModeBar');
+  if (natModeBar) {
+    if (pid === 'nat') {
+      natModeBar.style.display = '';
+      /* 恢复上次的模式按钮状态 */
+      document.querySelectorAll('#natModeBar .dns-mode-btn').forEach(b => b.classList.remove('active'));
+      const natBtn = document.getElementById('nat-mode-' + _natMode);
+      if (natBtn) natBtn.classList.add('active');
+      const natHint = document.getElementById('nat-mode-hint');
+      if (natHint) natHint.textContent = NAT_MODE_HINT[_natMode];
+    } else {
+      natModeBar.style.display = 'none';
+      _natMode = 'snat';  /* 离开 NAT 时重置到默认模式 */
+    }
+  }
+
   /* 更新 Tab 高亮 */
   document.querySelectorAll('.proto-tab').forEach(b => b.classList.remove('active'));
   if (btnEl) btnEl.classList.add('active');
@@ -3923,6 +4054,91 @@ const DNS_MODE_HINT = {
   recursive: '客户端委托解析器全权处理，浏览器↔解析器只有 1 次问答',
   iterative: '解析器自己逐级查询（根→TLD→权威），每步只拿到"下一步问谁"的指引',
 };
+
+/* ── NAT 双模式 ── */
+let _natMode = 'snat';
+
+const NAT_MODE_HINT = {
+  snat: '内网→公网，共享同一公网 IP',
+  dnat: '公网→内网，端口转发到内网服务器',
+};
+
+function switchNatMode(mode, btnEl) {
+  _natMode = mode;
+
+  /* 更新按钮高亮 */
+  document.querySelectorAll('#natModeBar .dns-mode-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) {
+    btnEl.classList.add('active');
+  } else {
+    const b = document.getElementById('nat-mode-' + mode);
+    if (b) b.classList.add('active');
+  }
+
+  /* 更新 Hint 文字 */
+  const hint = document.getElementById('nat-mode-hint');
+  if (hint) hint.textContent = NAT_MODE_HINT[mode];
+
+  /* 切换 protocolDB 数据，刷新步骤和画布 */
+  const pid = (mode === 'dnat') ? 'nat-dnat' : 'nat';
+  const db  = protocolDB[pid];
+  if (!db) {
+    console.error('[NAT] 数据未加载：', pid);
+    return;
+  }
+
+  /* 重置步骤 */
+  currentStep = 1;
+  totalSteps  = db.steps.length;
+
+  /* 更新 PROTO_META 节点信息（DNAT 左=公网客户端，右=内网服务器） */
+  if (mode === 'dnat') {
+    document.getElementById('gen-left-icon').textContent  = '🌐';
+    document.getElementById('gen-left-name').textContent  = '公网客户端';
+    document.getElementById('gen-left-sub').textContent   = '1.2.3.4（公网）';
+    document.getElementById('gen-right-icon').textContent = '🖥';
+    document.getElementById('gen-right-name').textContent = '内网服务器';
+    document.getElementById('gen-right-sub').textContent  = '192.168.1.10:8080';
+  } else {
+    document.getElementById('gen-left-icon').textContent  = '💻';
+    document.getElementById('gen-left-name').textContent  = '内网主机';
+    document.getElementById('gen-left-sub').textContent   = '192.168.1.100（私有 IP）';
+    document.getElementById('gen-right-icon').textContent = '🌐';
+    document.getElementById('gen-right-name').textContent = '公网服务器';
+    document.getElementById('gen-right-sub').textContent  = '8.8.8.8（公网 IP）';
+  }
+
+  /* 更新每行的方向和标签 */
+  if (db.rows) {
+    db.rows.forEach((r, i) => {
+      const rowEl = document.getElementById('gen-row-' + (i + 1));
+      if (!rowEl) return;
+      const arrowLine = rowEl.querySelector('.arrow-line');
+      if (arrowLine) {
+        arrowLine.className = 'arrow-line ' + (r.dir === 'r' ? 'arrow-line-c2s' : 'arrow-line-s2c');
+        const tip = arrowLine.querySelector('.arrow-tip');
+        if (tip) tip.className = 'arrow-tip ' + (r.dir === 'r' ? 'arrow-tip-right' : 'arrow-tip-left');
+      }
+      const labelEl = document.getElementById('gen-label-' + (i + 1));
+      if (labelEl) {
+        labelEl.className = 'packet-label ' + (r.color || 'packet-label-blue');
+        labelEl.textContent = r.label || '';
+      }
+      rowEl.style.display = '';
+    });
+    /* 隐藏多余的行 */
+    for (let i = db.rows.length + 1; i <= 16; i++) {
+      const rowEl = document.getElementById('gen-row-' + i);
+      if (rowEl) rowEl.style.display = 'none';
+    }
+  }
+
+  /* 重建步骤圆点和侧边栏 */
+  rebuildStepDots();
+  rebuildSidePanel();
+  _forceAnim = true;
+  renderStep();
+}
 
 /* 节点间距配置（5等分，每段 22%，最后段补余量） */
 const DNS_NODE_POSITIONS = [0, 22, 44, 66, 88]; // 每节点左边缘 %
@@ -4187,8 +4403,10 @@ function rebuildStepDots() {
 function rebuildSidePanel() {
   const container = document.getElementById('steps-list');
   if (!container) return;
-  /* DNS 迭代模式使用 dns-iter 数据 */
-  const effectivePid = (activeProtocol === 'dns' && _dnsMode === 'iterative') ? 'dns-iter' : activeProtocol;
+  /* DNS 迭代模式使用 dns-iter 数据；NAT DNAT 模式使用 nat-dnat 数据 */
+  const effectivePid = (activeProtocol === 'dns' && _dnsMode === 'iterative') ? 'dns-iter'
+                     : (activeProtocol === 'nat' && _natMode === 'dnat')       ? 'nat-dnat'
+                     : activeProtocol;
   const db = protocolDB[effectivePid];
   if (!db) return;
   container.innerHTML = db.steps.map((sc, i) => `
@@ -4314,8 +4532,10 @@ function pulseTargetNode(row, isC2S) {
 }
 
 function renderStep() {
-  /* ── DNS 迭代模式：切换数据源 ── */
-  const effectivePid = (activeProtocol === 'dns' && _dnsMode === 'iterative') ? 'dns-iter' : activeProtocol;
+  /* ── DNS 迭代模式：切换数据源；NAT DNAT 模式：切换到 nat-dnat ── */
+  const effectivePid = (activeProtocol === 'dns' && _dnsMode === 'iterative') ? 'dns-iter'
+                     : (activeProtocol === 'nat' && _natMode === 'dnat')       ? 'nat-dnat'
+                     : activeProtocol;
   const db   = protocolDB[effectivePid];
   if (!db) return;
   const data = db.stepData[currentStep - 1];
@@ -4516,6 +4736,35 @@ function closeAbnormal() {
   document.getElementById('abnormalOverlay').classList.remove('open');
 }
 
+/* ── 关于 / 反馈 弹窗控制 ── */
+function openInfoModal(type) {
+  const id = type === 'about' ? 'aboutModal' : 'feedbackModal';
+  const el = document.getElementById(id);
+  if (el) el.classList.add('open');
+}
+function closeInfoModal(type) {
+  const id = type === 'about' ? 'aboutModal' : 'feedbackModal';
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+function copyEmail() {
+  const email = document.getElementById('feedbackEmail').textContent.trim();
+  navigator.clipboard.writeText(email).then(() => {
+    showToast('📋 邮箱已复制到剪贴板', 2000);
+  }).catch(() => {
+    /* 兜底：选中文字 */
+    const el = document.getElementById('feedbackEmail');
+    const sel = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    showToast('请手动复制选中的邮箱地址', 2500);
+  });
+}
+
+
+
 /* ════════════════════════════════════════════
    层次三②：TCP vs UDP 对照切换
 ════════════════════════════════════════════ */
@@ -4573,7 +4822,13 @@ document.addEventListener('keydown', e => {
 
   const playerActive = document.getElementById('page-player').classList.contains('active');
 
-  if (e.key === 'Escape') { closeAbnormal(); return; }
+  if (e.key === 'Escape') {
+    /* 优先关闭弹窗，再关异常场景 */
+    if (document.getElementById('aboutModal')?.classList.contains('open'))    { closeInfoModal('about');    return; }
+    if (document.getElementById('feedbackModal')?.classList.contains('open')) { closeInfoModal('feedback'); return; }
+    closeAbnormal();
+    return;
+  }
   if (e.key === '?') { showKeyboardHelp(); return; }
 
   if (!playerActive) return;
