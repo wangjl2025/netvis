@@ -2098,8 +2098,15 @@ body {
 <div id="page-protocols" class="page">
 
   <div class="list-page-header">
-    <h1 class="list-page-title">协议库</h1>
-    <p class="list-page-desc">22+ 协议动画，覆盖 OSI 五层，从入门到深入</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1 class="list-page-title">协议库</h1>
+        <p class="list-page-desc">22+ 协议动画，覆盖 OSI 五层，从入门到深入</p>
+      </div>
+      <button class="btn btn-primary drill-entry-btn" onclick="DrillModule && DrillModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap">
+        <span style="font-size:16px">🎯</span> 错误演练
+      </button>
+    </div>
   </div>
 
   <!-- 学习进度条（由 badge.js 驱动，初始隐藏） -->
@@ -2319,16 +2326,16 @@ body {
       网络层 <span class="layer-badge" style="background:rgba(167,139,250,0.12);color:var(--purple-400)">Network Layer</span>
     </div>
     <div class="list-grid">
-      <div class="protocol-card coming-soon" style="--card-color:var(--purple-400)" title="即将上线">
+      <div class="protocol-card" style="--card-color:var(--purple-400)" onclick="openProtocol('iproute')" data-proto="iproute">
         <div class="card-header">
           <div class="card-icon" style="background:var(--purple-subtle);border:1px solid rgba(167,139,250,0.22)">🗺</div>
-          <div class="card-badges"><span class="badge badge-medium">进阶</span></div>
+          <div class="card-badges"><span class="badge badge-medium">进阶</span><span class="card-badge-slot" data-proto="iproute"></span></div>
         </div>
         <div class="card-title">IP 路由转发</div>
-        <div class="card-desc">数据包跨路由器逐跳转发的决策过程</div>
+        <div class="card-desc">数据包跨路由器逐跳转发、最长前缀匹配与 TTL 递减</div>
         <div class="card-meta">
-          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>8 步</div>
-          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>6 步</div>
+          <div class="card-cta">开始学习 →</div>
         </div>
       </div>
       <div class="protocol-card" style="--card-color:var(--red-400)" onclick="openProtocol('icmp')" data-proto="icmp">
@@ -2458,6 +2465,9 @@ body {
         <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" onclick="shareProtocol()">
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2 L14 2 L14 14 L10 14 M6 5 L10 2 M6 11 L10 14" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>
           分享
+        </button>
+        <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" onclick="DrillModule && DrillModule.open()">
+          🎯 演练
         </button>
       </div>
     </div>
@@ -3481,6 +3491,7 @@ const CARD_META = {
   udp:       { layer:'transport', level:'easy',   title:'udp 数据报 无连接' },
   // 网络层
   ip:        { layer:'network',   level:'medium', title:'ip 路由转发 路由器' },
+  iproute:   { layer:'network',   level:'medium', title:'ip 路由转发 最长前缀匹配 ttl 路由表 下一跳' },
   ospf:      { layer:'network',   level:'hard',   title:'ospf 链路状态 路由 spf' },
   icmp:      { layer:'network',   level:'easy',   title:'icmp ping traceroute 诊断' },
   nat:       { layer:'network',   level:'medium', title:'nat 地址转换 snat dnat 公网' },
@@ -3794,6 +3805,11 @@ const PROTO_META = {
     title:  'ARP 地址解析协议',
     layer:  '链路层',
     nodes:  { leftIcon:'💻', leftName:'主机 A', leftSub:'192.168.1.10 / MAC:AA:BB:CC:DD:EE:01', rightIcon:'🖥', rightName:'主机 B', rightSub:'192.168.1.20 / MAC:?' },
+  },
+  iproute: {
+    title:  'IP 路由转发',
+    layer:  '网络层',
+    nodes:  { leftIcon:'💻', leftName:'主机（发送方）', leftSub:'192.168.1.10 / 网关→R1', rightIcon:'🖥', rightName:'目标主机', rightSub:'10.0.3.5（跨网段）' },
   },
   icmp: {
     title:  'ICMP / Ping 网络诊断',
@@ -5273,7 +5289,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 优先加载 tab 栏前几个
   ['tcp4','http','tls','dns'].forEach(loadKey);
   setTimeout(function() {
-    ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','tcpcong'].forEach(loadKey);
+    ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','tcpcong','iproute'].forEach(loadKey);
   }, 2000);
 })();
 </script>
@@ -5292,6 +5308,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(function() { loadModule('modules/badge.js'); }, 500);
     // share.js：稍晚一点加载，不影响首屏和 badge
     setTimeout(function() { loadModule('modules/share.js'); }, 1200);
+    // drill.js：错误演练模式，最后加载
+    setTimeout(function() { loadModule('modules/drill.js'); }, 1800);
   });
 })();
 </script>

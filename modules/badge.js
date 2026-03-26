@@ -14,9 +14,9 @@
   'use strict';
 
   const STORAGE_KEY = 'netviz_progress';
-  const TOTAL = 14;
+  const TOTAL = 15;
 
-  // 14 个协议的展示名称和图标（用于弹窗）
+  // 15 个协议的展示名称和图标（用于弹窗）
   const PROTO_INFO = {
     tcp3:      { name: 'TCP 三次握手',  icon: '🤝' },
     tcp4:      { name: 'TCP 四次挥手',  icon: '🔁' },
@@ -32,6 +32,7 @@
     ssh:       { name: 'SSH 安全登录', icon: '🔐' },
     nat:       { name: 'NAT 地址转换', icon: '🌍' },
     tcpcong:   { name: 'TCP 拥塞控制', icon: '📈' },
+    iproute:   { name: 'IP 路由转发',  icon: '🗺' },
   };
 
   /* ── 数据读写 ── */
