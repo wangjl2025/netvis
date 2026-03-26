@@ -2443,6 +2443,8 @@ body {
       <button class="proto-tab" onclick="switchProtocol('dns',this)">🌐 DNS 解析</button>
       <span style="width:1px;background:var(--border-1);align-self:stretch;margin:2px 4px;flex-shrink:0"></span>
       <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-tcp-udp',this)" title="并排对比两个协议">⚔️ TCP vs UDP</button>
+      <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-http-https',this)" title="HTTP 与 HTTPS 安全对比">🔒 HTTP vs HTTPS</button>
+      <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-dns-modes',this)" title="DNS 递归与迭代查询对比">🌐 DNS 递归 vs 迭代</button>
     </div>
 
     <!-- 顶栏 -->
@@ -3867,13 +3869,17 @@ const PROTO_META = {
 function switchProtocol(pid, btnEl) {
   if (activeProtocol === pid) return;
 
-  // ── 对比视图特殊处理 ──
-  if (pid === 'compare-tcp-udp') {
-    // 确保 udp 数据已加载
-    const ensureUdp = protocolDB['udp']
-      ? Promise.resolve()
-      : loadProtocolData('udp');
-    ensureUdp.then(() => {
+  // ── 对比视图特殊处理（通用：compare-tcp-udp / compare-http-https / compare-dns-modes）──
+  if (pid.startsWith('compare-')) {
+    // 确认对比 key 在注册表中
+    if (!COMPARE_REGISTRY[pid]) return;
+
+    // 对 compare-dns-modes 需要确保 dns-iter 数据已加载
+    const preload = (pid === 'compare-dns-modes' && !protocolDB['dns-iter'])
+      ? loadProtocolData('dns-iter')
+      : Promise.resolve();
+
+    preload.then(() => {
       activeProtocol = pid;
       currentStep    = 1;
       if (playing) togglePlay();
@@ -3893,22 +3899,32 @@ function switchProtocol(pid, btnEl) {
       });
       const abnBtn = document.getElementById('abnormalBtn');
       if (abnBtn) abnBtn.style.display = 'none';
-      // 初始化对比视图内容
-      initCompareView('tcp3', 'udp');
-      // 更新标题
+      // 隐藏 DNS / NAT 模式条
+      const dnsModeBar = document.getElementById('dnsModeBar');
+      if (dnsModeBar) dnsModeBar.style.display = 'none';
+      const natModeBar = document.getElementById('natModeBar');
+      if (natModeBar) natModeBar.style.display = 'none';
+      // 初始化对比视图内容（使用 key 分发）
+      _compareInitialized = false;
+      initCompareView(pid);
+      // 更新 player 标题
+      const cfg = COMPARE_REGISTRY[pid];
       const titleEl = document.getElementById('playerTitle');
-      if (titleEl) titleEl.textContent = 'TCP vs UDP — 对比视图';
+      if (titleEl) titleEl.textContent = cfg.title.replace(/^[^\s]*\s/, '').replace(' — ', ' ');
       const protoNameElC = document.getElementById('progressProtoName');
-      if (protoNameElC) protoNameElC.textContent = 'TCP vs UDP 对比';
+      if (protoNameElC) protoNameElC.textContent = cfg.leftName + ' vs ' + cfg.rightName;
       const blEl = document.getElementById('breadcrumbLayer');
-      if (blEl) blEl.textContent = '传输层';
-      // 步骤圆点 & 侧边栏：对比视图用 tcp3 的步骤数（左栏驱动）
-      totalSteps = protocolDB['tcp3'].steps.length;
+      if (blEl) {
+        const layerMap = { 'compare-tcp-udp':'传输层', 'compare-http-https':'应用层', 'compare-dns-modes':'应用层' };
+        blEl.textContent = layerMap[pid] || '对比视图';
+      }
+      // 步骤圆点 & 侧边栏：以对比步骤数驱动
+      totalSteps = cfg.steps().length;
       rebuildStepDots();
       rebuildSidePanel();
       _forceAnim = true;
       renderStep();
-    }).catch(err => console.error('[compare] udp 加载失败', err));
+    }).catch(err => console.error('[compare] 数据加载失败', pid, err));
     return;
   }
 
@@ -4110,6 +4126,88 @@ const COMPARE_DIFF_TCP_UDP = [
   { key:'适用场景', l:'HTTP / 文件传输', r:'视频 / DNS / 游戏' },
 ];
 
+/* ── HTTP vs HTTPS 对比数据 ─────────────────────── */
+const COMPARE_DIFF_HTTP_HTTPS = [
+  { key:'加密',     l:'明文传输',      r:'TLS 全程加密' },
+  { key:'默认端口', l:'80',            r:'443' },
+  { key:'证书',     l:'不需要',        r:'需要 CA 签发' },
+  { key:'握手开销', l:'TCP 3次',       r:'TCP 3次 + TLS 1-RTT' },
+  { key:'身份验证', l:'无',            r:'验证服务器真实性' },
+  { key:'SEO / 浏览器', l:'无加锁标志', r:'🔒 绿色锁 + 排名优先' },
+];
+
+const COMPARE_STEPS_HTTP_HTTPS = [
+  {
+    leftLabel:'TCP 三次握手',           leftDir:'right',
+    rightLabel:'TCP 三次握手',          rightDir:'right',
+    leftState:['ESTABLISHED','ESTABLISHED'], rightState:['ESTABLISHED','ESTABLISHED'],
+    leftDesc:'HTTP 和 HTTPS 都基于 TCP，第一步都是 TCP 三次握手。完成后连接建立，双方可发送数据。',
+    rightDesc:'HTTPS 同样先完成 TCP 三次握手，与 HTTP 没有区别——差异从下一步 TLS 握手开始。',
+  },
+  {
+    leftLabel:'HTTP GET 请求（明文）',   leftDir:'right',
+    rightLabel:'TLS ClientHello',       rightDir:'right',
+    leftState:['发送请求','等待响应'],    rightState:['TLS 协商','等待 ServerHello'],
+    leftDesc:'HTTP 直接发送明文请求（如 GET /index.html HTTP/1.1），请求头、Cookie、Body 全部可被中间人读取。',
+    rightDesc:'HTTPS 在发送任何 HTTP 数据前，客户端先发 ClientHello，携带支持的 TLS 版本、密码套件和随机数。',
+  },
+  {
+    leftLabel:'HTTP 200 响应（明文）',   leftDir:'left',
+    rightLabel:'TLS 握手完成（1-RTT）',  rightDir:'left',
+    leftState:['完成','已响应'],          rightState:['密钥协商完成','密钥协商完成'],
+    leftDesc:'服务端直接返回明文 HTML，任何网络节点（路由器、ISP、中间人）都可以读取响应内容。',
+    rightDesc:'TLS 1.3 仅需 1-RTT 完成握手（Server Hello → Finished → 应用数据）。双方协商出会话密钥，后续全部加密。',
+  },
+  {
+    leftLabel:'数据传输（无加密）',       leftDir:'right',
+    rightLabel:'加密数据传输',            rightDir:'right',
+    leftState:['传输中','传输中'],         rightState:['加密传输','加密传输'],
+    leftDesc:'HTTP 数据传输全程明文。搜索词、账号密码、支付信息均可被嗅探截获，无法防范中间人攻击（MITM）。',
+    rightDesc:'HTTPS 所有 HTTP 报文在 TLS 记录层加密后再发送，即使被截获也是密文，无法还原为原始数据。',
+  },
+];
+
+/* ── DNS 递归 vs 迭代 对比数据 ──────────────────── */
+const COMPARE_DIFF_DNS_MODES = [
+  { key:'查询发起者',  l:'客户端（浏览器）', r:'递归解析器' },
+  { key:'负责方',      l:'解析器全权处理',    r:'解析器自己跑完全程' },
+  { key:'RD 标志',     l:'RD=1（请求递归）',  r:'RD=0（逐跳迭代）' },
+  { key:'交互次数',    l:'客户端 1 次问答',   r:'解析器 3 次往返' },
+  { key:'缓存位置',    l:'解析器缓存',        r:'解析器各跳分别缓存' },
+  { key:'根服务器压力',l:'只到解析器',        r:'解析器→根→TLD→权威' },
+];
+
+const COMPARE_STEPS_DNS_MODES = [
+  {
+    leftLabel:'浏览器 → 递归解析器（RD=1）', leftDir:'right',
+    rightLabel:'解析器 → 根服务器',          rightDir:'right',
+    leftState:['发出查询','处理中'],           rightState:['查根服务器','应答'],
+    leftDesc:'【递归】浏览器设置 RD=1，把整个任务委托给递归解析器（如 8.8.8.8）。浏览器只问一次，然后等待最终 IP 结果。',
+    rightDesc:'【迭代】递归解析器不知道 example.com 的地址，向内置根提示文件中的根服务器查询：".com 的 NS 是谁？"',
+  },
+  {
+    leftLabel:'解析器 → 根 NS / TLD NS',     leftDir:'right',
+    rightLabel:'根 → .com TLD 地址',         rightDir:'left',
+    leftState:['代替浏览器查询','迭代中'],     rightState:['收到根回复','继续查 TLD'],
+    leftDesc:'【递归】解析器代替浏览器完成全部迭代工作，依次查询根→TLD→权威，全程对浏览器透明。',
+    rightDesc:'【迭代】根服务器不直接回答，返回 .com TLD 的 NS 地址（如 a.gtld-servers.net）。解析器收到后，自己决定下一跳。',
+  },
+  {
+    leftLabel:'解析器 → 权威 NS',            leftDir:'right',
+    rightLabel:'解析器 → .com TLD NS',       rightDir:'right',
+    leftState:['继续查询','权威NS中'],         rightState:['查 TLD','应答'],
+    leftDesc:'【递归】解析器继续向 TLD 查询，拿到 example.com 的权威 NS 地址，再向权威 NS 发最终查询。',
+    rightDesc:'【迭代】解析器用第一步拿到的 TLD NS 地址，向 .com TLD 询问："example.com 的权威 NS 是谁？"',
+  },
+  {
+    leftLabel:'解析器 → 浏览器（最终IP）',   leftDir:'left',
+    rightLabel:'TLD → 权威 NS 地址',         rightDir:'left',
+    leftState:['收到IP','返回结果'],           rightState:['收到权威NS','继续查权威'],
+    leftDesc:'【递归】解析器从权威 NS 拿到最终 IP，直接返回给浏览器。浏览器从发出请求到收到 IP，只经历 1 次通信。',
+    rightDesc:'【迭代】TLD 返回 example.com 的权威 NS（如 ns1.example.com）。解析器再向权威 NS 发最后一次查询，拿到 A 记录 IP。',
+  },
+];
+
 /* TCP（左）和 UDP（右）每步对比内容 */
 const COMPARE_STEPS_TCP_UDP = [
   {
@@ -4136,16 +4234,63 @@ const COMPARE_STEPS_TCP_UDP = [
 ];
 
 let _compareInitialized = false;
+let _activeCompareKey = 'compare-tcp-udp';  /* 当前激活的对比类型 */
 
-function initCompareView(leftPid, rightPid) {
+/* 对比数据注册表 */
+const COMPARE_REGISTRY = {
+  'compare-tcp-udp': {
+    title: '⚔️ TCP vs UDP — 传输层协议对比',
+    leftName: 'TCP 三次握手', leftIcon: '🤝', leftBadge: '可靠传输', leftCls: 'cmp-blue',
+    rightName: 'UDP 数据报',  rightIcon: '⚡', rightBadge: '低延迟传输', rightCls: 'cmp-green',
+    steps: () => COMPARE_STEPS_TCP_UDP,
+    diff:  () => COMPARE_DIFF_TCP_UDP,
+  },
+  'compare-http-https': {
+    title: '🔒 HTTP vs HTTPS — 应用层安全对比',
+    leftName: 'HTTP（明文）', leftIcon: '📄', leftBadge: '无加密', leftCls: 'cmp-blue',
+    rightName: 'HTTPS（加密）', rightIcon: '🔒', rightBadge: 'TLS 加密', rightCls: 'cmp-green',
+    steps: () => COMPARE_STEPS_HTTP_HTTPS,
+    diff:  () => COMPARE_DIFF_HTTP_HTTPS,
+  },
+  'compare-dns-modes': {
+    title: '🌐 DNS 递归 vs 迭代 — 解析模式对比',
+    leftName: 'DNS 递归查询', leftIcon: '↩️', leftBadge: '客户端委托', leftCls: 'cmp-blue',
+    rightName: 'DNS 迭代查询', rightIcon: '🔁', rightBadge: '解析器自查', rightCls: 'cmp-green',
+    steps: () => COMPARE_STEPS_DNS_MODES,
+    diff:  () => COMPARE_DIFF_DNS_MODES,
+  },
+};
+
+function initCompareView(compareKey) {
+  _activeCompareKey = compareKey || 'compare-tcp-udp';
+  const cfg = COMPARE_REGISTRY[_activeCompareKey];
+  if (!cfg) return;
+
+  /* 更新标题 */
+  const titleEl = document.getElementById('compareTitle');
+  if (titleEl) titleEl.textContent = cfg.title;
+
+  /* 更新左右面板头信息 */
+  setTxt('cmp-left-name',  cfg.leftName);
+  setTxt('cmp-left-badge', cfg.leftBadge);
+  setTxt('cmp-right-name',  cfg.rightName);
+  setTxt('cmp-right-badge', cfg.rightBadge);
+
+  const leftPanel  = document.getElementById('cmp-left-panel');
+  const rightPanel = document.getElementById('cmp-right-panel');
+  if (leftPanel)  { leftPanel.querySelector('.compare-panel-header').className  = `compare-panel-header ${cfg.leftCls}`;  leftPanel.querySelector('.compare-panel-icon').textContent  = cfg.leftIcon; }
+  if (rightPanel) { rightPanel.querySelector('.compare-panel-header').className = `compare-panel-header ${cfg.rightCls}`; rightPanel.querySelector('.compare-panel-icon').textContent = cfg.rightIcon; }
+
+  const steps = cfg.steps();
+
   /* 构建左右泳道 */
-  buildCompareLanes('cmp-left-lanes', COMPARE_STEPS_TCP_UDP, 'left');
-  buildCompareLanes('cmp-right-lanes', COMPARE_STEPS_TCP_UDP, 'right');
+  buildCompareLanes('cmp-left-lanes',  steps, 'left');
+  buildCompareLanes('cmp-right-lanes', steps, 'right');
 
   /* 构建差异网格 */
   const grid = document.getElementById('compareDiffGrid');
   if (grid) {
-    grid.innerHTML = COMPARE_DIFF_TCP_UDP.map(d => `
+    grid.innerHTML = cfg.diff().map(d => `
       <div class="compare-diff-item">
         <div class="compare-diff-key">${d.key}</div>
         <div class="compare-diff-vals">
@@ -4174,12 +4319,15 @@ function buildCompareLanes(containerId, steps, side) {
 
 function renderCompareStep(step) {
   if (!_compareInitialized) return;
-  const s = COMPARE_STEPS_TCP_UDP[step - 1];
+  const cfg = COMPARE_REGISTRY[_activeCompareKey];
+  if (!cfg) return;
+  const steps = cfg.steps();
+  const s = steps[step - 1];
   if (!s) return;
 
   /* 更新两侧泳道高亮 */
   ['cmp-left-lanes', 'cmp-right-lanes'].forEach(containerId => {
-    COMPARE_STEPS_TCP_UDP.forEach((_, i) => {
+    steps.forEach((_, i) => {
       const row = document.getElementById(`${containerId}-row-${i+1}`);
       if (!row) return;
       const wasActive = row.classList.contains('active');
@@ -4202,8 +4350,8 @@ function renderCompareStep(step) {
   setTxt('cmp-left-server-state',  s.leftState[1]);
   setTxt('cmp-right-client-state', s.rightState[0]);
   setTxt('cmp-right-server-state', s.rightState[1]);
-  setTxt('cmp-left-step',  `第 ${step} / ${COMPARE_STEPS_TCP_UDP.length} 步`);
-  setTxt('cmp-right-step', `第 ${step} / ${COMPARE_STEPS_TCP_UDP.length} 步`);
+  setTxt('cmp-left-step',  `第 ${step} / ${steps.length} 步`);
+  setTxt('cmp-right-step', `第 ${step} / ${steps.length} 步`);
 
   /* 更新步骤说明 */
   setTxt('cmp-left-desc',  s.leftDesc);
@@ -4584,6 +4732,24 @@ function rebuildStepDots() {
 function rebuildSidePanel() {
   const container = document.getElementById('steps-list');
   if (!container) return;
+
+  /* 对比视图：步骤卡片使用 COMPARE_REGISTRY 中的 steps */
+  if (activeProtocol.startsWith('compare-')) {
+    const cfg = COMPARE_REGISTRY[activeProtocol];
+    if (!cfg) return;
+    const steps = cfg.steps();
+    container.innerHTML = steps.map((s, i) => `
+      <div class="step-card${i === 0 ? ' active' : ''}" role="button" tabindex="0" aria-label="跳转到步骤 ${i+1}" onclick="gotoStep(${i+1})" onkeydown="if(event.key==='Enter')gotoStep(${i+1})">
+        <div class="step-num">${i+1}</div>
+        <div class="step-content">
+          <div class="step-title">${s.leftLabel}</div>
+          <div class="step-desc" style="color:var(--green-400);font-size:11px">${s.rightLabel}</div>
+        </div>
+      </div>
+    `).join('');
+    return;
+  }
+
   /* DNS 迭代模式使用 dns-iter 数据；NAT DNAT 模式使用 nat-dnat 数据 */
   const effectivePid = (activeProtocol === 'dns' && _dnsMode === 'iterative') ? 'dns-iter'
                      : (activeProtocol === 'nat' && _natMode === 'dnat')       ? 'nat-dnat'
@@ -4720,6 +4886,36 @@ function renderStep() {
     return;
   }
 
+  /* ── 对比视图：独立渲染路径 ── */
+  if (activeProtocol.startsWith('compare-')) {
+    /* 进度条 */
+    const pct = (currentStep / totalSteps) * 100;
+    const pf = document.getElementById('progressFill');
+    if (pf) pf.style.width = pct + '%';
+    const sl = document.getElementById('stepLabel');
+    if (sl) sl.textContent = `第 ${currentStep} 步 / 共 ${totalSteps} 步`;
+    /* 圆点 */
+    document.querySelectorAll('.step-dot').forEach((dot, i) => {
+      dot.classList.remove('done', 'current');
+      if (i < currentStep - 1) dot.classList.add('done');
+      else if (i === currentStep - 1) dot.classList.add('current');
+    });
+    /* 步骤卡片高亮 */
+    document.querySelectorAll('#steps-list .step-card').forEach((card, i) => {
+      card.classList.toggle('active', i === currentStep - 1);
+    });
+    /* 隐藏旁白 / 知识点 / 思考题（对比视图自带说明区域）*/
+    const narBox = document.getElementById('stepNarration');
+    if (narBox) narBox.style.display = 'none';
+    const kb = document.getElementById('knowledgeBlock');
+    if (kb) kb.style.display = 'none';
+    const qBlock = document.getElementById('quizBlock');
+    if (qBlock) qBlock.style.display = 'none';
+    _forceAnim = false;
+    renderCompareStep(currentStep);
+    return;
+  }
+
   /* ── DNS 迭代模式：切换数据源；NAT DNAT 模式：切换到 nat-dnat ── */
   const effectivePid = (activeProtocol === 'dns' && _dnsMode === 'iterative') ? 'dns-iter'
                      : (activeProtocol === 'nat' && _natMode === 'dnat')       ? 'nat-dnat'
@@ -4802,10 +4998,7 @@ function renderStep() {
   }
   _forceAnim = false;  /* 重置标志 */
 
-  /* ── 对比视图同步渲染 ── */
-  if (activeProtocol === 'compare-tcp-udp') {
-    renderCompareStep(currentStep);
-  }
+
 
   /* ── 进度圆点 ── */
   document.querySelectorAll('.step-dot').forEach((dot, i) => {
