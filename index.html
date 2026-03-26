@@ -458,6 +458,77 @@ body {
 .footer a:hover { color:var(--text-1); }
 .footer a { cursor:pointer; }
 
+/* ── TCP 拥塞控制专属画布 ── */
+#congestionDiagram {
+  position:absolute; inset:0;  /* 和其他画布对齐，填满 animation-canvas */
+  display:none;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  padding:16px 20px 20px;
+  gap:0;
+  overflow-y:auto;             /* 内容超出时可滚动 */
+  z-index:2;
+}
+.cong-chart-wrap {
+  width:100%; position:relative;
+  background:var(--bg-hover);
+  border:1px solid var(--border-1);
+  border-radius:10px;
+  padding:10px 8px 6px;
+  overflow:hidden;
+}
+.cong-chart-wrap svg { display:block; width:100%; height:auto; min-height:160px; }
+/* 阶段标签 */
+.cong-phase-label {
+  font-size:10.5px; font-weight:600; letter-spacing:.4px;
+  text-transform:uppercase;
+}
+/* 折线图颜色 */
+.cong-line-slow   { stroke:var(--accent-cyan); }
+.cong-line-avoid  { stroke:var(--green-400); }
+.cong-line-loss   { stroke:var(--red-400); }
+.cong-line-recov  { stroke:var(--orange-400); }
+/* 数据点高亮 */
+.cong-dot {
+  transition: r .25s, opacity .25s;
+}
+.cong-dot.active   { r:5; opacity:1; }
+.cong-dot.passed   { r:3.5; opacity:.85; }
+.cong-dot.upcoming { r:2.5; opacity:.35; }
+/* 高亮竖线 */
+.cong-vline {
+  stroke: rgba(255,255,255,0.18);
+  stroke-dasharray:4 3;
+  transition: x1 .25s, x2 .25s;
+}
+/* 阶段色块 */
+.cong-zone-slow   { fill:rgba(34,211,238,.06); }
+.cong-zone-avoid  { fill:rgba(52,211,153,.06); }
+.cong-zone-loss   { fill:rgba(248,113,113,.10); }
+.cong-zone-recov  { fill:rgba(251,191,36,.07); }
+/* 图例 */
+.cong-legend {
+  display:flex; flex-wrap:wrap; gap:10px 18px;
+  margin-top:10px; padding:0 4px;
+}
+.cong-legend-item {
+  display:flex; align-items:center; gap:5px;
+  font-size:11.5px; color:var(--text-3);
+}
+.cong-legend-dot {
+  width:10px; height:10px; border-radius:50%; flex-shrink:0;
+}
+/* 步骤narration区 */
+.cong-narration {
+  margin-top:14px;
+  padding:12px 16px;
+  background:var(--bg-hover);
+  border-left:3px solid var(--accent-cyan);
+  border-radius:0 8px 8px 0;
+  font-size:13px; color:var(--text-2); line-height:1.75;
+}
+
 /* ── 关于 / 反馈 轻量弹窗 ── */
 .info-modal-backdrop {
   position:fixed; inset:0; z-index:9000;
@@ -1906,8 +1977,8 @@ body {
         </div>
       </div>
 
-      <!-- TCP 拥塞控制（即将上线）-->
-      <div class="protocol-card coming-soon" style="--card-color:var(--orange-400)" title="即将上线">
+      <!-- TCP 拥塞控制 -->
+      <div class="protocol-card" style="--card-color:var(--orange-400)" onclick="openProtocol('tcpcong')">
         <div class="card-header">
           <div class="card-icon" style="background:var(--orange-subtle);border:1px solid rgba(251,191,36,0.22)">📈</div>
           <div class="card-badges">
@@ -1920,9 +1991,9 @@ body {
         <div class="card-meta">
           <div class="card-steps">
             <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>
-            16 个步骤
+            6 步
           </div>
-          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+          <div class="card-cta">开始学习 →</div>
         </div>
       </div>
 
@@ -2216,16 +2287,16 @@ body {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card coming-soon" style="--card-color:var(--orange-400)" title="即将上线">
+      <div class="protocol-card" style="--card-color:var(--orange-400)" onclick="openProtocol('tcpcong')" data-proto="tcpcong" tabindex="0" role="button" aria-label="TCP 拥塞控制">
         <div class="card-header">
           <div class="card-icon" style="background:var(--orange-subtle);border:1px solid rgba(251,191,36,0.22)">📈</div>
-          <div class="card-badges"><span class="badge badge-hard">深入</span></div>
+          <div class="card-badges"><span class="badge badge-hard">深入</span><span class="card-badge-slot" data-proto="tcpcong"></span></div>
         </div>
         <div class="card-title">TCP 拥塞控制</div>
         <div class="card-desc">慢启动 · 拥塞避免 · 快重传 · 快恢复</div>
         <div class="card-meta">
-          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>16 步</div>
-          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>6 步</div>
+          <div class="card-cta">开始学习 →</div>
         </div>
       </div>
       <div class="protocol-card" style="--card-color:var(--green-400)" onclick="openProtocol('udp')" data-proto="udp" tabindex="0" role="button" aria-label="UDP 数据报">
@@ -2890,6 +2961,75 @@ body {
 
       </div>
 
+        <!-- ══════════════════════════════════════
+             TCP 拥塞控制专属画布（#congestionDiagram）
+        ══════════════════════════════════════ -->
+        <div id="congestionDiagram" style="display:none">
+
+          <!-- SVG cwnd 折线图 -->
+          <div class="cong-chart-wrap">
+            <svg id="congSvg" viewBox="0 0 520 200" preserveAspectRatio="xMidYMid meet"
+                 role="img" aria-label="TCP拥塞窗口变化折线图">
+              <!-- 图例说明 -->
+              <defs>
+                <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="rgba(255,255,255,0.3)"/>
+                </marker>
+              </defs>
+              <!-- Y轴 -->
+              <line x1="44" y1="10" x2="44" y2="168" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+              <!-- X轴 -->
+              <line x1="44" y1="168" x2="510" y2="168" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+              <!-- Y轴标签 -->
+              <text x="38" y="172" text-anchor="end" fill="rgba(255,255,255,0.35)" font-size="9">0</text>
+              <text x="38" y="142" text-anchor="end" fill="rgba(255,255,255,0.35)" font-size="9">4</text>
+              <text x="38" y="112" text-anchor="end" fill="rgba(255,255,255,0.35)" font-size="9">8</text>
+              <text x="38" y="82"  text-anchor="end" fill="rgba(255,255,255,0.35)" font-size="9">12</text>
+              <text x="38" y="52"  text-anchor="end" fill="rgba(255,255,255,0.35)" font-size="9">16</text>
+              <!-- Y轴网格线 -->
+              <line x1="44" y1="142" x2="510" y2="142" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="3 3"/>
+              <line x1="44" y1="112" x2="510" y2="112" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="3 3"/>
+              <line x1="44" y1="82"  x2="510" y2="82"  stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="3 3"/>
+              <line x1="44" y1="52"  x2="510" y2="52"  stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="3 3"/>
+              <!-- ssthresh 参考线 -->
+              <line id="congSsthreshLine" x1="44" y1="112" x2="510" y2="112"
+                    stroke="rgba(251,191,36,0.45)" stroke-width="1" stroke-dasharray="5 4"/>
+              <text id="congSsthreshLabel" x="46" y="109" fill="rgba(251,191,36,0.7)" font-size="9">ssthresh=8</text>
+              <!-- 阶段色块（JS 动态绘制） -->
+              <g id="congZones"></g>
+              <!-- 当前步骤高亮竖线 -->
+              <line id="congVline" x1="44" y1="10" x2="44" y2="168"
+                    stroke="rgba(255,255,255,0.20)" stroke-width="1" stroke-dasharray="4 3"/>
+              <!-- 折线（JS 动态绘制） -->
+              <polyline id="congPolyPassed" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points=""/>
+              <polyline id="congPolyUpcoming" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3" points=""/>
+              <!-- 数据点（JS 动态绘制） -->
+              <g id="congDots"></g>
+              <!-- X轴标签（RTT轮次） -->
+              <g id="congXLabels"></g>
+              <!-- Y轴标题 -->
+              <text x="12" y="90" fill="rgba(255,255,255,0.4)" font-size="9" transform="rotate(-90,12,90)">cwnd (MSS)</text>
+              <!-- X轴标题 -->
+              <text x="280" y="185" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="9">RTT（传输轮次）</text>
+              <!-- 当前阶段标签 -->
+              <text id="congPhaseLabel" x="280" y="24" text-anchor="middle"
+                    fill="var(--accent-cyan)" font-size="11" font-weight="600"></text>
+            </svg>
+          </div>
+
+          <!-- 图例 -->
+          <div class="cong-legend">
+            <div class="cong-legend-item"><div class="cong-legend-dot" style="background:var(--accent-cyan)"></div>慢启动</div>
+            <div class="cong-legend-item"><div class="cong-legend-dot" style="background:var(--green-400)"></div>拥塞避免</div>
+            <div class="cong-legend-item"><div class="cong-legend-dot" style="background:var(--red-400)"></div>快重传</div>
+            <div class="cong-legend-item"><div class="cong-legend-dot" style="background:var(--orange-400)"></div>快恢复</div>
+            <div class="cong-legend-item"><div class="cong-legend-dot" style="background:rgba(251,191,36,0.8);border-radius:2px;width:14px;height:3px"></div>ssthresh</div>
+          </div>
+
+          <!-- 旁白 -->
+          <div class="cong-narration" id="congNarration"></div>
+        </div>
+
       <!-- 步骤旁白（悬浮在画布底部） -->
       <div class="step-narration" id="stepNarration">
         <div class="narration-label">当前步骤解读</div>
@@ -2924,7 +3064,7 @@ body {
       <div class="progress-area">
         <div class="progress-label">
           <span id="stepLabel">第 1 步 / 共 3 步</span>
-          <span>TCP 三次握手</span>
+          <span id="progressProtoName">TCP 三次握手</span>
         </div>
         <div class="progress-track" onclick="seekProgress(event)" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="3">
           <div class="progress-fill" id="progressFill"></div>
@@ -3685,6 +3825,10 @@ const PROTO_META = {
     layer:  '网络层',
     nodes:  { leftIcon:'💻', leftName:'内网主机', leftSub:'192.168.1.100（私有 IP）', rightIcon:'🌐', rightName:'公网服务器', rightSub:'8.8.8.8（公网 IP）' },
   },
+  tcpcong: {
+    title:  'TCP 拥塞控制',
+    layer:  '传输层',
+  },
   dns: {
     title:  'DNS 解析全过程',
     layer:  '应用层',
@@ -3720,12 +3864,12 @@ function switchProtocol(pid, btnEl) {
       document.querySelectorAll('.proto-tab').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
       // 隐藏所有其他画布，显示对比画布
-      ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram'].forEach(id => {
+      ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','congestionDiagram'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
       const cc = document.getElementById('compareCanvas');
-      if (cc) cc.style.display = '';
+      if (cc) cc.style.display = 'flex';
       // 隐藏 tcp3 专属控件 / 异常场景按钮
       ['compareToggleBtn','customSeqPanel'].forEach(id => {
         const el = document.getElementById(id);
@@ -3738,6 +3882,8 @@ function switchProtocol(pid, btnEl) {
       // 更新标题
       const titleEl = document.getElementById('playerTitle');
       if (titleEl) titleEl.textContent = 'TCP vs UDP — 对比视图';
+      const protoNameElC = document.getElementById('progressProtoName');
+      if (protoNameElC) protoNameElC.textContent = 'TCP vs UDP 对比';
       const blEl = document.getElementById('breadcrumbLayer');
       if (blEl) blEl.textContent = '传输层';
       // 步骤圆点 & 侧边栏：对比视图用 tcp3 的步骤数（左栏驱动）
@@ -3806,7 +3952,7 @@ function switchProtocol(pid, btnEl) {
   if (btnEl) btnEl.classList.add('active');
 
   /* 隐藏所有画布 */
-  const canvases = ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas'];
+  const canvases = ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram'];
   canvases.forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.display = 'none'; el.classList.remove('visible'); }
@@ -3838,15 +3984,19 @@ function switchProtocol(pid, btnEl) {
   totalSteps = protocolDB[pid].steps.length;
 
   /* 显示对应画布 */
-  const canvasMap = { tcp3:'tcpDiagram', tcp4:'tcp4Diagram', http:'httpDiagram', tls:'tlsDiagram', dns:'dnsCanvas' };
+  const canvasMap = { tcp3:'tcpDiagram', tcp4:'tcp4Diagram', http:'httpDiagram', tls:'tlsDiagram', dns:'dnsCanvas', tcpcong:'congestionDiagram' };
   const canvasId = canvasMap[pid] || 'genericDiagram';
   // 先隐藏所有画布
-  ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas'].forEach(id => {
+  ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
   const targetCanvas = document.getElementById(canvasId);
-  if (targetCanvas) targetCanvas.style.display = '';
+  if (targetCanvas) {
+    // congestionDiagram 和 canvas-inner 类元素用 flex，其余用 '' 恢复 CSS 默认
+    const needFlex = canvasId === 'congestionDiagram' || targetCanvas.classList.contains('canvas-inner');
+    targetCanvas.style.display = needFlex ? 'flex' : '';
+  }
 
   /* 通用画布：初始化节点信息和行标签 */
   if (canvasId === 'genericDiagram') {
@@ -3889,6 +4039,18 @@ function switchProtocol(pid, btnEl) {
     }
   }
 
+  /* TCP 拥塞控制专属画布：初始化 SVG 折线图 */
+  if (canvasId === 'congestionDiagram') {
+    /* tcpcong 用自己的 congNarration，隐藏通用 stepNarration */
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = 'none';
+    renderCongestionChart(1);
+  } else {
+    /* 其他协议：恢复 stepNarration */
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = '';
+  }
+
   /* 重建步骤圆点 */
   rebuildStepDots();
 
@@ -3899,6 +4061,9 @@ function switchProtocol(pid, btnEl) {
   const meta = PROTO_META[pid] || { title: pid, layer: '' };
   const titleEl = document.getElementById('playerTitle');
   if (titleEl) titleEl.textContent = meta.title;
+  /* 同步更新进度条旁边的协议名 */
+  const protoNameEl = document.getElementById('progressProtoName');
+  if (protoNameEl) protoNameEl.textContent = meta.title;
 
   /* 更新面包屑层次 */
   const breadcrumbLayerEl = document.getElementById('breadcrumbLayer');
@@ -4406,6 +4571,7 @@ function rebuildSidePanel() {
   /* DNS 迭代模式使用 dns-iter 数据；NAT DNAT 模式使用 nat-dnat 数据 */
   const effectivePid = (activeProtocol === 'dns' && _dnsMode === 'iterative') ? 'dns-iter'
                      : (activeProtocol === 'nat' && _natMode === 'dnat')       ? 'nat-dnat'
+                     : (activeProtocol === 'tcpcong')                          ? 'tcpcong'
                      : activeProtocol;
   const db = protocolDB[effectivePid];
   if (!db) return;
@@ -4532,6 +4698,12 @@ function pulseTargetNode(row, isC2S) {
 }
 
 function renderStep() {
+  /* TCP 拥塞控制用专属渲染函数 */
+  if (activeProtocol === 'tcpcong') {
+    renderCongestionChart(currentStep);
+    return;
+  }
+
   /* ── DNS 迭代模式：切换数据源；NAT DNAT 模式：切换到 nat-dnat ── */
   const effectivePid = (activeProtocol === 'dns' && _dnsMode === 'iterative') ? 'dns-iter'
                      : (activeProtocol === 'nat' && _natMode === 'dnat')       ? 'nat-dnat'
@@ -4736,6 +4908,219 @@ function closeAbnormal() {
   document.getElementById('abnormalOverlay').classList.remove('open');
 }
 
+/* ════════════════════════════════════════════
+   TCP 拥塞控制专属渲染
+════════════════════════════════════════════ */
+(function() {
+  /* SVG 坐标常量 */
+  const PAD_L = 44, PAD_R = 10, PAD_T = 30, PAD_B = 32;
+  const W = 520, H = 200;
+  const CHART_W = W - PAD_L - PAD_R;   // 466
+  const CHART_H = H - PAD_T - PAD_B;   // 138
+  const MAX_Y  = 16;  // cwnd 最大显示值（MSS）
+  const TOTAL_X = 12; // 最大 RTT 轮次
+
+  /* 相位颜色映射 */
+  const PHASE_COLOR = {
+    'slow-start':       '#22d3ee',  // cyan
+    'congestion-avoid': '#34d399',  // green
+    'fast-retransmit':  '#f87171',  // red
+    'fast-recovery':    '#fbbf24',  // orange
+    'summary':          '#34d399',
+  };
+  const PHASE_LABEL = {
+    'slow-start':       '🚀 慢启动（Slow Start）',
+    'congestion-avoid': '📈 拥塞避免（Congestion Avoidance）',
+    'fast-retransmit':  '⚡ 快重传（Fast Retransmit）',
+    'fast-recovery':    '🔄 快恢复（Fast Recovery）',
+    'summary':          '🎓 总结回顾',
+  };
+
+  function toSvgX(xVal) {
+    return PAD_L + (xVal / TOTAL_X) * CHART_W;
+  }
+  function toSvgY(yVal) {
+    return PAD_T + CHART_H - (yVal / MAX_Y) * CHART_H;
+  }
+
+  window.renderCongestionChart = function(step) {
+    const db = protocolDB['tcpcong'];
+    if (!db || !db.chartPoints) return;
+
+    const pts      = db.chartPoints;
+    const hiIdx    = db.stepHighlight[step - 1] !== undefined ? db.stepHighlight[step - 1] : pts.length - 1;
+    const stepInfo = db.stepData[step - 1];
+    if (!stepInfo) return;
+
+    /* ── 折线分段：passed（已经过） / upcoming（未到） ── */
+    let passedPts   = '';
+    let upcomingPts = '';
+    pts.forEach((p, i) => {
+      const sx = toSvgX(p.x);
+      const sy = toSvgY(p.y);
+      if (i <= hiIdx) passedPts   += sx + ',' + sy + ' ';
+      else            upcomingPts += sx + ',' + sy + ' ';
+    });
+    /* 折线连续：upcoming 从 hiIdx 开始，保证线段连上 */
+    if (hiIdx < pts.length - 1) {
+      const p0 = pts[hiIdx];
+      upcomingPts = toSvgX(p0.x) + ',' + toSvgY(p0.y) + ' ' + upcomingPts;
+    }
+
+    const poly1 = document.getElementById('congPolyPassed');
+    const poly2 = document.getElementById('congPolyUpcoming');
+    if (poly1) poly1.setAttribute('points', passedPts.trim());
+    if (poly2) poly2.setAttribute('points', upcomingPts.trim());
+
+    /* ── 数据点 ── */
+    const dotsG = document.getElementById('congDots');
+    if (dotsG) {
+      dotsG.innerHTML = '';
+      pts.forEach((p, i) => {
+        const cx = toSvgX(p.x);
+        const cy = toSvgY(p.y);
+        const color = PHASE_COLOR[p.phase] || '#94a3b8';
+        let state, r;
+        if (i < hiIdx)       { state = 'passed';   r = 3.5; }
+        else if (i === hiIdx){ state = 'active';   r = 6;   }
+        else                 { state = 'upcoming'; r = 2.5; }
+
+        const opacity = state === 'upcoming' ? 0.3 : 1;
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r',  r);
+        circle.setAttribute('fill', color);
+        circle.setAttribute('opacity', opacity);
+        if (state === 'active') {
+          circle.setAttribute('stroke', '#fff');
+          circle.setAttribute('stroke-width', '1.5');
+        }
+        /* 丢包事件：显示 ✕ */
+        if (p.event === 'loss') {
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', cx);
+          text.setAttribute('y', cy - 10);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('fill', '#f87171');
+          text.setAttribute('font-size', '10');
+          text.setAttribute('font-weight', '700');
+          text.textContent = '✕丢包';
+          dotsG.appendChild(text);
+        }
+        /* cwnd 数值标签（仅 active 点） */
+        if (state === 'active') {
+          const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          label.setAttribute('x', cx + 8);
+          label.setAttribute('y', cy - 4);
+          label.setAttribute('fill', color);
+          label.setAttribute('font-size', '9.5');
+          label.setAttribute('font-weight', '600');
+          label.textContent = 'cwnd=' + p.y;
+          dotsG.appendChild(label);
+        }
+        dotsG.appendChild(circle);
+      });
+    }
+
+    /* ── 高亮竖线 ── */
+    const vline = document.getElementById('congVline');
+    if (vline && hiIdx < pts.length) {
+      const vx = toSvgX(pts[hiIdx].x);
+      vline.setAttribute('x1', vx);
+      vline.setAttribute('x2', vx);
+    }
+
+    /* ── X 轴标签 ── */
+    const xlabels = document.getElementById('congXLabels');
+    if (xlabels) {
+      xlabels.innerHTML = '';
+      pts.forEach((p, i) => {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        el.setAttribute('x', toSvgX(p.x));
+        el.setAttribute('y', H - PAD_B + 13);
+        el.setAttribute('text-anchor', 'middle');
+        el.setAttribute('fill', i <= hiIdx ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.2)');
+        el.setAttribute('font-size', '8.5');
+        el.textContent = p.x;
+        xlabels.appendChild(el);
+      });
+    }
+
+    /* ── 阶段色块 ── */
+    const zones = document.getElementById('congZones');
+    if (zones) {
+      zones.innerHTML = '';
+      /* 按阶段连续区间划分 */
+      const phaseRanges = [
+        { phase:'slow-start',       x0:0, x1:3 },
+        { phase:'congestion-avoid', x0:3, x1:8 },
+        { phase:'fast-retransmit',  x0:8, x1:8 },
+        { phase:'fast-recovery',    x0:8, x1:10 },
+        { phase:'congestion-avoid', x0:10, x1:12 },
+      ];
+      const ZONE_FILL = {
+        'slow-start':       'rgba(34,211,238,.07)',
+        'congestion-avoid': 'rgba(52,211,153,.06)',
+        'fast-retransmit':  'rgba(248,113,113,.12)',
+        'fast-recovery':    'rgba(251,191,36,.08)',
+      };
+      phaseRanges.forEach(r => {
+        if (r.x0 === r.x1) return;
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x',      toSvgX(r.x0));
+        rect.setAttribute('y',      PAD_T);
+        rect.setAttribute('width',  toSvgX(r.x1) - toSvgX(r.x0));
+        rect.setAttribute('height', CHART_H);
+        rect.setAttribute('fill',   ZONE_FILL[r.phase] || 'rgba(255,255,255,.03)');
+        zones.appendChild(rect);
+      });
+    }
+
+    /* ── 阶段标签 ── */
+    const phaseLabel = document.getElementById('congPhaseLabel');
+    if (phaseLabel) {
+      const curPhase = stepInfo.phase || '';
+      phaseLabel.textContent = PHASE_LABEL[curPhase] || '';
+      phaseLabel.setAttribute('fill', PHASE_COLOR[curPhase] || 'var(--accent-cyan)');
+    }
+
+    /* ── 旁白 ── */
+    const narEl = document.getElementById('congNarration');
+    if (narEl) narEl.textContent = stepInfo.narration || '';
+
+    /* ── 右侧 fields 面板更新（复用通用字段渲染） ── */
+    /* banner */
+    const bannerEl = document.getElementById('gen-banner');
+    if (bannerEl) bannerEl.textContent = stepInfo.banner || '';
+
+    /* 字段表（复用 fields-table）*/
+    const fieldsTable = document.getElementById('fields-table');
+    if (fieldsTable && stepInfo.fields) {
+      fieldsTable.innerHTML = stepInfo.fields.map(f =>
+        `<tr><td class="field-name">${f.name}</td><td class="field-val">${f.value || ''}</td><td class="field-desc">${f.desc || ''}</td></tr>`
+      ).join('');
+    }
+
+    /* ── 步骤圆点高亮更新 ── */
+    document.querySelectorAll('.step-dot').forEach((dot, idx) => {
+      dot.classList.toggle('active', idx + 1 === step);
+      dot.classList.toggle('done',   idx + 1 < step);
+    });
+
+    /* ── 左右按钮状态 ── */
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) prevBtn.disabled = (step <= 1);
+    if (nextBtn) nextBtn.disabled = (step >= db.steps.length);
+
+    /* ── badge 解锁（最后一步） ── */
+    if (step === db.steps.length && typeof window._badge !== 'undefined') {
+      window._badge.unlock('tcpcong');
+    }
+  };
+})();
+
 /* ── 关于 / 反馈 弹窗控制 ── */
 function openInfoModal(type) {
   const id = type === 'about' ? 'aboutModal' : 'feedbackModal';
@@ -4888,7 +5273,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 优先加载 tab 栏前几个
   ['tcp4','http','tls','dns'].forEach(loadKey);
   setTimeout(function() {
-    ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat'].forEach(loadKey);
+    ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','tcpcong'].forEach(loadKey);
   }, 2000);
 })();
 </script>

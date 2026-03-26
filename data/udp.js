@@ -63,8 +63,7 @@ protocolDB['udp'] = {
     { label:'头部字段', value:'源端口 / 目标端口 / 长度 / 校验和，仅 8 字节' },
     { label:'无连接特性', value:'无握手/挥手，应用数据直接封装发送' },
     { label:'不可靠性', value:'不保证送达，不保序，不去重，丢包需应用层处理' },
-    { label:'典型应用', value:'DNS(53)、DHCP(67/68)、NTP(123)、RTP 实时音视频' },
-    { label:'对比 TCP', value:'UDP 头仅 8B vs TCP 头最小 20B；无拥塞控制；无连接状态' },
+    { label:'典型应用 & 对比TCP', value:'UDP：DNS(53)/DHCP(67-68)/NTP(123)/RTP 实时音视频；头仅 8B vs TCP 最小 20B；无拥塞控制、无连接状态——速度换可靠性' },
   ],
   quiz: [
     { q:'UDP 头部总共有几个字段？', options:['2个','4个','6个','8个'], answer:1,

@@ -82,8 +82,7 @@ protocolDB['nat'] = {
     { label:'SNAT', value:'源地址转换——修改数据包的源 IP/Port，内网→公网方向' },
     { label:'DNAT', value:'目标地址转换——修改数据包的目标 IP/Port，公网→内网方向（如端口转发）' },
     { label:'NAT 表', value:'网关维护的映射表：内网IP:Port ↔ 公网IP:Port，用于双向转换' },
-    { label:'核心价值', value:'缓解 IPv4 地址枯竭；隔离内网拓扑，提供安全屏障' },
-    { label:'局限性', value:'破坏端对端连接（P2P 困难）；NAT 穿越需要 STUN/TURN/ICE' },
+    { label:'价值与局限', value:'核心价值：缓解 IPv4 地址枯竭，隔离内网拓扑；局限：破坏端对端连接（P2P 困难），NAT 穿越需要 STUN/TURN/ICE' },
   ],
   quiz: [
     { q:'NAT 的核心作用是什么？', options:['加密数据包','让多台私网设备共享一个公网 IP','提高传输速度','替代防火墙'], answer:1,
@@ -181,8 +180,7 @@ protocolDB['nat-dnat'] = {
     { label:'端口转发', value:'DNAT 最常见应用：把公网某端口的流量转到内网指定主机:端口' },
     { label:'与 SNAT 的关系', value:'DNAT 用于入方向（公网→内网），SNAT 用于出方向（内网→公网）；完整的端口转发两者都用' },
     { label:'四元组', value:'src IP + src Port + dst IP + dst Port，NAT 网关以此区分不同连接，支持多并发' },
-    { label:'安全风险', value:'端口转发在防火墙"打洞"，应只开放必要端口，并在内网服务上启用鉴权' },
-    { label:'vs 反向代理', value:'DNAT 工作在 IP 层（透明），Nginx 等反向代理工作在应用层（可按域名/路径路由，功能更强）' },
+    { label:'安全 & 对比反代', value:'端口转发在防火墙"打洞"，只开必要端口并启用鉴权；vs Nginx 反向代理：DNAT 工作在 IP 层（透明），反代工作在应用层（可按域名/路径路由）' },
   ],
   quiz: [
     { q:'DNAT 修改的是数据包的哪个部分？', options:['源 IP 和端口','目标 IP 和端口','TTL 字段','数据载荷'], answer:1,

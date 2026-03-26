@@ -93,6 +93,7 @@ protocolDB['ssh'] = {
     { label:'主机验证',   value:'~/.ssh/known_hosts 存储已知服务器指纹；首次连接提示确认；指纹变化会发出中间人攻击警告' },
     { label:'端口转发',   value:'-L 本地转发；-R 远程转发；-D 动态(SOCKS5代理)；可穿透防火墙，也可作为加密隧道' },
     { label:'安全加固',   value:'禁用 root 登录、禁用密码认证、修改默认 22 端口、启用 fail2ban、使用 Ed25519 密钥——五步基础加固' },
+    { label:'SSH 多路复用', value:'一条 SSH 连接可同时承载 Shell + SFTP + 端口转发；-L 本地转发 / -R 远程转发 / -D 动态(SOCKS5代理)；ControlMaster 复用可大幅提速' },
   ],
   quiz: [
     { q:'SSH 密钥交换（ECDH）为什么能实现"前向安全"？',

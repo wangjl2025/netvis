@@ -66,8 +66,7 @@ protocolDB['dhcp'] = {
     { label:'DORA 四步',     value:'Discover（广播求）→ Offer（服务器给）→ Request（广播选）→ ACK（服务器确认）——DHCP 的核心流程' },
     { label:'端口号',        value:'客户端 UDP 68，服务器 UDP 67；前两步用广播（0.0.0.0→255.255.255.255），ACK 后可单播' },
     { label:'租约机制',      value:'IP 有使用期限（默认 24h）；T1=50%时单播续约；T2=87.5%时广播续约；到期释放' },
-    { label:'DHCP 选项',     value:'Option 1=子网掩码，3=网关，6=DNS，51=租约时长，53=消息类型，54=服务器标识' },
-    { label:'DHCP 中继',     value:'跨网段时，DHCP Relay Agent（通常是路由器）将广播转为单播转发给远端 DHCP 服务器' },
+    { label:'DHCP 选项 & 中继', value:'Option 1=子网掩码，3=网关，6=DNS，51=租约时长，53=消息类型；跨网段部署时，路由器充当 Relay Agent 把广播转为单播转发给远端 DHCP 服务器' },
   ],
   quiz: [
     { q:'DHCP 的四个步骤（DORA）正确顺序是？',

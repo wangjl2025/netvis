@@ -101,7 +101,7 @@
           fields:[
             { name:'查询', val:'example.com A 记录', desc:'最终查询，请求具体的 IPv4 地址', highlight:true, derive:'' },
             { name:'权威服务器', val:'ns1.example.com', desc:'由域名所有者控制，掌握该域所有 DNS 记录', highlight:true, derive:'' },
-            { name:'AA 标志', val:'1（Authoritative Answer）', body:'响应中 AA=1 表示"我就是权威，这个答案是最终结果"', highlight:false, derive:'' },
+            { name:'AA 标志', val:'1（Authoritative Answer）', desc:'响应中 AA=1 表示"我就是权威，这个答案是最终结果"', highlight:false, derive:'' },
           ],
           narration:'权威服务器是整个 DNS 树中掌握最终答案的服务器，由域名所有者配置（可以是 Cloudflare DNS、AWS Route53、自建 BIND 等）。它存储着 A 记录（example.com → 93.184.216.34）、MX 记录（邮件服务器）、TXT 记录等所有该域的 DNS 数据。',
         },
@@ -125,6 +125,10 @@
         { title:'💡 TTL 是什么？设太短或太长有什么影响？', body:'TTL（Time-To-Live）是 DNS 记录的缓存时间（秒）。<strong>太长</strong>（如 86400=1天）：切换 IP 时全球生效慢，老 IP 还被访问；<strong>太短</strong>（如 60=1分钟）：每分钟都要真正查询，增加延迟和 DNS 服务器压力。最佳实践：日常设 3600（1小时），迁移前 48 小时改为 300（5分钟）。' },
         { title:'💡 DNS 污染和 DNS 劫持是什么？', body:'<strong>DNS 污染</strong>：在 UDP 查询响应中注入伪造答案，返回错误 IP。<strong>DNS 劫持</strong>：ISP 或网络设备篡改 DNS 响应（如广告注入、屏蔽）。防御方案：① DoH（DNS over HTTPS）把 DNS 放在 HTTPS 里，防止窥探和篡改；② DoT（DNS over TLS）；③ DNSSEC（对 DNS 记录数字签名）。' },
         { title:'💡 为什么全球只有 13 个根服务器 IP？', body:'这是历史原因：早期 DNS 用 UDP，单包最大 512 字节，13 个根服务器的信息刚好能放进去（A 记录 IP + 名称）。现在 13 是逻辑上的限制，每个"根服务器"实际上是由数百台物理服务器通过 IP 任播（Anycast）实现，全球有 1000+ 台根服务器实体，任播让你总是访问最近的一台。' },
+        { title:'💡 DNS 记录类型大全', body:'<strong>A</strong>：域名→IPv4；<strong>AAAA</strong>：域名→IPv6；<strong>CNAME</strong>：别名（指向另一个域名）；<strong>MX</strong>：邮件服务器；<strong>NS</strong>：该域的权威 DNS 服务器；<strong>TXT</strong>：文本（SPF/DKIM/域名验证）；<strong>PTR</strong>：IP→域名（反向解析）；<strong>SOA</strong>：区域起始授权记录。' },
+        { title:'💡 TLD 服务器与权威服务器的区别', body:'<strong>TLD 服务器</strong>（如 .com、.cn）：只知道该顶级域下各域的权威 NS 服务器地址，不存储 A/MX 等具体记录。<strong>权威服务器</strong>：域名所有者自己配置，存储该域所有 DNS 记录，是最终答案来源。购买域名后，你可以在注册商处指定权威 NS（如 Cloudflare、AWS Route53）。' },
+        { title:'💡 DNS over HTTPS（DoH）与 DoT', body:'传统 DNS 走 UDP:53，查询内容明文可见（ISP/网络可监控）。<strong>DoH</strong>：DNS 查询封装在 HTTPS 里（端口 443），与普通 HTTPS 混在一起，无法区分和过滤。<strong>DoT</strong>：专用端口 853，TLS 加密但可识别。Chrome/Firefox 内置 DoH，可在 DNS 设置里开启安全 DNS（推荐 1.1.1.1 或 8.8.8.8）。' },
+        { title:'💡 DNS 缓存与 TTL 最佳实践', body:'DNS 解析结果会被浏览器、操作系统、递归解析器分别缓存，缓存时长由 TTL 决定。<strong>清除本地缓存</strong>：Windows：<code>ipconfig /flushdns</code>；Mac：<code>sudo dscacheutil -flushcache</code>；Chrome 内置：<code>chrome://net-internals/#dns</code>。<strong>查询真实 DNS</strong>：<code>nslookup</code>、<code>dig</code> 命令可跳过本地缓存直接查询。' },
       ],
       quiz:[
         { q:'DNS 用 UDP 还是 TCP？为什么？', a:'<strong>默认 UDP（端口 53）</strong>，因为 DNS 请求/响应通常很小（几十到几百字节），UDP 无连接开销，一个来回即可。但当响应超过 512 字节（如 DNSSEC 签名、多条 MX 记录）时，服务器会在响应中设置 TC（Truncated）标志，客户端收到后切换到 TCP 重试，TCP 无大小限制。' },

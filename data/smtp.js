@@ -88,6 +88,7 @@ protocolDB['smtp'] = {
     { label:'信封 vs 头',  value:'MAIL FROM/RCPT TO 控制实际投递路径；From:/To: 只是显示，可以伪造——钓鱼邮件常利用此特性' },
     { label:'MX 记录',     value:'发件服务器通过 DNS MX 记录查找目标域的邮件服务器地址，再发起 SMTP 连接投递' },
     { label:'SPF/DKIM/DMARC', value:'现代反垃圾三件套：SPF 限制合法发送 IP；DKIM 对邮件签名防篡改；DMARC 定义验证失败的处置策略' },
+    { label:'SMTP vs POP3/IMAP', value:'SMTP 只负责发送（端口 25/587/465）；POP3（110/995）下载后从服务器删除；IMAP（143/993）多端同步，邮件留存服务器——现代用 IMAP' },
   ],
   quiz: [
     { q:'SMTP 客户端提交邮件应使用哪个端口？',

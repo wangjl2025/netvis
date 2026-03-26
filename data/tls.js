@@ -33,7 +33,7 @@
             { name:'key_share', val:'X25519 公钥', desc:'服务端的 ECDH 公钥，和客户端公钥一起派生共享密钥', highlight:true, derive:'' },
             { name:'Certificate', val:'X.509 证书链', desc:'含服务端公钥，由 CA（如 Let\'s Encrypt）签名', highlight:true, derive:'' },
             { name:'CertificateVerify', val:'数字签名', desc:'用证书私钥对握手记录签名，证明拥有证书私钥', highlight:false, derive:'' },
-            { name:'Finished', val:'HMAC 校验', body:'所有握手消息的 MAC，防止篡改', highlight:false, derive:'' },
+            { name:'Finished', val:'HMAC 校验', desc:'所有握手消息的 MAC，防止中间人篡改握手记录', highlight:false, derive:'' },
           ],
           narration:'TLS 1.3 在同一个消息流中发送 ServerHello、Certificate、Finished，1 个 RTT 即可完成服务端部分。核心密钥派生：双方用各自的 ECDH 私钥 + 对方公钥，通过 DH 算法独立推导出相同的 shared_secret，该过程无需传输密钥本身，即使抓包也无法获取密钥（前向保密）。',
         },

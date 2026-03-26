@@ -14,23 +14,24 @@
   'use strict';
 
   const STORAGE_KEY = 'netviz_progress';
-  const TOTAL = 13;
+  const TOTAL = 14;
 
-  // 13 个协议的展示名称和图标（用于弹窗）
+  // 14 个协议的展示名称和图标（用于弹窗）
   const PROTO_INFO = {
-    tcp3:      { name: 'TCP 三次握手', icon: '🤝' },
-    tcp4:      { name: 'TCP 四次挥手', icon: '🔁' },
-    http:      { name: 'HTTP/1.1',    icon: '📡' },
-    tls:       { name: 'TLS 1.3',     icon: '🔒' },
-    dns:       { name: 'DNS 解析',    icon: '🌐' },
-    udp:       { name: 'UDP 数据报',  icon: '💨' },
-    arp:       { name: 'ARP 地址解析',icon: '📋' },
-    icmp:      { name: 'ICMP / Ping', icon: '🏓' },
-    dhcp:      { name: 'DHCP',        icon: '📨' },
-    smtp:      { name: 'SMTP 邮件',   icon: '📧' },
-    websocket: { name: 'WebSocket',   icon: '🔌' },
-    ssh:       { name: 'SSH 安全登录',icon: '🔐' },
-    nat:       { name: 'NAT 地址转换',icon: '🌍' },
+    tcp3:      { name: 'TCP 三次握手',  icon: '🤝' },
+    tcp4:      { name: 'TCP 四次挥手',  icon: '🔁' },
+    http:      { name: 'HTTP/1.1',     icon: '📡' },
+    tls:       { name: 'TLS 1.3',      icon: '🔒' },
+    dns:       { name: 'DNS 解析',     icon: '🌐' },
+    udp:       { name: 'UDP 数据报',   icon: '💨' },
+    arp:       { name: 'ARP 地址解析', icon: '📋' },
+    icmp:      { name: 'ICMP / Ping',  icon: '🏓' },
+    dhcp:      { name: 'DHCP',         icon: '📨' },
+    smtp:      { name: 'SMTP 邮件',    icon: '📧' },
+    websocket: { name: 'WebSocket',    icon: '🔌' },
+    ssh:       { name: 'SSH 安全登录', icon: '🔐' },
+    nat:       { name: 'NAT 地址转换', icon: '🌍' },
+    tcpcong:   { name: 'TCP 拥塞控制', icon: '📈' },
   };
 
   /* ── 数据读写 ── */
