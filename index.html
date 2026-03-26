@@ -575,7 +575,7 @@ body {
   background:var(--blue-500); flex-shrink:0;
 }
 .list-grid {
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:12px;
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:12px;
 }
 
 /* ============================================================
@@ -1569,8 +1569,9 @@ body {
     .hero h1 { font-size: 1.8rem !important; }
     .hero p  { font-size: 0.95rem !important; }
 
-    /* 协议卡片：手机两列 */
-    .protocol-grid {
+    /* 协议卡片：手机两列（首页 + 协议库页统一） */
+    .protocol-grid,
+    .list-grid {
       grid-template-columns: repeat(2, 1fr) !important;
       gap: 10px !important;
     }
@@ -1639,7 +1640,8 @@ body {
   }
 
   @media (max-width: 480px) {
-    .protocol-grid {
+    .protocol-grid,
+    .list-grid {
       grid-template-columns: 1fr !important;
     }
     .hero h1 { font-size: 1.4rem !important; }
