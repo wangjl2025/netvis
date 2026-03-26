@@ -949,10 +949,51 @@ body {
 /* ============================================================
    响应式
    ============================================================ */
+
+/* ── 平板（960px 以下）：上下堆叠，保留侧边面板 ── */
 @media (max-width: 960px) {
-  .player-layout { grid-template-columns:1fr; }
-  .player-panel  { display:none; }
+  /* 播放器从左右 Grid → 上下 Flex */
+  .player-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 56px);
+    overflow: visible;
+  }
+  /* 主区域：画布 + 控制栏，不再固定高度 */
+  .player-main {
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-1);
+    overflow: visible;
+  }
+  /* 动画画布：限高，内部允许横向滚动 */
+  .animation-canvas {
+    height: 380px;
+    min-height: 280px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  /* 侧边面板：变为下方全宽，不再隐藏 */
+  .player-panel {
+    display: flex;
+    flex: none;
+    width: 100%;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-top: 1px solid var(--border-1);
+  }
+  /* 协议 tab 允许横向滚动 */
+  .protocol-switcher {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .protocol-switcher::-webkit-scrollbar { display: none; }
 }
+
+/* ── 手机（640px 以下）：进一步精简 ── */
 @media (max-width: 640px) {
   .nav { padding:0 16px; }
   .hero { padding:56px 16px 48px; }
@@ -963,7 +1004,39 @@ body {
   .stat-num { font-size:26px; }
   .filter-bar { padding:16px; }
   .list-content { padding:20px 16px 40px; }
-  .player-controls { padding:11px 14px; gap:4px; }
+
+  /* 控制栏缩小间距 */
+  .player-controls { padding:9px 10px; gap:4px; flex-wrap:wrap; }
+
+  /* 画布高度压缩一点 */
+  .animation-canvas { height:320px; }
+
+  /* 顶栏 actions 折叠：隐藏分享/对比按钮，只保留标题 */
+  .player-actions .btn-ghost:not(#abnormalBtn) { display:none; }
+
+  /* progress-area 不截断 */
+  .progress-area { min-width: 0; }
+
+  /* 速度选择器缩小 */
+  .speed-select { padding:4px 6px; font-size:11px; }
+
+  /* step dot 稍大一点便于点击 */
+  .step-dot { width:9px; height:9px; }
+
+  /* 侧面板最大高度稍小 */
+  .player-panel { max-height: 50vh; }
+
+  /* 顶栏面包屑 + 标题压缩 */
+  .player-topbar { padding:10px 12px; gap:8px; }
+  .player-title  { font-size:13px; }
+
+  /* 自定义参数栏换行 */
+  .custom-seq-bar {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+  .custom-seq-hint { display:none; }
 }
 
 /* ============================================================
@@ -1431,12 +1504,11 @@ body {
   align-self:center; flex-shrink:0;
 }
 
-  /* ── 移动端响应式适配 ─────────────────────────────────── */
+  /* ── 移动端响应式适配（统一版） ─────────────────────────── */
   @media (max-width: 768px) {
     body { font-size: 14px; }
-
-    .hero h1 { font-size: 1.8rem; }
-    .hero p  { font-size: 0.95rem; }
+    .hero h1 { font-size: 1.8rem !important; }
+    .hero p  { font-size: 0.95rem !important; }
 
     /* 协议卡片：手机两列 */
     .protocol-grid {
@@ -1449,45 +1521,53 @@ body {
 
     /* Modal 全屏 */
     .modal-content {
-      width: 100% !important;
-      max-width: 100% !important;
+      width: 100vw !important;
+      max-width: 100vw !important;
       height: 100vh !important;
       max-height: 100vh !important;
       border-radius: 0 !important;
       margin: 0 !important;
-      overflow-y: auto;
+      top: 0 !important; left: 0 !important;
+      transform: none !important;
     }
     .modal-header { padding: 12px 16px !important; }
-    .modal-body   { padding: 12px !important; }
+    .modal-body   { padding: 10px !important; overflow-y: auto; }
 
-    /* 时序图：允许横向滚动 */
-    #diagram-area, .diagram-canvas {
+    /* 播放器内各画布：允许横向滚动，设最小宽度保证可读 */
+    .animation-canvas {
       overflow-x: auto !important;
+      overflow-y: hidden;
+    }
+    #tcpDiagram, #tcp4Diagram, #httpDiagram, #tlsDiagram,
+    #udpDiagram, #compareCanvas {
+      min-width: 480px;
+      overflow-x: auto;
+    }
+    #genericDiagram {
       min-width: 420px;
+      overflow-x: auto;
     }
-    .diagram-wrapper {
+    /* DNS 画布：节点卡片行允许横向滚动 */
+    #dnsCanvas {
+      overflow-x: auto;
+      min-width: 460px;
+    }
+    .dns-nodes-row {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .dns-node { min-width: 72px; }
+
+    /* 字段表格横向滚动 */
+    .fields-table-wrap, .packet-fields {
       overflow-x: auto !important;
     }
+    .fields-table { min-width: 360px; }
 
-    /* 步骤按钮区 */
-    .step-controls {
-      flex-wrap: wrap !important;
-      gap: 6px !important;
-    }
-    .step-btn {
-      padding: 6px 10px !important;
-      font-size: 0.8rem !important;
-    }
-
-    /* 步骤列表：手机单列 */
-    .steps-list {
-      grid-template-columns: 1fr !important;
-    }
-
-    /* 知识卡片 */
-    .knowledge-cards {
-      grid-template-columns: 1fr !important;
-    }
+    /* 知识卡片、步骤列表：单列 */
+    .steps-list      { grid-template-columns: 1fr !important; }
+    .knowledge-cards { grid-template-columns: 1fr !important; }
 
     /* 思考题选项 */
     .quiz-option {
@@ -1495,81 +1575,8 @@ body {
       font-size: 0.85rem !important;
     }
 
-    /* 字段表格横向滚动 */
-    .fields-table-wrap {
-      overflow-x: auto !important;
-    }
-    .fields-table { min-width: 360px; }
-
-    /* 导航栏 */
+    /* 导航栏隐藏链接 */
     nav .nav-links { display: none !important; }
-  }
-
-  @media (max-width: 480px) {
-    .protocol-grid {
-      grid-template-columns: 1fr !important;
-    }
-    .hero h1 { font-size: 1.4rem; }
-  }
-
-
-  /* mobile-responsive-start */
-  @media (max-width: 768px) {
-    body { font-size: 14px; }
-    .hero h1 { font-size: 1.8rem !important; }
-    .hero p  { font-size: 0.95rem !important; }
-
-    .protocol-grid {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 10px !important;
-    }
-    .protocol-card { padding: 14px 10px !important; }
-    .protocol-card .protocol-icon { font-size: 1.6rem !important; }
-    .protocol-card h3 { font-size: 0.85rem !important; }
-
-    .modal-content {
-      width: 100vw !important;
-      max-width: 100vw !important;
-      height: 100vh !important;
-      max-height: 100vh !important;
-      border-radius: 0 !important;
-      margin: 0 !important;
-      top: 0 !important;
-      left: 0 !important;
-      transform: none !important;
-    }
-    .modal-header { padding: 12px 16px !important; }
-    .modal-body   { padding: 10px !important; overflow-y: auto; }
-
-    #diagram-area {
-      overflow-x: auto !important;
-    }
-    .diagram-canvas, .diagram-wrapper, #genericDiagram {
-      min-width: 400px;
-      overflow-x: auto !important;
-    }
-
-    .step-controls {
-      flex-wrap: wrap !important;
-      gap: 6px !important;
-    }
-    .step-btn, .btn-step {
-      padding: 6px 10px !important;
-      font-size: 0.8rem !important;
-    }
-    .steps-list {
-      grid-template-columns: 1fr !important;
-    }
-    .knowledge-cards {
-      grid-template-columns: 1fr !important;
-    }
-    .quiz-option {
-      padding: 8px 12px !important;
-      font-size: 0.85rem !important;
-    }
-    .packet-fields, .fields-table-wrap {
-      overflow-x: auto !important;
-    }
   }
 
   @media (max-width: 480px) {
@@ -1580,7 +1587,6 @@ body {
     .hero p  { font-size: 0.88rem !important; }
     .protocol-card h3 { font-size: 0.8rem !important; }
   }
-  /* mobile-responsive-end */
 
 </style>
 </head>
