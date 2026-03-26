@@ -513,6 +513,65 @@ body {
 }
 .list-section-dot {
   width:6px; height:6px; border-radius:50%;
+}
+/* 层级英文标签 */
+.layer-badge {
+  font-size:10px; font-weight:500; letter-spacing:0.04em;
+  padding:2px 7px; border-radius:4px;
+  text-transform:none;
+}
+/* 协议完成徽章 slot */
+.card-badge-slot {
+  display:inline-flex; align-items:center;
+  font-size:12px; margin-left:2px;
+  transition:opacity 0.2s;
+}
+.card-badge-slot.unlocked::after {
+  content:'✅';
+}
+/* 首页学习进度条（由 badge.js 填充） */
+.progress-bar-wrap {
+  max-width:1200px; margin:0 auto 4px;
+  padding:14px 28px 0;
+  display:none; /* badge.js 初始化后显示 */
+}
+.progress-bar-inner {
+  display:flex; align-items:center; gap:12px;
+}
+.progress-bar-track {
+  flex:1; height:5px; background:var(--border-1); border-radius:99px; overflow:hidden;
+}
+.progress-bar-fill {
+  height:100%; border-radius:99px;
+  background:linear-gradient(90deg, var(--accent-cyan), var(--blue-400));
+  transition:width 0.5s cubic-bezier(0.4,0,0.2,1);
+  width:0%;
+}
+.progress-bar-text {
+  font-size:12px; color:var(--text-3); white-space:nowrap; flex-shrink:0;
+}
+.progress-bar-text strong { color:var(--accent-cyan); }
+
+/* 完成弹窗 */
+.badge-toast {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:var(--bg-card); border:1px solid var(--accent-cyan);
+  border-radius:12px; padding:12px 20px;
+  display:flex; align-items:center; gap:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(34,211,238,0.15);
+  z-index:9999; pointer-events:none;
+  transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s;
+  opacity:0;
+  min-width:220px; max-width:340px;
+}
+.badge-toast.show {
+  transform:translateX(-50%) translateY(0);
+  opacity:1;
+}
+.badge-toast-icon { font-size:22px; flex-shrink:0; }
+.badge-toast-text { font-size:13px; line-height:1.4; }
+.badge-toast-title { font-weight:600; color:var(--text-1); }
+.badge-toast-sub   { color:var(--text-3); font-size:12px; }
   background:var(--blue-500); flex-shrink:0;
 }
 .list-grid {
@@ -1866,6 +1925,14 @@ body {
     <p class="list-page-desc">22+ 协议动画，覆盖 OSI 五层，从入门到深入</p>
   </div>
 
+  <!-- 学习进度条（由 badge.js 驱动，初始隐藏） -->
+  <div class="progress-bar-wrap" id="progressBarWrap">
+    <div class="progress-bar-inner">
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBarFill"></div></div>
+      <div class="progress-bar-text" id="progressBarText"><strong>0</strong> / 12 已完成</div>
+    </div>
+  </div>
+
   <div class="filter-bar" role="toolbar" aria-label="筛选协议">
     <button class="filter-tag active" data-filter="all">全部</button>
     <div class="filter-sep" aria-hidden="true"></div>
@@ -1888,13 +1955,13 @@ body {
     <!-- 应用层 -->
     <div class="list-section-title">
       <span class="list-section-dot" style="background:var(--cyan-400)"></span>
-      应用层
+      应用层 <span class="layer-badge" style="background:rgba(34,211,238,0.12);color:var(--cyan-400)">Application Layer</span>
     </div>
     <div class="list-grid">
-      <div class="protocol-card" style="--card-color:var(--cyan-400)" onclick="openProtocol('dns')">
+      <div class="protocol-card" style="--card-color:var(--cyan-400)" onclick="openProtocol('dns')" data-proto="dns">
         <div class="card-header">
           <div class="card-icon" style="background:var(--cyan-subtle);border:1px solid rgba(34,211,238,0.22)">🌐</div>
-          <div class="card-badges"><span class="badge badge-easy">入门</span></div>
+          <div class="card-badges"><span class="badge badge-easy">入门</span><span class="card-badge-slot" data-proto="dns"></span></div>
         </div>
         <div class="card-title">DNS 解析</div>
         <div class="card-desc">域名 → IP 的全链路递归查询过程</div>
@@ -1903,10 +1970,10 @@ body {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card" style="--card-color:var(--green-400)" onclick="openProtocol('http')">
+      <div class="protocol-card" style="--card-color:var(--green-400)" onclick="openProtocol('http')" data-proto="http">
         <div class="card-header">
           <div class="card-icon" style="background:var(--green-subtle);border:1px solid rgba(52,211,153,0.22)">📡</div>
-          <div class="card-badges"><span class="badge badge-easy">入门</span></div>
+          <div class="card-badges"><span class="badge badge-easy">入门</span><span class="card-badge-slot" data-proto="http"></span></div>
         </div>
         <div class="card-title">HTTP/1.1</div>
         <div class="card-desc">请求 / 响应报文结构与状态码</div>
@@ -1915,10 +1982,10 @@ body {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card" style="--card-color:var(--purple-400)" onclick="openProtocol('tls')">
+      <div class="protocol-card" style="--card-color:var(--purple-400)" onclick="openProtocol('tls')" data-proto="tls">
         <div class="card-header">
           <div class="card-icon" style="background:var(--purple-subtle);border:1px solid rgba(167,139,250,0.22)">🔒</div>
-          <div class="card-badges"><span class="badge badge-medium">进阶</span></div>
+          <div class="card-badges"><span class="badge badge-medium">进阶</span><span class="card-badge-slot" data-proto="tls"></span></div>
         </div>
         <div class="card-title">TLS 1.3</div>
         <div class="card-desc">密钥交换、证书验证、加密隧道建立</div>
@@ -1939,10 +2006,10 @@ body {
           <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
         </div>
       </div>
-      <div class="protocol-card" style="--card-color:var(--orange-400)" onclick="openProtocol('dhcp')">
+      <div class="protocol-card" style="--card-color:var(--orange-400)" onclick="openProtocol('dhcp')" data-proto="dhcp">
         <div class="card-header">
           <div class="card-icon" style="background:var(--orange-subtle);border:1px solid rgba(251,191,36,0.22)">📨</div>
-          <div class="card-badges"><span class="badge badge-easy">入门</span></div>
+          <div class="card-badges"><span class="badge badge-easy">入门</span><span class="card-badge-slot" data-proto="dhcp"></span></div>
         </div>
         <div class="card-title">DHCP</div>
         <div class="card-desc">自动获取 IP 地址的四步交互流程</div>
@@ -1951,10 +2018,10 @@ body {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card" style="--card-color:var(--cyan-400)" onclick="openProtocol('websocket')">
+      <div class="protocol-card" style="--card-color:var(--cyan-400)" onclick="openProtocol('websocket')" data-proto="websocket">
         <div class="card-header">
           <div class="card-icon" style="background:var(--cyan-subtle);border:1px solid rgba(34,211,238,0.22)">🔌</div>
-          <div class="card-badges"><span class="badge badge-medium">进阶</span></div>
+          <div class="card-badges"><span class="badge badge-medium">进阶</span><span class="card-badge-slot" data-proto="websocket"></span></div>
         </div>
         <div class="card-title">WebSocket 握手</div>
         <div class="card-desc">从 HTTP Upgrade 到全双工连接建立</div>
@@ -1963,10 +2030,10 @@ body {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card" style="--card-color:var(--red-400)" onclick="openProtocol('smtp')">
+      <div class="protocol-card" style="--card-color:var(--red-400)" onclick="openProtocol('smtp')" data-proto="smtp">
         <div class="card-header">
           <div class="card-icon" style="background:var(--red-subtle);border:1px solid rgba(248,113,113,0.22)">📧</div>
-          <div class="card-badges"><span class="badge badge-easy">入门</span></div>
+          <div class="card-badges"><span class="badge badge-easy">入门</span><span class="card-badge-slot" data-proto="smtp"></span></div>
         </div>
         <div class="card-title">SMTP 邮件发送</div>
         <div class="card-desc">从客户端到服务器的邮件投递握手与传输流程</div>
@@ -1999,16 +2066,16 @@ body {
           <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
         </div>
       </div>
-      <div class="protocol-card coming-soon" style="--card-color:var(--green-400)" title="即将上线">
+      <div class="protocol-card" style="--card-color:var(--green-400)" onclick="openProtocol('ssh')" data-proto="ssh">
         <div class="card-header">
           <div class="card-icon" style="background:var(--green-subtle);border:1px solid rgba(52,211,153,0.22)">🔐</div>
           <div class="card-badges"><span class="badge badge-medium">进阶</span></div>
         </div>
-        <div class="card-title">SSH 安全登录</div>
+        <div class="card-title">SSH 安全登录<span class="card-badge-slot" data-proto="ssh"></span></div>
         <div class="card-desc">密钥交换、身份认证、加密通道建立的完整流程</div>
         <div class="card-meta">
-          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>9 步</div>
-          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>6 步</div>
+          <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
     </div>
@@ -2016,13 +2083,13 @@ body {
     <!-- 传输层 -->
     <div class="list-section-title">
       <span class="list-section-dot" style="background:var(--blue-400)"></span>
-      传输层
+      传输层 <span class="layer-badge" style="background:rgba(79,142,247,0.12);color:var(--blue-400)">Transport Layer</span>
     </div>
     <div class="list-grid">
-      <div class="protocol-card" style="--card-color:var(--blue-400)" onclick="openProtocol('tcp3')">
+      <div class="protocol-card" style="--card-color:var(--blue-400)" onclick="openProtocol('tcp3')" data-proto="tcp3">
         <div class="card-header">
           <div class="card-icon" style="background:var(--blue-subtle);border:1px solid rgba(79,142,247,0.22)">🤝</div>
-          <div class="card-badges"><span class="badge badge-easy">入门</span></div>
+          <div class="card-badges"><span class="badge badge-easy">入门</span><span class="card-badge-slot" data-proto="tcp3"></span></div>
         </div>
         <div class="card-title">TCP 三次握手</div>
         <div class="card-desc">SYN · SYN-ACK · ACK 建连全过程</div>
@@ -2031,10 +2098,10 @@ body {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card" style="--card-color:var(--red-400)" onclick="openProtocol('tcp4')">
+      <div class="protocol-card" style="--card-color:var(--red-400)" onclick="openProtocol('tcp4')" data-proto="tcp4">
         <div class="card-header">
           <div class="card-icon" style="background:var(--red-subtle);border:1px solid rgba(248,113,113,0.22)">🔁</div>
-          <div class="card-badges"><span class="badge badge-medium">进阶</span></div>
+          <div class="card-badges"><span class="badge badge-medium">进阶</span><span class="card-badge-slot" data-proto="tcp4"></span></div>
         </div>
         <div class="card-title">TCP 四次挥手</div>
         <div class="card-desc">FIN · ACK 断连流程与 TIME_WAIT</div>
@@ -2055,24 +2122,24 @@ body {
           <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
         </div>
       </div>
-      <div class="protocol-card" style="--card-color:var(--green-400)" onclick="openProtocol('udp')" tabindex="0" role="button" aria-label="UDP 数据报">
+      <div class="protocol-card" style="--card-color:var(--green-400)" onclick="openProtocol('udp')" data-proto="udp" tabindex="0" role="button" aria-label="UDP 数据报">
         <div class="card-header">
           <div class="card-icon" style="background:var(--green-subtle);border:1px solid rgba(52,211,153,0.22)">💨</div>
-          <div class="card-badges"><span class="badge badge-easy">入门</span></div>
+          <div class="card-badges"><span class="badge badge-easy">入门</span><span class="card-badge-slot" data-proto="udp"></span></div>
         </div>
         <div class="card-title">UDP 数据报</div>
         <div class="card-desc">无连接传输与 TCP 的对比差异</div>
         <div class="card-meta">
           <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>4 步</div>
-          <div class="card-cta">开始学习 →</div>
+          <div class="card-cta">学习 →</div>
         </div>
       </div>
     </div>
 
-    <!-- 网络层 & 链路层 -->
+    <!-- 网络层 -->
     <div class="list-section-title">
       <span class="list-section-dot" style="background:var(--purple-400)"></span>
-      网络层 &amp; 数据链路层
+      网络层 <span class="layer-badge" style="background:rgba(167,139,250,0.12);color:var(--purple-400)">Network Layer</span>
     </div>
     <div class="list-grid">
       <div class="protocol-card coming-soon" style="--card-color:var(--purple-400)" title="即将上线">
@@ -2087,34 +2154,10 @@ body {
           <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
         </div>
       </div>
-      <div class="protocol-card" style="--card-color:var(--cyan-400)" onclick="openProtocol('arp')">
-        <div class="card-header">
-          <div class="card-icon" style="background:var(--cyan-subtle);border:1px solid rgba(34,211,238,0.22)">📋</div>
-          <div class="card-badges"><span class="badge badge-easy">入门</span></div>
-        </div>
-        <div class="card-title">ARP 地址解析</div>
-        <div class="card-desc">IP 地址 → MAC 地址的广播查询过程</div>
-        <div class="card-meta">
-          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>5 步</div>
-          <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
-        </div>
-      </div>
-      <div class="protocol-card coming-soon" style="--card-color:var(--orange-400)" title="即将上线">
-        <div class="card-header">
-          <div class="card-icon" style="background:var(--orange-subtle);border:1px solid rgba(251,191,36,0.22)">🔢</div>
-          <div class="card-badges"><span class="badge badge-hard">深入</span></div>
-        </div>
-        <div class="card-title">OSPF 链路状态路由</div>
-        <div class="card-desc">LSA 泛洪、LSDB 同步、SPF 最短路计算</div>
-        <div class="card-meta">
-          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>14 步</div>
-          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
-        </div>
-      </div>
-      <div class="protocol-card" style="--card-color:var(--red-400)" onclick="openProtocol('icmp')">
+      <div class="protocol-card" style="--card-color:var(--red-400)" onclick="openProtocol('icmp')" data-proto="icmp">
         <div class="card-header">
           <div class="card-icon" style="background:var(--red-subtle);border:1px solid rgba(248,113,113,0.22)">🏓</div>
-          <div class="card-badges"><span class="badge badge-easy">入门</span></div>
+          <div class="card-badges"><span class="badge badge-easy">入门</span><span class="card-badge-slot" data-proto="icmp"></span></div>
         </div>
         <div class="card-title">ICMP / Ping</div>
         <div class="card-desc">网络诊断报文、Ping 往返测量与 Traceroute 路径追踪</div>
@@ -2135,6 +2178,18 @@ body {
           <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
         </div>
       </div>
+      <div class="protocol-card coming-soon" style="--card-color:var(--orange-400)" title="即将上线">
+        <div class="card-header">
+          <div class="card-icon" style="background:var(--orange-subtle);border:1px solid rgba(251,191,36,0.22)">🔢</div>
+          <div class="card-badges"><span class="badge badge-hard">深入</span></div>
+        </div>
+        <div class="card-title">OSPF 链路状态路由</div>
+        <div class="card-desc">LSA 泛洪、LSDB 同步、SPF 最短路计算</div>
+        <div class="card-meta">
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>14 步</div>
+          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+        </div>
+      </div>
       <div class="protocol-card coming-soon" style="--card-color:var(--blue-400)" title="即将上线">
         <div class="card-header">
           <div class="card-icon" style="background:var(--blue-subtle);border:1px solid rgba(79,142,247,0.22)">🛤️</div>
@@ -2145,6 +2200,26 @@ body {
         <div class="card-meta">
           <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>12 步</div>
           <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据链路层 -->
+    <div class="list-section-title">
+      <span class="list-section-dot" style="background:var(--orange-400)"></span>
+      数据链路层 <span class="layer-badge" style="background:rgba(251,191,36,0.12);color:var(--orange-400)">Data Link Layer</span>
+    </div>
+    <div class="list-grid">
+      <div class="protocol-card" style="--card-color:var(--cyan-400)" onclick="openProtocol('arp')" data-proto="arp">
+        <div class="card-header">
+          <div class="card-icon" style="background:var(--cyan-subtle);border:1px solid rgba(34,211,238,0.22)">📋</div>
+          <div class="card-badges"><span class="badge badge-easy">入门</span><span class="card-badge-slot" data-proto="arp"></span></div>
+        </div>
+        <div class="card-title">ARP 地址解析</div>
+        <div class="card-desc">IP 地址 → MAC 地址的广播查询过程</div>
+        <div class="card-meta">
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>5 步</div>
+          <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
       <div class="protocol-card coming-soon" style="--card-color:var(--cyan-400)" title="即将上线">
@@ -4091,9 +4166,15 @@ function rebuildSidePanel() {
 function gotoStep(step) {
   currentStep = Math.max(1, Math.min(totalSteps, step));
   renderStep();
+  // 徽章钩子：走到最后一步时通知 badge 模块
+  if (currentStep === totalSteps && window.NetVizModules?.badge) {
+    window.NetVizModules.badge.onProtocolComplete(currentProto);
+  }
 }
 function nextStep() { if (currentStep < totalSteps) gotoStep(currentStep + 1); }
 function prevStep() { if (currentStep > 1) gotoStep(currentStep - 1); }
+
+
 
 /* ════════════════════════════════════════════
    数据包飞行动画
@@ -4511,6 +4592,22 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(function() {
     ['udp','smtp','websocket','ssh','dhcp','icmp','arp'].forEach(loadKey);
   }, 2000);
+})();
+</script>
+
+<!-- ── 功能模块：延迟加载，不阻塞首屏 ── -->
+<script>
+(function() {
+  function loadModule(src) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    document.body.appendChild(s);
+  }
+  // badge.js：页面加载完成后 500ms 加载，给首屏渲染让路
+  window.addEventListener('load', function() {
+    setTimeout(function() { loadModule('modules/badge.js'); }, 500);
+  });
 })();
 </script>
 </body>
