@@ -2,7 +2,7 @@
 
 > 交互式网络协议动画学习平台 — 让抽象协议变得可见、可操作、可理解
 
-🔗 **在线访问**：[https://你的用户名.github.io/neetwork/](https://github.io)
+🔗 **在线访问**：[https://wangjl2025.github.io/netvis/](https://wangjl2025.github.io/netvis/)
 
 ---
 
