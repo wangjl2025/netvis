@@ -3,7 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>NetViz — 网络协议可视化学习平台</title>
+<title>NetViz — 网络协议可视化学习平台 | TCP/IP/DNS/HTTP/TLS 动画教程</title>
+
+<!-- ══ SEO ══════════════════════════════════════════════════════════ -->
+<meta name="description" content="NetViz：中文网络协议可视化学习平台。15+ 协议步进动画（TCP握手、DNS解析、HTTP/HTTPS、TLS加密、UDP、ARP、DHCP等），覆盖 OSI 五层，附知识点详解和错误演练，适合计算机/网工专业学生和自学开发者。">
+<meta name="keywords" content="网络协议可视化,TCP三次握手,DNS解析,HTTP HTTPS对比,TLS握手,UDP,ARP,DHCP,网络协议动画,计算机网络学习,OSI模型,TCP/IP,网络工程,网络安全">
+<meta name="author" content="NetViz">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://wangjl2025.github.io/netvis/">
+
+<!-- ══ Open Graph（微信/Slack/Twitter 分享卡片）══════════════════════ -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="NetViz — 网络协议可视化学习平台">
+<meta property="og:description" content="15+ 协议步进动画，TCP/DNS/HTTP/TLS/ARP 全覆盖，中文深度教学，附知识点详解和错误演练模式。">
+<meta property="og:url" content="https://wangjl2025.github.io/netvis/">
+<meta property="og:site_name" content="NetViz">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wangjl2025.github.io/netvis/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="NetViz 网络协议可视化平台截图">
+
+<!-- ══ Twitter Card ══════════════════════════════════════════════════ -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NetViz — 网络协议可视化学习平台">
+<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/ARP 等 15+ 协议步进动画，中文深度教学">
+<meta name="twitter:image" content="https://wangjl2025.github.io/netvis/og-image.png">
+
+<!-- ══ JSON-LD 结构化数据 ════════════════════════════════════════════ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "NetViz 网络协议可视化学习平台",
+  "description": "中文·步进交互·深度教学的网络协议可视化平台。15+ 协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、UDP、ARP、DHCP、ICMP、NAT、IP路由、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
+  "url": "https://wangjl2025.github.io/netvis/",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "author": {
+    "@type": "Person",
+    "name": "NetViz"
+  },
+  "audience": {
+    "@type": "EducationalAudience",
+    "educationalRole": "student"
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "计算机网络协议",
+    "description": "TCP/IP、OSI模型、应用层/传输层/网络层/数据链路层协议"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "CNY"
+  }
+}
+</script>
+<!-- ════════════════════════════════════════════════════════════════ -->
 <!-- 预加载所有协议数据（按需后台加载，主 HTML 体积更小）-->
 <script>
 // 协议数据目录，页面加载后按需动态加载
@@ -2106,6 +2165,9 @@ body {
       <button class="btn btn-primary drill-entry-btn" onclick="DrillModule && DrillModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap">
         <span style="font-size:16px">🎯</span> 错误演练
       </button>
+      <button class="btn btn-ghost" onclick="FlashcardModule && FlashcardModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap;border-color:rgba(79,142,247,0.3);color:rgba(79,142,247,1)" title="翻转速记卡，快速记忆协议知识点">
+        <span style="font-size:16px">📚</span> 速记卡
+      </button>
     </div>
   </div>
 
@@ -2470,6 +2532,9 @@ body {
         </button>
         <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" onclick="DrillModule && DrillModule.open()">
           🎯 演练
+        </button>
+        <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" onclick="FlashcardModule && FlashcardModule.open()" title="速记卡">
+          📚 速记卡
         </button>
       </div>
     </div>
@@ -5503,6 +5568,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(function() { loadModule('modules/share.js'); }, 1200);
     // drill.js：错误演练模式，最后加载
     setTimeout(function() { loadModule('modules/drill.js'); }, 1800);
+    // flashcard.js：速记卡模块，延迟加载
+    setTimeout(function() { loadModule('modules/flashcard.js'); }, 2200);
   });
 })();
 </script>
