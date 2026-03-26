@@ -2166,16 +2166,16 @@ body {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card coming-soon" style="--card-color:var(--green-400)" title="即将上线">
+      <div class="protocol-card" style="--card-color:var(--green-400)" onclick="openProtocol('nat')" data-proto="nat">
         <div class="card-header">
           <div class="card-icon" style="background:var(--green-subtle);border:1px solid rgba(52,211,153,0.22)">🌍</div>
-          <div class="card-badges"><span class="badge badge-medium">进阶</span></div>
+          <div class="card-badges"><span class="badge badge-medium">进阶</span><span class="card-badge-slot" data-proto="nat"></span></div>
         </div>
         <div class="card-title">NAT 地址转换</div>
-        <div class="card-desc">私有 IP 到公网 IP 的映射，SNAT/DNAT/PAT 全解析</div>
+        <div class="card-desc">私有 IP 到公网 IP 的映射，SNAT/DNAT 地址转换全过程</div>
         <div class="card-meta">
-          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>6 步</div>
-          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>5 步</div>
+          <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
       <div class="protocol-card coming-soon" style="--card-color:var(--orange-400)" title="即将上线">
@@ -3231,7 +3231,6 @@ const CARD_META = {
   icmp:      { layer:'network',   level:'easy',   title:'icmp ping traceroute 诊断' },
   nat:       { layer:'network',   level:'medium', title:'nat 地址转换 snat dnat 公网' },
   bgp:       { layer:'network',   level:'hard',   title:'bgp 边界网关 as 路由' },
-  // 数据链路层
   arp:       { layer:'link',      level:'easy',   title:'arp 地址解析 mac' },
   vlan:      { layer:'link',      level:'medium', title:'vlan 虚拟局域网 802.1q trunk' },
 };
@@ -3374,11 +3373,32 @@ function showToast(msg, type = 'info') {
    分享功能
 ════════════════════════════════════════════ */
 function shareProtocol() {
+  // 优先使用海报截图模式（需要 share.js 已加载）
+  const shareModule = window.NetVizModules && window.NetVizModules.share;
+  if (shareModule) {
+    // 收集当前协议和步骤信息
+    const pid        = activeProtocol || 'tcp3';
+    const meta       = (typeof PROTO_META !== 'undefined') ? PROTO_META[pid] : null;
+    const protoTitle = meta ? meta.title : pid;
+
+    // 读取当前步骤（currentStep 是 1-based）
+    const db         = protocolDB[pid];
+    const stepIdx    = typeof currentStep === 'number' ? currentStep - 1 : 0;
+    const steps      = db && db.steps ? db.steps : [];
+    const stepObj    = steps[stepIdx] || {};
+    const stepTitle  = stepObj.title  || '';
+    const stepEmoji  = stepObj.emoji  || '📡';
+    const totalSteps = steps.length;
+
+    shareModule.shareStep(protoTitle, stepTitle, stepEmoji, currentStep, totalSteps);
+    return;
+  }
+
+  // 降级：复制链接
   const url = window.location.href.split('#')[0] + '#player';
   if (navigator.clipboard) {
     navigator.clipboard.writeText(url).then(() => showToast('✓ 链接已复制到剪贴板', 'success'));
   } else {
-    // 降级：创建临时 input
     const tmp = document.createElement('input');
     tmp.value = url;
     document.body.appendChild(tmp);
@@ -3545,6 +3565,11 @@ const PROTO_META = {
     title:  'SSH 安全远程登录',
     layer:  '应用层',
     nodes:  { leftIcon:'💻', leftName:'SSH 客户端', leftSub:'用户终端 / ssh user@host', rightIcon:'🖥', rightName:'SSH 服务器', rightSub:'sshd / 22端口' },
+  },
+  nat: {
+    title:  'NAT 地址转换',
+    layer:  '网络层',
+    nodes:  { leftIcon:'💻', leftName:'内网主机', leftSub:'192.168.1.100（私有 IP）', rightIcon:'🌐', rightName:'公网服务器', rightSub:'8.8.8.8（公网 IP）' },
   },
   dns: {
     title:  'DNS 解析全过程',
@@ -4608,7 +4633,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 优先加载 tab 栏前几个
   ['tcp4','http','tls','dns'].forEach(loadKey);
   setTimeout(function() {
-    ['udp','smtp','websocket','ssh','dhcp','icmp','arp'].forEach(loadKey);
+    ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat'].forEach(loadKey);
   }, 2000);
 })();
 </script>
@@ -4625,6 +4650,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // badge.js：页面加载完成后 500ms 加载，给首屏渲染让路
   window.addEventListener('load', function() {
     setTimeout(function() { loadModule('modules/badge.js'); }, 500);
+    // share.js：稍晚一点加载，不影响首屏和 badge
+    setTimeout(function() { loadModule('modules/share.js'); }, 1200);
   });
 })();
 </script>
