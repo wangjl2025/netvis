@@ -290,4 +290,20 @@
         ],
       },
     ],
+    knowledge:[
+      { title:'💡 迭代查询 vs 递归查询的本质区别', body:'<strong>递归查询</strong>（浏览器→解析器）：浏览器设置 RD=1，把任务完全委托给解析器，只等最终 IP。<strong>迭代查询</strong>（解析器→各级NS）：解析器每次只得到"下一步问谁"的指引，自己主动跑完全程（根→TLD→权威）。两种方式在一次 DNS 解析里同时存在：浏览器用递归，解析器用迭代。' },
+      { title:'💡 胶水记录（Glue Record）是什么？', body:'当权威 NS 的域名和被解析的域名属于同一域（如 example.com 的 NS 是 ns1.example.com）时，解析 ns1.example.com 又需要查 example.com——形成循环。胶水记录解决了这个问题：上级 NS 在返回 NS 记录的同时附带 NS 服务器的 IP，跳过循环查询。这条额外 IP 就叫胶水记录（Glue Record）。' },
+      { title:'💡 根服务器的 IP 从哪来？', body:'DNS 客户端内置 <strong>根提示文件</strong>（Root Hints），包含 13 组根服务器名（a~m.root-servers.net）及其 IP。这 13 个 IP 极少变化（几十年）。每个"根服务器"实际上通过 <strong>IP 任播（Anycast）</strong>在全球部署了数百台物理服务器，你的查询自动路由到最近的一台。' },
+      { title:'💡 迭代查询的调试优势', body:'迭代查询让排查 DNS 问题更清晰：可以逐步追踪每一跳。使用 <code>dig +trace example.com</code> 即可模拟完整迭代过程：从根服务器开始，逐级查询，显示每一跳的响应和耗时，是排查 DNS 故障的利器。' },
+      { title:'💡 递归解析器的缓存机制', body:'递归解析器（如 8.8.8.8、1.1.1.1）在完成迭代查询后，会分别缓存每一跳的结果（根NS地址、TLD NS地址、最终A记录），按各自 TTL 存储。下次查询同一域名，大多直接从缓存返回，无需再跑 3 轮迭代，大幅降低延迟和根服务器压力。' },
+      { title:'💡 TLD 服务器 vs 权威服务器的职责', body:'<strong>TLD 服务器</strong>（.com/.cn/.org 等）：只管辖本顶级域，知道每个二级域的权威 NS 服务器地址，但不存 A 记录。由域名注册局运营（.com 由 Verisign）。<strong>权威服务器</strong>：域名所有者自己配置，存储该域所有 DNS 记录（A/AAAA/MX/TXT...），是最终权威。通常由 Cloudflare/Route53/阿里云等提供。' },
+      { title:'💡 迭代查询的性能开销', body:'完整迭代需要 3 次往返（根→TLD→权威），加上 UDP 传播延迟，首次查询通常 50~200ms。但 <strong>缓存大幅减少实际迭代次数</strong>：根 NS 和 TLD NS 的 TTL 通常为 1~2 天，解析器几乎不需要真正查询根服务器，大多数请求在 TLD 或权威缓存就能解决。' },
+      { title:'💡 DNS 查询失败排查步骤', body:'① 检查本地缓存：<code>ipconfig /displaydns</code>（Win）/ <code>dig @127.0.0.1</code>；② 直接查递归解析器：<code>nslookup example.com 8.8.8.8</code>；③ 模拟完整迭代：<code>dig +trace example.com</code>，逐跳排查是哪一级出问题；④ 确认权威 NS：<code>whois example.com</code> 查注册商配置。' },
+    ],
+    quiz:[
+      { q:'迭代查询和递归查询有什么区别？在一次 DNS 解析中各发生在哪里？', a:'<strong>递归查询</strong>：浏览器→递归解析器，客户端只问一次，解析器负责把完整结果找回来（RD=1）。<strong>迭代查询</strong>：递归解析器→各级NS（根/TLD/权威），解析器自己主动逐步查询，每次只得到"下一步问谁"的指引。两者同时发生：浏览器用递归，解析器对外用迭代。' },
+      { q:'什么是胶水记录（Glue Record）？为什么 DNS 需要它？', a:'当域名的权威 NS 服务器与该域同属一个域时（如 example.com 的 NS 是 ns1.example.com），解析 NS 服务器本身的地址又需要查询 example.com——产生循环。<strong>胶水记录</strong>是上级 NS（TLD）在返回 NS 记录时额外附带的 NS 服务器 IP，跳过了循环查询，让解析可以继续进行。' },
+      { q:'用 dig 命令如何模拟 DNS 迭代查询过程？会看到什么？', a:'使用 <code>dig +trace example.com</code>。输出会依次显示：① 从根服务器（a~m.root-servers.net）获取 .com 的 NS；② 从 TLD 服务器获取 example.com 的权威 NS；③ 从权威服务器获取最终 A 记录。每一跳都显示服务器地址、返回结果和查询耗时，是排查 DNS 问题的最直接工具。' },
+      { q:'为什么实际上根服务器不会因为全球 DNS 查询而过载？', a:'两个原因：① <strong>多级缓存</strong>：根 NS 地址的 TTL 通常 1~2 天，递归解析器几乎不需要反复查询根服务器，99% 的请求在解析器缓存就能解决；② <strong>IP 任播（Anycast）</strong>：13 组根服务器 IP 在全球部署了 1000+ 台物理节点，流量分散到就近节点，没有单点压力。' },
+    ],
   };
