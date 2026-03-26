@@ -572,8 +572,6 @@ body {
 .badge-toast-text { font-size:13px; line-height:1.4; }
 .badge-toast-title { font-weight:600; color:var(--text-1); }
 .badge-toast-sub   { color:var(--text-3); font-size:12px; }
-  background:var(--blue-500); flex-shrink:0;
-}
 .list-grid {
   display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:12px;
 }
@@ -3209,43 +3207,86 @@ function rebuildStepData() {
 ════════════════════════════════════════════ */
 
 // 给协议库所有卡片补上 data 属性（layer / level / title），供筛选用
-const CARD_META = [
-  // 应用层（共 8 张）
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(1)', layer:'app',       level:'easy',   title:'DNS 解析 域名' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(2)', layer:'app',       level:'easy',   title:'HTTP/1.1 请求 响应' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(3)', layer:'app',       level:'medium', title:'TLS 1.3 加密 握手' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(4)', layer:'app',       level:'hard',   title:'HTTP/2 多路复用 帧 流' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(5)', layer:'app',       level:'easy',   title:'DHCP IP地址' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(6)', layer:'app',       level:'medium', title:'WebSocket 握手 全双工' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(7)', layer:'app',       level:'easy',   title:'SMTP 邮件 发送 电子邮件' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(8)', layer:'app',       level:'medium', title:'FTP 文件传输 被动模式' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(9)', layer:'app',       level:'hard',   title:'QUIC HTTP/3 UDP 0-RTT' },
-  { sel: '#page-protocols .list-grid:nth-of-type(1) .protocol-card:nth-child(10)', layer:'app',      level:'medium', title:'SSH 安全 登录 密钥' },
-  // 传输层（共 4 张）
-  { sel: '#page-protocols .list-grid:nth-of-type(2) .protocol-card:nth-child(1)', layer:'transport', level:'easy',   title:'TCP 三次握手 SYN' },
-  { sel: '#page-protocols .list-grid:nth-of-type(2) .protocol-card:nth-child(2)', layer:'transport', level:'medium', title:'TCP 四次挥手 FIN ACK' },
-  { sel: '#page-protocols .list-grid:nth-of-type(2) .protocol-card:nth-child(3)', layer:'transport', level:'hard',   title:'TCP 拥塞控制 慢启动 窗口' },
-  { sel: '#page-protocols .list-grid:nth-of-type(2) .protocol-card:nth-child(4)', layer:'transport', level:'easy',   title:'UDP 数据报 无连接' },
-  // 网络层/链路层（共 8 张）
-  { sel: '#page-protocols .list-grid:nth-of-type(3) .protocol-card:nth-child(1)', layer:'network',   level:'medium', title:'IP 路由转发 路由器' },
-  { sel: '#page-protocols .list-grid:nth-of-type(3) .protocol-card:nth-child(2)', layer:'link',      level:'easy',   title:'ARP 地址解析 MAC' },
-  { sel: '#page-protocols .list-grid:nth-of-type(3) .protocol-card:nth-child(3)', layer:'network',   level:'hard',   title:'OSPF 链路状态 路由 SPF' },
-  { sel: '#page-protocols .list-grid:nth-of-type(3) .protocol-card:nth-child(4)', layer:'network',   level:'easy',   title:'ICMP Ping Traceroute 诊断' },
-  { sel: '#page-protocols .list-grid:nth-of-type(3) .protocol-card:nth-child(5)', layer:'network',   level:'medium', title:'NAT 地址转换 SNAT DNAT 公网' },
-  { sel: '#page-protocols .list-grid:nth-of-type(3) .protocol-card:nth-child(6)', layer:'network',   level:'hard',   title:'BGP 边界网关 AS 路由' },
-  { sel: '#page-protocols .list-grid:nth-of-type(3) .protocol-card:nth-child(7)', layer:'link',      level:'medium', title:'VLAN 虚拟局域网 802.1Q Trunk' },
-];
+// 用 data-proto 直接映射，避免 nth-child 位置选择器的脆弱性
+const CARD_META = {
+  // 应用层
+  dns:       { layer:'app',       level:'easy',   title:'dns 解析 域名' },
+  http:      { layer:'app',       level:'easy',   title:'http/1.1 请求 响应' },
+  tls:       { layer:'app',       level:'medium', title:'tls 1.3 加密 握手' },
+  http2:     { layer:'app',       level:'hard',   title:'http/2 多路复용 帧 流' },
+  dhcp:      { layer:'app',       level:'easy',   title:'dhcp ip地址' },
+  websocket: { layer:'app',       level:'medium', title:'websocket 握手 全双工' },
+  smtp:      { layer:'app',       level:'easy',   title:'smtp 邮件 发送 电子邮件' },
+  ftp:       { layer:'app',       level:'medium', title:'ftp 文件传输 被动模式' },
+  quic:      { layer:'app',       level:'hard',   title:'quic http/3 udp 0-rtt' },
+  ssh:       { layer:'app',       level:'medium', title:'ssh 安全 登录 密钥' },
+  // 传输层
+  tcp3:      { layer:'transport', level:'easy',   title:'tcp 三次握手 syn' },
+  tcp4:      { layer:'transport', level:'medium', title:'tcp 四次挥手 fin ack' },
+  tcpcong:   { layer:'transport', level:'hard',   title:'tcp 拥塞控制 慢启动 窗口' },
+  udp:       { layer:'transport', level:'easy',   title:'udp 数据报 无连接' },
+  // 网络层
+  ip:        { layer:'network',   level:'medium', title:'ip 路由转发 路由器' },
+  ospf:      { layer:'network',   level:'hard',   title:'ospf 链路状态 路由 spf' },
+  icmp:      { layer:'network',   level:'easy',   title:'icmp ping traceroute 诊断' },
+  nat:       { layer:'network',   level:'medium', title:'nat 地址转换 snat dnat 公网' },
+  bgp:       { layer:'network',   level:'hard',   title:'bgp 边界网关 as 路由' },
+  // 数据链路层
+  arp:       { layer:'link',      level:'easy',   title:'arp 地址解析 mac' },
+  vlan:      { layer:'link',      level:'medium', title:'vlan 虚拟局域网 802.1q trunk' },
+};
 
-// 写入 data 属性
+// 写入 data 属性（DOMContentLoaded 保证 DOM 就绪）
 document.addEventListener('DOMContentLoaded', () => {
-  CARD_META.forEach(({ sel, layer, level, title }) => {
-    const el = document.querySelector(sel);
-    if (el) {
-      el.dataset.layer  = layer;
-      el.dataset.level  = level;
-      el.dataset.title  = title.toLowerCase();
+  // 遍历协议库所有卡片，按 data-proto 写入 layer/level/title
+  document.querySelectorAll('#page-protocols .protocol-card[data-proto]').forEach(card => {
+    const proto = card.dataset.proto;
+    const meta  = CARD_META[proto];
+    if (meta) {
+      card.dataset.layer = meta.layer;
+      card.dataset.level = meta.level;
+      card.dataset.title = meta.title;
     }
   });
+  // 没有 data-proto 的卡片（coming-soon 占位卡）也补上 layer（从父分组推断）
+  // 通过查找最近的 .list-grid 的同级 .list-section-title 来确定层
+  document.querySelectorAll('#page-protocols .protocol-card:not([data-proto])').forEach(card => {
+    const grid = card.closest('.list-grid');
+    if (!grid) return;
+    const allGrids = Array.from(document.querySelectorAll('#page-protocols .list-grid'));
+    const idx = allGrids.indexOf(grid);
+    const layerMap = ['app','transport','network','link'];
+    if (idx >= 0 && idx < layerMap.length) {
+      card.dataset.layer = layerMap[idx];
+    }
+    card.dataset.level = card.querySelector('.badge-easy') ? 'easy'
+                       : card.querySelector('.badge-medium') ? 'medium'
+                       : card.querySelector('.badge-hard') ? 'hard' : '';
+    const titleEl = card.querySelector('.card-title');
+    card.dataset.title = titleEl ? titleEl.textContent.toLowerCase() : '';
+  });
+
+  // 绑定筛选标签点击（放在 DOMContentLoaded 里确保 DOM 存在）
+  document.querySelectorAll('.filter-tag').forEach(tag => {
+    tag.addEventListener('click', function() {
+      document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      activeFilter = this.dataset.filter || 'all';
+      applyFilter();
+    });
+  });
+
+  // 搜索框实时过滤
+  const searchInput = document.querySelector('.filter-search input');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      searchQuery = this.value.trim().toLowerCase();
+      applyFilter();
+    });
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { this.value = ''; searchQuery = ''; applyFilter(); }
+    });
+  }
 });
 
 // 当前激活的筛选
@@ -3298,31 +3339,6 @@ function applyFilter() {
     emptyTip.style.display = 'none';
   }
 }
-
-// 筛选标签点击
-document.querySelectorAll('.filter-tag').forEach(tag => {
-  tag.addEventListener('click', function() {
-    document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-    this.classList.add('active');
-    activeFilter = this.dataset.filter || 'all';
-    applyFilter();
-  });
-});
-
-// 搜索框实时过滤
-document.addEventListener('DOMContentLoaded', () => {
-  const searchInput = document.querySelector('.filter-search input');
-  if (searchInput) {
-    searchInput.addEventListener('input', function() {
-      searchQuery = this.value.trim().toLowerCase();
-      applyFilter();
-    });
-    // 按 Esc 清空
-    searchInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') { this.value = ''; searchQuery = ''; applyFilter(); }
-    });
-  }
-});
 
 /* ════════════════════════════════════════════
    Toast 通知
