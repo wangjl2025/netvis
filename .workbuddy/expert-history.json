@@ -8,7 +8,7 @@
         "profession": "前端开发工程师",
         "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/02-Engineering/FrontendDeveloper/FrontendDeveloper.png",
         "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/02-Engineering/FrontendDeveloper/FrontendDeveloper_zh.md",
-        "usedAt": 1774505317357,
+        "usedAt": 1774539342933,
         "industryId": "02-Engineering"
       },
       {
@@ -17,7 +17,7 @@
         "profession": "内容创作专家",
         "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/03-Marketing/ContentCreator/ContentCreator.png",
         "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/03-Marketing/ContentCreator/ContentCreator_zh.md",
-        "usedAt": 1774505060021,
+        "usedAt": 1774518363764,
         "industryId": "03-Marketing"
       },
       {
@@ -29,7 +29,18 @@
         "usedAt": 1774497442530,
         "industryId": "01-Design"
       }
+    ],
+    "1e10e666babc4ca3a5ceaf02e9c0683c": [
+      {
+        "expertId": "ContentCreator",
+        "name": "Kai",
+        "profession": "内容创作专家",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/03-Marketing/ContentCreator/ContentCreator.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/03-Marketing/ContentCreator/ContentCreator_zh.md",
+        "usedAt": 1774535081228,
+        "industryId": "all"
+      }
     ]
   },
-  "lastUpdated": 1774511373339
+  "lastUpdated": 1774539344562
 }
