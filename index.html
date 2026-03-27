@@ -11,6 +11,9 @@
 <meta name="author" content="NetViz">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://wangjl2025.github.io/netvis/">
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4f8ef7">
 <!-- dns-prefetch：提前解析 CDN 域名，减少按需加载时的延迟 -->
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
 
@@ -4043,9 +4046,11 @@ document.addEventListener('DOMContentLoaded', () => {
     s.async = true;
     document.body.appendChild(s);
   }
-  // badge.js：页面加载完成后 500ms 加载，给首屏渲染让路
+    // badge.js：页面加载完成后 500ms 加载，给首屏渲染让路
   window.addEventListener('load', function() {
     setTimeout(function() { loadModule('modules/badge.js'); }, 500);
+    // learning.js：学习路径推荐（900ms，等 badge.js 先写入 localStorage）
+    setTimeout(function() { loadModule('modules/learning.js'); }, 900);
     // share.js：稍晚一点加载，不影响首屏和 badge
     setTimeout(function() { loadModule('modules/share.js'); }, 2000);
     // drill.js：错误演练模式
@@ -4054,6 +4059,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(function() { loadModule('modules/flashcard.js'); }, 2000);
     // capture.js：抓包对照模式
     setTimeout(function() { loadModule('modules/capture.js'); }, 2000);
+    // Service Worker 注册（PWA 离线支持）
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
+        .then(function(reg) {
+          window.logger && logger.info('[SW] 注册成功', reg.scope);
+        })
+        .catch(function(err) {
+          window.logger && logger.error('[SW] 注册失败', err);
+        });
+    }
   });
 })();
 </script>

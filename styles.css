@@ -1778,3 +1778,137 @@ body {
     .protocol-card h3 { font-size: 0.8rem !important; }
   }
 
+/* ── 学习路径推荐模块 ──────────────────────────────────────────────── */
+.learning-path-section {
+  padding-top: 0;
+}
+
+/* 进度条 */
+.lp-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.lp-progress-bar {
+  width: 120px;
+  height: 6px;
+  background: var(--border-1);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.lp-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue-400), var(--cyan-400));
+  border-radius: 99px;
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+.lp-progress-label {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 600;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* 推荐卡片网格 */
+.lp-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* 推荐卡片 */
+.lp-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-1);
+  border-radius: 14px;
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.lp-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--lp-color, var(--blue-400));
+  border-radius: 14px 14px 0 0;
+  opacity: 0.8;
+}
+.lp-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--lp-color, var(--blue-400));
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.lp-card:focus-visible {
+  outline: 2px solid var(--lp-color, var(--blue-400));
+  outline-offset: 2px;
+}
+
+.lp-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.lp-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.lp-difficulty {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+.lp-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 8px;
+}
+.lp-prereq {
+  font-size: 11px;
+  color: var(--text-4);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.lp-prereq-done {
+  color: var(--green-400);
+  font-weight: 600;
+}
+.lp-prereq-todo {
+  color: var(--text-3);
+}
+.lp-cta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lp-color, var(--blue-400));
+}
+.lp-all-done {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-2);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .lp-rec-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .lp-progress-bar { width: 80px; }
+}
+@media (max-width: 480px) {
+  .lp-rec-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

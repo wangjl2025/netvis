@@ -151,6 +151,10 @@
         updateProgressBar(data);
         updateCardSlots(data);
         showToast(protoId);
+        // 通知学习路径模块刷新推荐
+        if (typeof window.refreshLearningPath === 'function') {
+          setTimeout(window.refreshLearningPath, 1200);
+        }
       } else {
         // 已完成过：只更新 viewCount，不重复弹窗
         data[protoId].viewCount = (data[protoId].viewCount || 1) + 1;
