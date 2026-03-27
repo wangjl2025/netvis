@@ -1983,3 +1983,33 @@ body {
   .lp-progress-wrap { display: none; }
 }
 
+/* ── 学习完成横幅 ─────────────────────────────────────────────────── */
+#completion-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  background: linear-gradient(90deg, rgba(16,185,129,.15), rgba(79,142,247,.12));
+  border: 1px solid rgba(16,185,129,.35);
+  border-radius: 10px;
+  margin: 10px 12px 4px;
+  font-size: 13.5px;
+  color: var(--text-1);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+#completion-banner.cb-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.cb-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.cb-text strong {
+  color: var(--green-400);
+}
+

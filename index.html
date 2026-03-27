@@ -3274,15 +3274,68 @@ function rebuildSidePanel() {
 function gotoStep(step) {
   currentStep = Math.max(1, Math.min(totalSteps, step));
   renderStep();
-  // 徽章钩子：走到最后一步时通知 badge 模块
-  if (currentStep === totalSteps && window.NetVizModules?.badge) {
-    window.NetVizModules.badge.onProtocolComplete(currentProto);
+  // 徽章钩子：走到最后一步时通知 badge 模块（用 activeProtocol，不用未定义的 currentProto）
+  if (currentStep === totalSteps && !activeProtocol.startsWith('compare-')) {
+    // 显示完成横幅（无论是否首次）
+    _showCompletionBanner(activeProtocol);
+    if (window.NetVizModules?.badge) {
+      window.NetVizModules.badge.onProtocolComplete(activeProtocol);
+    }
+    // 已完成过的协议也要刷新学习路径进度
+    if (typeof window.refreshLearningPath === 'function') {
+      setTimeout(window.refreshLearningPath, 800);
+    }
   }
 }
 function nextStep() { if (currentStep < totalSteps) gotoStep(currentStep + 1); }
 function prevStep() { if (currentStep > 1) gotoStep(currentStep - 1); }
 
+/* ── 学习完成横幅（最后一步时显示，3秒自动消失）─────────────────── */
+function _showCompletionBanner(protoId) {
+  // 移除旧横幅（避免重复）
+  const old = document.getElementById('completion-banner');
+  if (old) old.remove();
 
+  // 查询协议名
+  const NAMES = {
+    tcp3:'TCP 三次握手', tcp4:'TCP 四次挥手', http:'HTTP 请求响应',
+    tls:'TLS 握手', dns:'DNS 查询', udp:'UDP 通信',
+    arp:'ARP 地址解析', icmp:'ICMP/Ping', dhcp:'DHCP 分配',
+    websocket:'WebSocket', smtp:'SMTP 邮件', ssh:'SSH 连接',
+    ftp:'FTP 文件传输', nat:'NAT 地址转换', vlan:'VLAN 帧传输',
+    tcpcong:'TCP 拥塞控制', iproute:'IP 路由转发', ospf:'OSPF 路由',
+    http2:'HTTP/2 多路复用',
+  };
+  const name = NAMES[protoId] || protoId;
+
+  // 检查是否首次完成
+  let isFirst = false;
+  if (window.NetVizModules?.badge) {
+    const prog = window.NetVizModules.badge.getProgress();
+    isFirst = !(prog.details && prog.details[protoId] && prog.details[protoId].unlocked);
+  }
+
+  const banner = document.createElement('div');
+  banner.id = 'completion-banner';
+  banner.setAttribute('role', 'status');
+  banner.setAttribute('aria-live', 'polite');
+  banner.innerHTML = isFirst
+    ? `<span class="cb-icon">🏅</span><span class="cb-text">恭喜！<strong>${name}</strong> 学习完成，获得徽章！</span>`
+    : `<span class="cb-icon">✅</span><span class="cb-text"><strong>${name}</strong> 已全部走完！</span>`;
+
+  // 插在动画画布上方（.player-topbar 下方）
+  const anchor = document.querySelector('.animation-canvas') || document.querySelector('.player-main');
+  if (anchor) {
+    anchor.parentNode.insertBefore(banner, anchor);
+    // 触发入场动画
+    requestAnimationFrame(() => banner.classList.add('cb-visible'));
+    // 3s 后自动消失
+    setTimeout(() => {
+      banner.classList.remove('cb-visible');
+      setTimeout(() => banner.remove(), 400);
+    }, 3000);
+  }
+}
 
 /* ════════════════════════════════════════════
    数据包飞行动画
