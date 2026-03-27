@@ -14,9 +14,9 @@
   'use strict';
 
   const STORAGE_KEY = 'netviz_progress';
-  const TOTAL = 15;
+  const TOTAL = 18;
 
-  // 15 个协议的展示名称和图标（用于弹窗）
+  // 18 个协议的展示名称和图标（用于弹窗）
   const PROTO_INFO = {
     tcp3:      { name: 'TCP 三次握手',  icon: '🤝' },
     tcp4:      { name: 'TCP 四次挥手',  icon: '🔁' },
@@ -33,6 +33,9 @@
     nat:       { name: 'NAT 地址转换', icon: '🌍' },
     tcpcong:   { name: 'TCP 拥塞控制', icon: '📈' },
     iproute:   { name: 'IP 路由转发',  icon: '🗺' },
+    vlan:      { name: 'VLAN 虚拟局域网', icon: '🏷️' },
+    ftp:       { name: 'FTP 文件传输',  icon: '📂' },
+    ospf:      { name: 'OSPF 链路状态路由', icon: '🔢' },
   };
 
   /* ── 数据读写 ── */

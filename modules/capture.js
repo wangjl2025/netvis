@@ -111,6 +111,65 @@
       stepMap: { 1:[1], 2:[2], 3:[3], 4:[4], 5:[4] },
     },
 
+    vlan: {
+      title: 'VLAN 802.1Q — 模拟抓包',
+      frames: [
+        { no:1,  time:'0.000000', src:'aa:bb:cc:dd:ee:01',  dst:'ff:ff:ff:ff:ff:ff', proto:'802.1Q', info:'Ethernet II, tagged VID=10 | ARP Who has 192.168.10.20?',
+          detail: '以太网帧头（含 802.1Q 标签）:\n  Dst: ff:ff:ff:ff:ff:ff  Src: aa:bb:cc:dd:ee:01\n  802.1Q Tag: TPID=0x8100  PCP=0  DEI=0  VID=10\n  EtherType: 0x0806 (ARP)\nAccess 口收到无标签帧 → 打上 PVID=10 的 802.1Q 标签' },
+        { no:2,  time:'0.000100', src:'aa:bb:cc:dd:ee:01',  dst:'ff:ff:ff:ff:ff:ff', proto:'802.1Q', info:'[Trunk Port] Forward tagged frame VLAN 10 → SW2',
+          detail: 'Trunk 口保留 802.1Q 标签转发:\n  VID=10 帧在 Trunk 链路上跨交换机传输\n  VLAN 10 和 VLAN 20 帧共享同一物理链路，靠 VID 区分\n  Native VLAN (VLAN 1) 的帧在 Trunk 口不打标签' },
+        { no:3,  time:'0.000200', src:'aa:bb:cc:dd:ee:01',  dst:'ff:ff:ff:ff:ff:ff', proto:'ARP',    info:'[Access Port SW2] Strip 802.1Q tag → ARP Who has 192.168.10.20?',
+          detail: 'SW2 Access 口（PVID=10）剥离 802.1Q 标签:\n  VID=10 匹配端口 PVID → 允许转发\n  发给终端的帧已还原为标准以太网帧（无 802.1Q 标签）\n  终端设备对 VLAN 标签完全透明' },
+        { no:4,  time:'0.000500', src:'ff:ee:dd:cc:bb:aa',  dst:'aa:bb:cc:dd:ee:01', proto:'ARP',    info:'ARP Reply: 192.168.10.20 is at ff:ee:dd:cc:bb:aa',
+          detail: 'ARP 回复 → SW2 Access 口打上 VID=10 标签 → Trunk → SW1 剥标签 → 发给 PC1\nVLAN 内的通信流程对终端完全透明，交换机负责标签的打/剥工作' },
+        { no:5,  time:'0.010000', src:'192.168.10.10',       dst:'192.168.20.30',     proto:'IPv4',   info:'Inter-VLAN: VLAN10→VLAN20 via Router/SVI (TTL=64)',
+          detail: '跨 VLAN 通信必须经过三层路由:\n  PC1(VLAN10) → SVI 192.168.10.1（默认网关）→ 路由 → SVI 192.168.20.1 → PC4(VLAN20)\n  路由器/三层交换机收到帧后: 剥标签 → 查路由表 → 重新打目标 VLAN 标签' },
+      ],
+      stepMap: { 1:[1], 2:[2], 3:[3], 4:[4], 5:[5], 6:[5] },
+    },
+
+    ftp: {
+      title: 'FTP 文件传输（被动模式）— 模拟抓包',
+      frames: [
+        { no:1,  time:'0.000000', src:'192.168.1.10',   dst:'192.168.1.100',  proto:'TCP',  info:'[Control] 12345 → 21 [SYN] Seq=0  (建立控制连接)',
+          detail: 'TCP 三次握手建立控制连接（端口 21）:\n  客户端: 192.168.1.10:12345\n  服务器: 192.168.1.100:21\n  TCP SYN→SYN-ACK→ACK 完成后开始 FTP 对话' },
+        { no:2,  time:'0.005000', src:'192.168.1.100',  dst:'192.168.1.10',   proto:'FTP',  info:'220 FTP Server Ready (ProFTPD)',
+          detail: 'FTP 响应码 220: Service ready\n服务器欢迎信息通过控制连接发送\nFTP 控制通道: 纯文本 ASCII 协议，可用 telnet 手动操作' },
+        { no:3,  time:'0.010000', src:'192.168.1.10',   dst:'192.168.1.100',  proto:'FTP',  info:'USER alice',
+          detail: 'FTP 命令: USER alice\n⚠️ 用户名以明文传输（无加密）\n服务器返回: 331 Password required for alice' },
+        { no:4,  time:'0.015000', src:'192.168.1.10',   dst:'192.168.1.100',  proto:'FTP',  info:'PASV  (请求被动模式)',
+          detail: 'FTP 命令: PASV\n服务器将监听一个高位端口，等待客户端发起数据连接\n响应: 227 Entering Passive Mode (192,168,1,100,19,136)\n  → 端口 = 19×256 + 136 = 5000' },
+        { no:5,  time:'0.020000', src:'192.168.1.10',   dst:'192.168.1.100',  proto:'TCP',  info:'[Data] 23456 → 5000 [SYN]  (建立数据连接)',
+          detail: '客户端连接服务器的 PASV 端口 5000，建立数据连接（第二条 TCP）:\n  数据连接: 192.168.1.10:23456 → 192.168.1.100:5000\n  控制连接仍然保持，两条 TCP 连接并存' },
+        { no:6,  time:'0.025000', src:'192.168.1.100',  dst:'192.168.1.10',   proto:'FTP-DATA', info:'file.tar.gz (1.2MB) 数据传输中',
+          detail: 'FTP 数据通过数据连接传输:\n  FTP 命令: RETR file.tar.gz（通过控制连接发送）\n  文件二进制流通过数据连接传输（TYPE I 二进制模式）\n  传输完成后数据连接关闭: 226 Transfer Complete' },
+        { no:7,  time:'1.240000', src:'192.168.1.100',  dst:'192.168.1.10',   proto:'FTP',  info:'226 Transfer Complete. Closing data connection.',
+          detail: '数据传输完成:\n  控制连接发送: 226 Transfer Complete\n  数据连接 TCP FIN 关闭（四次挥手）\n  控制连接继续保持，可发送更多命令' },
+      ],
+      stepMap: { 1:[1], 2:[2], 3:[3,4], 4:[4], 5:[5], 6:[6], 7:[7] },
+    },
+
+    ospf: {
+      title: 'OSPF 邻居建立 — 模拟抓包',
+      frames: [
+        { no:1,  time:'0.000000', src:'192.168.12.1',   dst:'224.0.0.5',      proto:'OSPF', info:'Hello  Router-ID: 1.1.1.1  Area: 0.0.0.0  Priority: 1',
+          detail: 'OSPF Hello 包:\n  IP Src=192.168.12.1 Dst=224.0.0.5 (AllSPFRouters)\n  IP Proto=89 (OSPF)\n  OSPF Header: Version=2 Type=1(Hello) Router-ID=1.1.1.1 Area=0\n  Hello Interval=10s  Dead Interval=40s  DR=0.0.0.0  BDR=0.0.0.0\n  Neighbor List: (空，未发现邻居)' },
+        { no:2,  time:'0.010000', src:'192.168.12.2',   dst:'224.0.0.5',      proto:'OSPF', info:'Hello  Router-ID: 2.2.2.2  Area: 0.0.0.0  Neighbor: 1.1.1.1',
+          detail: 'R2 收到 R1 的 Hello，回复自己的 Hello 并在邻居列表中列出 1.1.1.1:\n  邻居列表中出现对方 ID → R1 进入 2-Way 状态（双向通信）\n  点对点链路：不需要选举 DR/BDR，直接进入 ExStart' },
+        { no:3,  time:'0.020000', src:'192.168.12.1',   dst:'192.168.12.2',   proto:'OSPF', info:'DBD  Seq=1001  I=1 M=1 MS=1  (ExStart: 协商主从)',
+          detail: 'OSPF DBD (Database Description) 包 - ExStart 阶段:\n  Type=2(DBD)  I=1(Initial) M=1(More) MS=1(Master)\n  R1 自认 Master，发送初始 DBD 协商序列号\n  Router-ID 较大的成为 Master（本例 2.2.2.2 > 1.1.1.1）' },
+        { no:4,  time:'0.025000', src:'192.168.12.2',   dst:'192.168.12.1',   proto:'OSPF', info:'DBD  Seq=2001  I=0 M=1 MS=1  (Exchange: 发送 LSDB 摘要)',
+          detail: 'OSPF DBD - Exchange 阶段 (R2 为 Master):\n  包含 R2 的 LSDB 中各 LSA 的摘要（类型/Router-ID/LS Seq/校验和）\n  R1 对比后发现自己缺少某些 LSA，将发送 LSR 请求' },
+        { no:5,  time:'0.030000', src:'192.168.12.1',   dst:'192.168.12.2',   proto:'OSPF', info:'LSR  (Link State Request: 请求 2 条缺失的 LSA)',
+          detail: 'OSPF LSR (Link State Request):\n  Type=3(LSR)  请求 R1 在 DBD 对比后发现缺少的 LSA\n  请求格式: LSA Type + LSID + Advertising Router\n  R1 进入 Loading 状态' },
+        { no:6,  time:'0.035000', src:'192.168.12.2',   dst:'192.168.12.1',   proto:'OSPF', info:'LSU  (Link State Update: 2 × Type-1 Router-LSA)',
+          detail: 'OSPF LSU (Link State Update) 响应 LSR:\n  Type=4(LSU)  包含 2 条完整 Router-LSA (Type-1)\n  每条 LSA 包含该路由器所有接口的链路状态信息\n  R1 收到后存入 LSDB，并向其他邻居继续泛洪' },
+        { no:7,  time:'0.040000', src:'192.168.12.1',   dst:'192.168.12.2',   proto:'OSPF', info:'LSAck  →  Full State! SPF 触发计算',
+          detail: 'OSPF LSAck (Link State Acknowledgment):\n  Type=5(LSAck)  确认收到 LSU\n  LSDB 同步完成 → 邻接状态进入 Full\n  触发 Dijkstra SPF 算法重新计算最优路径 → 更新路由表' },
+      ],
+      stepMap: { 1:[1], 2:[2], 3:[3], 4:[4], 5:[5], 6:[6], 7:[7] },
+    },
+
   };
 
   /* ── 弹窗 HTML ──────────────────────────────────────────────────────── */
