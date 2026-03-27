@@ -131,20 +131,20 @@
 
   function renderCard(p, unlocked) {
     const dc = DIFFICULTY_COLOR[p.difficulty];
-    const prereqDone = p.prereqs.every(r => unlocked.includes(r));
-    // 渲染前置提示
+    // 前置标签（有前置才显示，无前置不占空间）
     const prereqHtml = p.prereqs.length > 0
       ? `<div class="lp-prereq">前置：${p.prereqs.map(r => {
           const m = PROTOCOL_META.find(x => x.id === r);
-          return `<span class="${unlocked.includes(r) ? 'lp-prereq-done' : 'lp-prereq-todo'}">${m ? m.name : r}</span>`;
-        }).join('、')}</div>`
-      : '<div class="lp-prereq">无前置要求</div>';
+          const done = unlocked.includes(r);
+          return `<span class="${done ? 'lp-prereq-done' : 'lp-prereq-todo'}">${done ? '✓ ' : ''}${m ? m.name : r}</span>`;
+        }).join('<span style="color:var(--text-4)"> · </span>')}</div>`
+      : '';
 
     return `
       <div class="lp-card" data-proto-go="${p.id}" role="button" tabindex="0"
            aria-label="开始学习 ${p.name}" style="--lp-color:${p.color}">
         <div class="lp-card-head">
-          <span class="lp-icon">${p.icon}</span>
+          <div class="lp-icon-wrap">${p.icon}</div>
           <span class="lp-difficulty"
             style="background:${dc.bg};color:${dc.fg};border:1px solid ${dc.border}">
             ${DIFFICULTY_LABEL[p.difficulty]}
