@@ -1714,7 +1714,265 @@ window.addEventListener('unhandledrejection', function(e) {
         </div>
 
         <!-- ══════════════════════════════════════
-             通用协议画布（UDP/ARP/ICMP/DHCP/SMTP/WebSocket/NAT/VLAN/SSH/FTP/TCP拥塞/HTTP2/QUIC/OSPF/BGP）
+             STP 专属画布（三角形三交换机拓扑）
+        ══════════════════════════════════════ -->
+        <div class="stp-diagram" id="stpDiagram" style="display:none" role="img" aria-label="STP生成树拓扑图">
+          <!-- SVG 拓扑图 -->
+          <svg id="stp-svg" viewBox="0 0 420 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:420px;margin:0 auto;display:block">
+            <!-- 链路背景（灰色底） -->
+            <line id="stp-link-12" x1="210" y1="48" x2="80"  y2="185" stroke="rgba(120,120,140,0.25)" stroke-width="3" stroke-linecap="round"/>
+            <line id="stp-link-13" x1="210" y1="48" x2="340" y2="185" stroke="rgba(120,120,140,0.25)" stroke-width="3" stroke-linecap="round"/>
+            <line id="stp-link-23" x1="80"  y1="185" x2="340" y2="185" stroke="rgba(120,120,140,0.25)" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- 端口标签（链路两端） -->
+            <!-- SW1-SW2 链路端口 -->
+            <text id="stp-port-1-2a" x="197" y="82"  font-size="8" fill="rgba(160,160,180,0.6)" text-anchor="middle" font-family="monospace">DP</text>
+            <text id="stp-port-1-2b" x="97"  y="162" font-size="8" fill="rgba(160,160,180,0.6)" text-anchor="middle" font-family="monospace">RP</text>
+            <!-- SW1-SW3 链路端口 -->
+            <text id="stp-port-1-3a" x="223" y="82"  font-size="8" fill="rgba(160,160,180,0.6)" text-anchor="middle" font-family="monospace">DP</text>
+            <text id="stp-port-1-3b" x="323" y="162" font-size="8" fill="rgba(160,160,180,0.6)" text-anchor="middle" font-family="monospace">RP</text>
+            <!-- SW2-SW3 链路端口（阻塞端） -->
+            <text id="stp-port-2-3a" x="130" y="195" font-size="8" fill="rgba(160,160,180,0.6)" text-anchor="middle" font-family="monospace">AP</text>
+            <text id="stp-port-2-3b" x="290" y="195" font-size="8" fill="rgba(160,160,180,0.6)" text-anchor="middle" font-family="monospace">DP</text>
+
+            <!-- BPDU 动画点（初始隐藏） -->
+            <circle id="stp-bpdu-dot" cx="210" cy="48" r="5" fill="var(--cyan-400)" opacity="0" style="transition:all 0.4s ease"/>
+
+            <!-- 交换机节点 SW1（顶部，根桥） -->
+            <g id="stp-sw1">
+              <rect x="170" y="10" width="80" height="38" rx="6" fill="rgba(30,30,45,0.9)" stroke="rgba(120,120,140,0.3)" stroke-width="1.5"/>
+              <text x="210" y="27" font-size="11" fill="var(--text-1)" text-anchor="middle" font-weight="600">🔀 SW1</text>
+              <text id="stp-sw1-sub" x="210" y="40" font-size="8.5" fill="var(--text-4)" text-anchor="middle">Priority=32768</text>
+            </g>
+            <text id="stp-sw1-role" x="210" y="64" font-size="9" fill="rgba(160,160,180,0.5)" text-anchor="middle">根桥候选</text>
+
+            <!-- 交换机节点 SW2（左下） -->
+            <g id="stp-sw2">
+              <rect x="40" y="187" width="80" height="38" rx="6" fill="rgba(30,30,45,0.9)" stroke="rgba(120,120,140,0.3)" stroke-width="1.5"/>
+              <text x="80" y="204" font-size="11" fill="var(--text-1)" text-anchor="middle" font-weight="600">🔀 SW2</text>
+              <text id="stp-sw2-sub" x="80" y="217" font-size="8.5" fill="var(--text-4)" text-anchor="middle">Priority=32768</text>
+            </g>
+            <text id="stp-sw2-role" x="80" y="233" font-size="9" fill="rgba(160,160,180,0.5)" text-anchor="middle">非根候选</text>
+
+            <!-- 交换机节点 SW3（右下） -->
+            <g id="stp-sw3">
+              <rect x="300" y="187" width="80" height="38" rx="6" fill="rgba(30,30,45,0.9)" stroke="rgba(120,120,140,0.3)" stroke-width="1.5"/>
+              <text x="340" y="204" font-size="11" fill="var(--text-1)" text-anchor="middle" font-weight="600">🔀 SW3</text>
+              <text id="stp-sw3-sub" x="340" y="217" font-size="8.5" fill="var(--text-4)" text-anchor="middle">Priority=32768</text>
+            </g>
+            <text id="stp-sw3-role" x="340" y="233" font-size="9" fill="rgba(160,160,180,0.5)" text-anchor="middle">非根候选</text>
+          </svg>
+          <!-- 状态提示条 -->
+          <div class="stp-status-bar">
+            <span id="stp-topology-hint">🔄 环形拓扑（存在广播风暴风险）</span>
+          </div>
+          <div class="conn-banner" id="stp-banner" role="status" style="margin-top:8px">📢 第 1 / 7 步 — 所有交换机广播 BPDU</div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             OSPF 专属画布（多路由器 + Area 0 拓扑）
+        ══════════════════════════════════════ -->
+        <div class="ospf-diagram" id="ospfDiagram" style="display:none" role="img" aria-label="OSPF路由协议拓扑图">
+          <svg id="ospf-svg" viewBox="0 0 420 210" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:420px;margin:0 auto;display:block">
+            <!-- Area 0 背景框 -->
+            <rect id="ospf-area0-box" x="100" y="10" width="220" height="130" rx="10" fill="rgba(79,142,247,0.04)" stroke="rgba(79,142,247,0.2)" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <text x="210" y="26" font-size="9" fill="rgba(79,142,247,0.5)" text-anchor="middle" font-family="monospace">Area 0（骨干区域）</text>
+
+            <!-- 链路 -->
+            <line id="ospf-link-r1r2" x1="155" y1="90" x2="265" y2="90" stroke="rgba(120,120,140,0.25)" stroke-width="2.5" stroke-linecap="round"/>
+            <line id="ospf-link-r1r3" x1="155" y1="90" x2="60"  y2="165" stroke="rgba(120,120,140,0.25)" stroke-width="2.5" stroke-linecap="round"/>
+            <line id="ospf-link-r2r4" x1="265" y1="90" x2="360" y2="165" stroke="rgba(120,120,140,0.25)" stroke-width="2.5" stroke-linecap="round"/>
+
+            <!-- Hello 包动画点 -->
+            <circle id="ospf-hello-dot" cx="155" cy="90" r="5" fill="var(--cyan-400)" opacity="0" style="transition:all 0.5s ease"/>
+            <!-- LSU 泛洪动画点 -->
+            <circle id="ospf-lsu-dot" cx="155" cy="90" r="5" fill="var(--green-400)" opacity="0" style="transition:all 0.5s ease"/>
+
+            <!-- R1（Area 0 内，左侧） -->
+            <g id="ospf-r1">
+              <circle cx="155" cy="90" r="22" fill="rgba(30,30,45,0.95)" stroke="rgba(120,120,140,0.3)" stroke-width="1.5"/>
+              <text x="155" y="88" font-size="12" text-anchor="middle">🔀</text>
+              <text x="155" y="100" font-size="9" fill="var(--text-1)" text-anchor="middle" font-weight="600">R1</text>
+            </g>
+            <text id="ospf-r1-state" x="155" y="120" font-size="8.5" fill="rgba(160,160,180,0.55)" text-anchor="middle">Down</text>
+
+            <!-- R2（Area 0 内，右侧） -->
+            <g id="ospf-r2">
+              <circle cx="265" cy="90" r="22" fill="rgba(30,30,45,0.95)" stroke="rgba(120,120,140,0.3)" stroke-width="1.5"/>
+              <text x="265" y="88" font-size="12" text-anchor="middle">🔀</text>
+              <text x="265" y="100" font-size="9" fill="var(--text-1)" text-anchor="middle" font-weight="600">R2</text>
+            </g>
+            <text id="ospf-r2-state" x="265" y="120" font-size="8.5" fill="rgba(160,160,180,0.55)" text-anchor="middle">Down</text>
+
+            <!-- R3（Area 1，连接 Area 0 的 ABR） -->
+            <g id="ospf-r3">
+              <circle cx="60" cy="165" r="20" fill="rgba(30,30,45,0.9)" stroke="rgba(120,120,140,0.25)" stroke-width="1.5"/>
+              <text x="60" y="163" font-size="11" text-anchor="middle">🔀</text>
+              <text x="60" y="175" font-size="8.5" fill="var(--text-2)" text-anchor="middle" font-weight="600">R3</text>
+            </g>
+            <text id="ospf-r3-label" x="60" y="192" font-size="8" fill="rgba(120,120,140,0.5)" text-anchor="middle">Area 1</text>
+
+            <!-- R4（Area 2，连接 Area 0 的 ABR） -->
+            <g id="ospf-r4">
+              <circle cx="360" cy="165" r="20" fill="rgba(30,30,45,0.9)" stroke="rgba(120,120,140,0.25)" stroke-width="1.5"/>
+              <text x="360" y="163" font-size="11" text-anchor="middle">🔀</text>
+              <text x="360" y="175" font-size="8.5" fill="var(--text-2)" text-anchor="middle" font-weight="600">R4</text>
+            </g>
+            <text id="ospf-r4-label" x="360" y="192" font-size="8" fill="rgba(120,120,140,0.5)" text-anchor="middle">Area 2</text>
+
+            <!-- LSDB 同步指示文字 -->
+            <text id="ospf-lsdb-hint" x="210" y="160" font-size="8.5" fill="rgba(120,120,140,0.4)" text-anchor="middle">LSDB 未同步</text>
+          </svg>
+          <div class="conn-banner" id="ospf-banner" role="status" style="margin-top:8px">👋 第 1 / 7 步 — R1 发送 Hello 包，发现邻居</div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             BGP 专属画布（AS 边界路由器拓扑）
+        ══════════════════════════════════════ -->
+        <div class="bgp-diagram" id="bgpDiagram" style="display:none" role="img" aria-label="BGP自治系统路由拓扑图">
+          <svg id="bgp-svg" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:420px;margin:0 auto;display:block">
+            <!-- AS 65001 背景框（左） -->
+            <rect x="8" y="20" width="165" height="130" rx="10" fill="rgba(52,211,153,0.04)" stroke="rgba(52,211,153,0.2)" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <text x="90" y="36" font-size="9" fill="rgba(52,211,153,0.55)" text-anchor="middle" font-family="monospace">AS 65001</text>
+
+            <!-- AS 65002 背景框（右） -->
+            <rect x="247" y="20" width="165" height="130" rx="10" fill="rgba(167,139,250,0.04)" stroke="rgba(167,139,250,0.2)" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <text x="330" y="36" font-size="9" fill="rgba(167,139,250,0.55)" text-anchor="middle" font-family="monospace">AS 65002</text>
+
+            <!-- eBGP TCP 连接线（AS 之间，中间位置） -->
+            <line id="bgp-ebgp-link" x1="173" y1="95" x2="247" y2="95" stroke="rgba(120,120,140,0.25)" stroke-width="2.5" stroke-linecap="round"/>
+            <text id="bgp-ebgp-label" x="210" y="89" font-size="8" fill="rgba(160,160,180,0.4)" text-anchor="middle" font-family="monospace">eBGP TCP:179</text>
+
+            <!-- iBGP 连接线（AS 内部） -->
+            <line id="bgp-ibgp-link1" x1="50"  y1="100" x2="135" y2="100" stroke="rgba(120,120,140,0.2)" stroke-width="1.5" stroke-dasharray="4,3" stroke-linecap="round"/>
+            <line id="bgp-ibgp-link2" x1="285" y1="100" x2="370" y2="100" stroke="rgba(120,120,140,0.2)" stroke-width="1.5" stroke-dasharray="4,3" stroke-linecap="round"/>
+
+            <!-- BGP 报文动画点 -->
+            <circle id="bgp-pkt-dot" cx="173" cy="95" r="5" fill="var(--blue-400)" opacity="0" style="transition:all 0.5s ease"/>
+
+            <!-- AS65001: R1（边界路由器，eBGP对等体） -->
+            <g id="bgp-r1">
+              <circle cx="155" cy="95" r="22" fill="rgba(30,30,45,0.95)" stroke="rgba(52,211,153,0.3)" stroke-width="1.5"/>
+              <text x="155" y="93" font-size="12" text-anchor="middle">🔀</text>
+              <text x="155" y="105" font-size="9" fill="var(--text-1)" text-anchor="middle" font-weight="600">R1</text>
+            </g>
+            <text id="bgp-r1-state" x="155" y="125" font-size="8" fill="rgba(160,160,180,0.5)" text-anchor="middle">Idle</text>
+            <text x="155" y="137" font-size="7.5" fill="rgba(52,211,153,0.45)" text-anchor="middle">边界路由器</text>
+
+            <!-- AS65001: R_internal（内部路由器，iBGP） -->
+            <g id="bgp-ri1">
+              <circle cx="50" cy="100" r="16" fill="rgba(30,30,45,0.85)" stroke="rgba(52,211,153,0.15)" stroke-width="1.2"/>
+              <text x="50" y="98" font-size="10" text-anchor="middle">🔀</text>
+              <text x="50" y="109" font-size="8" fill="var(--text-3)" text-anchor="middle">Ri1</text>
+            </g>
+            <text x="50" y="125" font-size="7" fill="rgba(120,120,140,0.4)" text-anchor="middle">iBGP</text>
+
+            <!-- AS65002: R2（边界路由器，eBGP对等体） -->
+            <g id="bgp-r2">
+              <circle cx="265" cy="95" r="22" fill="rgba(30,30,45,0.95)" stroke="rgba(167,139,250,0.3)" stroke-width="1.5"/>
+              <text x="265" y="93" font-size="12" text-anchor="middle">🔀</text>
+              <text x="265" y="105" font-size="9" fill="var(--text-1)" text-anchor="middle" font-weight="600">R2</text>
+            </g>
+            <text id="bgp-r2-state" x="265" y="125" font-size="8" fill="rgba(160,160,180,0.5)" text-anchor="middle">Idle</text>
+            <text x="265" y="137" font-size="7.5" fill="rgba(167,139,250,0.45)" text-anchor="middle">边界路由器</text>
+
+            <!-- AS65002: R_internal（内部路由器，iBGP） -->
+            <g id="bgp-ri2">
+              <circle cx="370" cy="100" r="16" fill="rgba(30,30,45,0.85)" stroke="rgba(167,139,250,0.15)" stroke-width="1.2"/>
+              <text x="370" y="98" font-size="10" text-anchor="middle">🔀</text>
+              <text x="370" y="109" font-size="8" fill="var(--text-3)" text-anchor="middle">Ri2</text>
+            </g>
+            <text x="370" y="125" font-size="7" fill="rgba(120,120,140,0.4)" text-anchor="middle">iBGP</text>
+
+            <!-- 路由前缀提示 -->
+            <text id="bgp-route-hint" x="210" y="175" font-size="8.5" fill="rgba(120,120,140,0.4)" text-anchor="middle">等待路由交换…</text>
+          </svg>
+          <div class="conn-banner" id="bgp-banner" role="status" style="margin-top:8px">🔌 第 1 / 6 步 — 建立 TCP 连接（端口 179）</div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             ARP 专属画布（广播扩散 + 局域网多主机）
+        ══════════════════════════════════════ -->
+        <div class="arp-diagram" id="arpDiagram" style="display:none" role="img" aria-label="ARP地址解析协议拓扑图">
+          <svg id="arp-svg" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:420px;margin:0 auto;display:block">
+            <!-- 局域网背景框 -->
+            <rect x="8" y="8" width="404" height="184" rx="10" fill="rgba(34,211,238,0.02)" stroke="rgba(34,211,238,0.12)" stroke-width="1.5" stroke-dasharray="6,4"/>
+            <text x="210" y="22" font-size="8.5" fill="rgba(34,211,238,0.35)" text-anchor="middle" font-family="monospace">局域网（广播域）192.168.1.0/24</text>
+
+            <!-- 交换机（中心） -->
+            <rect x="183" y="84" width="54" height="32" rx="6" fill="rgba(30,30,45,0.95)" stroke="rgba(120,120,140,0.3)" stroke-width="1.5"/>
+            <text x="210" y="99" font-size="10" text-anchor="middle">🔀</text>
+            <text x="210" y="110" font-size="8" fill="var(--text-3)" text-anchor="middle">Switch</text>
+
+            <!-- 连线：交换机到各主机 -->
+            <line id="arp-link-a"  x1="183" y1="95" x2="70"  y2="60"  stroke="rgba(120,120,140,0.2)" stroke-width="1.5"/>
+            <line id="arp-link-b"  x1="210" y1="84" x2="210" y2="50"  stroke="rgba(120,120,140,0.2)" stroke-width="1.5"/>
+            <line id="arp-link-c"  x1="237" y1="95" x2="350" y2="60"  stroke="rgba(120,120,140,0.2)" stroke-width="1.5"/>
+            <line id="arp-link-d"  x1="183" y1="105" x2="70"  y2="155" stroke="rgba(120,120,140,0.2)" stroke-width="1.5"/>
+            <line id="arp-link-e"  x1="237" y1="105" x2="350" y2="155" stroke="rgba(120,120,140,0.2)" stroke-width="1.5"/>
+
+            <!-- 广播扩散圆圈（动画） -->
+            <circle id="arp-broadcast-ring" cx="70" cy="60" r="0" fill="none" stroke="var(--cyan-400)" stroke-width="1.5" opacity="0" style="transition:all 0.5s ease"/>
+
+            <!-- ARP 报文动画点 -->
+            <circle id="arp-pkt-a"  cx="70"  cy="60"  r="5" fill="var(--cyan-400)"  opacity="0" style="transition:all 0.4s ease"/>
+            <circle id="arp-pkt-b"  cx="210" cy="50"  r="5" fill="var(--cyan-400)"  opacity="0" style="transition:all 0.4s ease"/>
+            <circle id="arp-pkt-c"  cx="350" cy="60"  r="5" fill="var(--cyan-400)"  opacity="0" style="transition:all 0.4s ease"/>
+            <circle id="arp-pkt-d"  cx="70"  cy="155" r="5" fill="var(--cyan-400)"  opacity="0" style="transition:all 0.4s ease"/>
+            <circle id="arp-pkt-e"  cx="350" cy="155" r="5" fill="var(--green-400)" opacity="0" style="transition:all 0.4s ease"/>
+            <!-- ARP 回复专用点（绿色单播） -->
+            <circle id="arp-reply-dot" cx="350" cy="60" r="5" fill="var(--green-400)" opacity="0" style="transition:all 0.5s ease"/>
+
+            <!-- 主机 A（发起方，左上） -->
+            <g id="arp-host-a">
+              <rect x="28" y="36" width="84" height="48" rx="6" fill="rgba(30,30,45,0.95)" stroke="rgba(34,211,238,0.3)" stroke-width="1.5"/>
+              <text x="70" y="57" font-size="13" text-anchor="middle">💻</text>
+              <text x="70" y="70" font-size="9" fill="var(--text-1)" text-anchor="middle" font-weight="600">主机 A</text>
+              <text x="70" y="80" font-size="7.5" fill="var(--text-4)" text-anchor="middle">.10 / AA:BB:CC:01</text>
+            </g>
+            <text id="arp-a-state" x="70" y="92" font-size="8" fill="rgba(34,211,238,0.6)" text-anchor="middle">发送方</text>
+
+            <!-- 主机 B（顶部，无关） -->
+            <g id="arp-host-b">
+              <rect x="168" y="20" width="84" height="40" rx="6" fill="rgba(30,30,45,0.8)" stroke="rgba(120,120,140,0.2)" stroke-width="1.2"/>
+              <text x="210" y="37" font-size="11" text-anchor="middle">💻</text>
+              <text x="210" y="49" font-size="8.5" fill="var(--text-3)" text-anchor="middle" font-weight="600">主机 B</text>
+              <text x="210" y="57" font-size="7" fill="var(--text-4)" text-anchor="middle">.30</text>
+            </g>
+
+            <!-- 主机 C（右上，无关） -->
+            <g id="arp-host-c">
+              <rect x="308" y="36" width="84" height="40" rx="6" fill="rgba(30,30,45,0.8)" stroke="rgba(120,120,140,0.2)" stroke-width="1.2"/>
+              <text x="350" y="53" font-size="11" text-anchor="middle">💻</text>
+              <text x="350" y="64" font-size="8.5" fill="var(--text-3)" text-anchor="middle" font-weight="600">主机 C</text>
+              <text x="350" y="72" font-size="7" fill="var(--text-4)" text-anchor="middle">.40</text>
+            </g>
+
+            <!-- 主机 D（左下，无关） -->
+            <g id="arp-host-d">
+              <rect x="28" y="131" width="84" height="40" rx="6" fill="rgba(30,30,45,0.8)" stroke="rgba(120,120,140,0.2)" stroke-width="1.2"/>
+              <text x="70" y="148" font-size="11" text-anchor="middle">💻</text>
+              <text x="70" y="159" font-size="8.5" fill="var(--text-3)" text-anchor="middle" font-weight="600">主机 D</text>
+              <text x="70" y="167" font-size="7" fill="var(--text-4)" text-anchor="middle">.50</text>
+            </g>
+
+            <!-- 主机 E（目标，右下） -->
+            <g id="arp-host-e">
+              <rect x="308" y="131" width="84" height="48" rx="6" fill="rgba(30,30,45,0.95)" stroke="rgba(52,211,153,0.3)" stroke-width="1.5"/>
+              <text x="350" y="152" font-size="13" text-anchor="middle">🖥️</text>
+              <text x="350" y="165" font-size="9" fill="var(--text-1)" text-anchor="middle" font-weight="600">主机 E（目标）</text>
+              <text x="350" y="175" font-size="7.5" fill="var(--text-4)" text-anchor="middle">.20 / FF:EE:DD:02</text>
+            </g>
+            <text id="arp-e-state" x="350" y="187" font-size="8" fill="rgba(52,211,153,0.5)" text-anchor="middle">目标</text>
+
+            <!-- ARP 缓存状态提示 -->
+            <text id="arp-cache-hint" x="210" y="178" font-size="8.5" fill="rgba(120,120,140,0.4)" text-anchor="middle">ARP 缓存：空</text>
+          </svg>
+          <div class="conn-banner" id="arp-banner" role="status" style="margin-top:8px">📢 第 1 / 5 步 — 主机 A 广播 ARP 请求</div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             通用协议画布（UDP/ICMP/DHCP/SMTP/WebSocket/NAT/VLAN/SSH/FTP/HTTP2/QUIC）
         ══════════════════════════════════════ -->
         <div class="tcp-diagram" id="genericDiagram" style="display:none" role="img" aria-label="协议时序图">
           <div class="node-box node-box-client">
@@ -2879,7 +3137,7 @@ function switchProtocol(pid, btnEl) {
       document.querySelectorAll('.proto-tab').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
       // 隐藏所有其他画布，显示对比画布
-      ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','congestionDiagram','iprouteDiagram'].forEach(id => {
+      ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','congestionDiagram','iprouteDiagram','stpDiagram','ospfDiagram','bgpDiagram','arpDiagram'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
@@ -2977,7 +3235,7 @@ function switchProtocol(pid, btnEl) {
   if (btnEl) btnEl.classList.add('active');
 
   /* 隐藏所有画布 */
-  const canvases = ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram','iprouteDiagram'];
+  const canvases = ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram','iprouteDiagram','stpDiagram','ospfDiagram','bgpDiagram','arpDiagram'];
   canvases.forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.display = 'none'; el.classList.remove('visible'); }
@@ -3009,7 +3267,7 @@ function switchProtocol(pid, btnEl) {
   totalSteps = protocolDB[pid].steps.length;
 
   /* 显示对应画布 */
-  const canvasMap = { tcp3:'tcpDiagram', tcp4:'tcp4Diagram', http:'httpDiagram', tls:'tlsDiagram', dns:'dnsCanvas', tcpcong:'congestionDiagram', iproute:'iprouteDiagram' };
+  const canvasMap = { tcp3:'tcpDiagram', tcp4:'tcp4Diagram', http:'httpDiagram', tls:'tlsDiagram', dns:'dnsCanvas', tcpcong:'congestionDiagram', iproute:'iprouteDiagram', stp:'stpDiagram', ospf:'ospfDiagram', bgp:'bgpDiagram', arp:'arpDiagram' };
   const canvasId = canvasMap[pid] || 'genericDiagram';
   // 先隐藏所有画布
   ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram'].forEach(id => {
@@ -3075,6 +3333,22 @@ function switchProtocol(pid, btnEl) {
     const sn = document.getElementById('stepNarration');
     if (sn) sn.style.display = '';
     if (typeof renderIpRouteStep === 'function') renderIpRouteStep(1);
+  } else if (canvasId === 'stpDiagram') {
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = '';
+    if (typeof renderStpStep === 'function') renderStpStep(1);
+  } else if (canvasId === 'ospfDiagram') {
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = '';
+    if (typeof renderOspfStep === 'function') renderOspfStep(1);
+  } else if (canvasId === 'bgpDiagram') {
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = '';
+    if (typeof renderBgpStep === 'function') renderBgpStep(1);
+  } else if (canvasId === 'arpDiagram') {
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = '';
+    if (typeof renderArpStep === 'function') renderArpStep(1);
   } else {
     /* 其他协议：恢复 stepNarration */
     const sn = document.getElementById('stepNarration');
@@ -4001,6 +4275,18 @@ function renderStep() {
     renderIpRouteStep(currentStep);
     /* fall through → 让通用逻辑继续处理进度条/步骤卡片/旁白/知识点/思考题 */
   }
+  if (activeProtocol === 'stp') {
+    if (typeof renderStpStep === 'function') renderStpStep(currentStep);
+  }
+  if (activeProtocol === 'ospf') {
+    if (typeof renderOspfStep === 'function') renderOspfStep(currentStep);
+  }
+  if (activeProtocol === 'bgp') {
+    if (typeof renderBgpStep === 'function') renderBgpStep(currentStep);
+  }
+  if (activeProtocol === 'arp') {
+    if (typeof renderArpStep === 'function') renderArpStep(currentStep);
+  }
 
   /* ── 对比视图：独立渲染路径 ── */
   if (activeProtocol.startsWith('compare-')) {
@@ -4047,7 +4333,7 @@ function renderStep() {
   document.getElementById('stepLabel').textContent = `第 ${currentStep} 步 / 共 ${totalSteps} 步`;
 
   /* ── 连接状态横幅 ── */
-  const bannerId = {tcp3:'conn-banner',tcp4:'tcp4-banner',http:'http-banner',tls:'tls-banner',dns:'dns-banner'}[activeProtocol] || 'gen-banner';
+  const bannerId = {tcp3:'conn-banner',tcp4:'tcp4-banner',http:'http-banner',tls:'tls-banner',dns:'dns-banner',iproute:'iproute-banner',stp:'stp-banner',ospf:'ospf-banner',bgp:'bgp-banner',arp:'arp-banner'}[activeProtocol] || 'gen-banner';
   // 对 tcp3，用 .conn-banner 查找（因为图里可能有多个）
   let banner;
   if (activeProtocol === 'tcp3') {
@@ -4205,12 +4491,14 @@ function renderStep() {
   const tbody = document.querySelector('.field-table tbody');
   if (tbody && data.fields) {
     tbody.innerHTML = data.fields.map(f => `
-      <tr${f.highlight ? ' class="field-highlight"' : ''}>
+      <tr${f.highlight ? ' class="field-highlight"' : ''} class="field-row${f.highlight ? ' field-highlight' : ''}">
         <td class="field-name">${f.name}</td>
         <td class="field-val">${f.val !== undefined ? f.val : (f.value || '')}</td>
         <td>${f.desc}${f.derive ? `<div class="field-derive">= ${f.derive}</div>` : ''}</td>
       </tr>
     `).join('');
+    /* 字段变化高亮 */
+    if (typeof highlightChangedFields === 'function') highlightChangedFields();
   }
 
   /* ── ARIA ── */
@@ -4342,6 +4630,376 @@ function closeAbnormal() {
       if (banner && db.stepData[step-1]) banner.textContent = db.stepData[step-1].banner;
       // 注意：侧边面板（步骤高亮/字段/旁白/知识点）全部由外层 renderStep 的通用逻辑处理
     };
+  })();
+
+  /* ════════════════════════════════════════════
+     STP 专属画布渲染
+  ════════════════════════════════════════════ */
+  (function() {
+    // 每步配置：节点高亮色、链路状态、端口角色、拓扑提示
+    var STP_CFG = [
+      // step1: BPDU 广播，全部活跃
+      { sw1:'active', sw2:'active', sw3:'active',
+        link12:'active', link13:'active', link23:'active',
+        port12a:'DP?', port12b:'RP?', port13a:'DP?', port13b:'RP?', port23a:'AP?', port23b:'DP?',
+        sw1Role:'根桥候选', sw2Role:'非根候选', sw3Role:'非根候选',
+        hint:'🔄 初始化：所有交换机广播 BPDU，开始选举' },
+      // step2: 根桥选举 → SW1 胜出
+      { sw1:'root', sw2:'normal', sw3:'normal',
+        link12:'active', link13:'active', link23:'active',
+        port12a:'DP?', port12b:'RP?', port13a:'DP?', port13b:'RP?', port23a:'AP?', port23b:'DP?',
+        sw1Role:'👑 根桥（BID最小）', sw2Role:'非根交换机', sw3Role:'非根交换机',
+        hint:'👑 SW1 当选根桥（Priority+MAC 最小）' },
+      // step3: 根端口确定
+      { sw1:'root', sw2:'normal', sw3:'normal',
+        link12:'rp', link13:'rp', link23:'active',
+        port12a:'DP', port12b:'RP', port13a:'DP', port13b:'RP', port23a:'AP?', port23b:'DP?',
+        sw1Role:'👑 根桥', sw2Role:'根端口 → SW1', sw3Role:'根端口 → SW1',
+        hint:'🔍 SW2/SW3 各选出根端口（到根桥路径最短）' },
+      // step4: 指定端口确定
+      { sw1:'root', sw2:'normal', sw3:'normal',
+        link12:'dp', link13:'dp', link23:'dp',
+        port12a:'DP', port12b:'RP', port13a:'DP', port13b:'RP', port23a:'AP?', port23b:'DP',
+        sw1Role:'👑 根桥（全DP）', sw2Role:'RP + DP(→SW3)', sw3Role:'RP',
+        hint:'✅ 每段链路选出指定端口（DP）' },
+      // step5: 阻塞端口
+      { sw1:'root', sw2:'normal', sw3:'normal',
+        link12:'dp', link13:'dp', link23:'blocked',
+        port12a:'DP', port12b:'RP', port13a:'DP', port13b:'RP', port23a:'🚫AP', port23b:'DP',
+        sw1Role:'👑 根桥', sw2Role:'RP + DP', sw3Role:'RP + 🚫Blocking',
+        hint:'🚫 SW3↔SW2 端口阻塞，环路消除！拓扑变为树形' },
+      // step6: 拓扑收敛
+      { sw1:'root', sw2:'normal', sw3:'normal',
+        link12:'dp', link13:'dp', link23:'blocked',
+        port12a:'DP', port12b:'RP', port13a:'DP', port13b:'RP', port23a:'🚫AP', port23b:'DP',
+        sw1Role:'👑 根桥 (Forwarding)', sw2Role:'Forwarding ✓', sw3Role:'Forwarding ✓',
+        hint:'🏁 STP 收敛完成（~30s）SW1—SW2—SW3 树形拓扑稳定' },
+      // step7: 链路故障 SW1-SW2 断开
+      { sw1:'root', sw2:'fault', sw3:'normal',
+        link12:'fault', link13:'dp', link23:'recovering',
+        port12a:'DP', port12b:'❌故障', port13a:'DP', port13b:'RP', port23a:'RP→', port23b:'DP',
+        sw1Role:'👑 根桥', sw2Role:'⚡ 重新收敛', sw3Role:'RP 仍然有效',
+        hint:'⚡ SW1—SW2 链路故障，SW3 阻塞端口接管，网络恢复' },
+    ];
+    var LINK_COLORS = {
+      active:     'rgba(34,211,238,0.5)',
+      rp:         'rgba(52,211,153,0.6)',
+      dp:         'rgba(79,142,247,0.6)',
+      blocked:    'rgba(239,68,68,0.45)',
+      fault:      'rgba(239,68,68,0.2)',
+      recovering: 'rgba(245,158,11,0.6)',
+    };
+    var NODE_STROKES = {
+      active:  'rgba(34,211,238,0.6)',
+      root:    'rgba(250,204,21,0.7)',
+      normal:  'rgba(79,142,247,0.45)',
+      fault:   'rgba(239,68,68,0.5)',
+    };
+
+    window.renderStpStep = function(step) {
+      var cfg = STP_CFG[step - 1];
+      if (!cfg) return;
+
+      function setLink(id, state) {
+        var el = document.getElementById('stp-link-' + id);
+        if (!el) return;
+        el.setAttribute('stroke', LINK_COLORS[state] || 'rgba(120,120,140,0.25)');
+        el.setAttribute('stroke-width', state === 'blocked' ? '4' : state === 'active' || state === 'rp' || state === 'dp' ? '3' : '2');
+        el.setAttribute('stroke-dasharray', state === 'blocked' ? '6,4' : state === 'fault' ? '4,4' : 'none');
+      }
+      function setNode(id, state, role) {
+        var el = document.getElementById('stp-' + id);
+        if (!el) return;
+        var rect = el.querySelector('rect');
+        if (rect) rect.setAttribute('stroke', NODE_STROKES[state] || NODE_STROKES.normal);
+        var roleEl = document.getElementById('stp-' + id + '-role');
+        if (roleEl) roleEl.textContent = role;
+      }
+      function setPort(id, txt, active) {
+        var el = document.getElementById('stp-port-' + id);
+        if (!el) return;
+        el.textContent = txt;
+        el.setAttribute('fill', active ? 'rgba(210,210,230,0.85)' : 'rgba(160,160,180,0.5)');
+        el.setAttribute('font-size', active ? '9' : '8');
+      }
+
+      setNode('sw1', cfg.sw1, cfg.sw1Role);
+      setNode('sw2', cfg.sw2, cfg.sw2Role);
+      setNode('sw3', cfg.sw3, cfg.sw3Role);
+      setLink('12', cfg.link12);
+      setLink('13', cfg.link13);
+      setLink('23', cfg.link23);
+      setPort('1-2a', cfg.port12a, cfg.link12 !== 'active');
+      setPort('1-2b', cfg.port12b, cfg.link12 !== 'active');
+      setPort('1-3a', cfg.port13a, cfg.link13 !== 'active');
+      setPort('1-3b', cfg.port13b, cfg.link13 !== 'active');
+      setPort('2-3a', cfg.port23a, cfg.link23 !== 'active');
+      setPort('2-3b', cfg.port23b, cfg.link23 !== 'active');
+
+      var hint = document.getElementById('stp-topology-hint');
+      if (hint) hint.textContent = cfg.hint;
+    };
+  })();
+
+  /* ════════════════════════════════════════════
+     OSPF 专属画布渲染
+  ════════════════════════════════════════════ */
+  (function() {
+    var OSPF_CFG = [
+      // step1: Hello 包
+      { r1:'active', r2:'normal', r1State:'Down→Init', r2State:'Down',
+        link12:'hello', link13:'normal', link24:'normal',
+        lsdb:'LSDB 未同步', dot:{x:155,y:90,show:true,color:'var(--cyan-400)'} },
+      // step2: 2-Way
+      { r1:'active', r2:'active', r1State:'2-Way', r2State:'2-Way',
+        link12:'twoway', link13:'normal', link24:'normal',
+        lsdb:'邻接关系建立中…', dot:{x:265,y:90,show:true,color:'var(--cyan-400)'} },
+      // step3: DBD 交换
+      { r1:'exchange', r2:'exchange', r1State:'Exchange', r2State:'Exchange',
+        link12:'exchange', link13:'normal', link24:'normal',
+        lsdb:'交换 LSDB 摘要（DBD）', dot:{x:210,y:90,show:true,color:'var(--blue-400)'} },
+      // step4: LSR 请求
+      { r1:'loading', r2:'normal', r1State:'Loading', r2State:'发送 LSU',
+        link12:'loading', link13:'normal', link24:'normal',
+        lsdb:'请求缺少的 LSA', dot:{x:175,y:90,show:true,color:'var(--purple-400)'} },
+      // step5: LSU 发送
+      { r1:'loading', r2:'active', r1State:'Loading', r2State:'发送 LSU',
+        link12:'lsu', link13:'lsu', link24:'lsu',
+        lsdb:'LSA 泛洪同步中…', dot:{x:200,y:90,show:true,color:'var(--green-400)'} },
+      // step6: Full 状态
+      { r1:'full', r2:'full', r1State:'Full ✓', r2State:'Full ✓',
+        link12:'full', link13:'normal', link24:'normal',
+        lsdb:'LSDB 完全同步 ✓', dot:{x:155,y:90,show:false,color:'var(--green-400)'} },
+      // step7: SPF 计算
+      { r1:'spf', r2:'spf', r1State:'SPF 计算中', r2State:'SPF 计算中',
+        link12:'full', link13:'full', link24:'full',
+        lsdb:'路由表更新完成 ✓', dot:{x:265,y:90,show:false,color:'var(--green-400)'} },
+    ];
+    var LINK_OSPF_COLORS = {
+      normal:   'rgba(120,120,140,0.2)',
+      hello:    'rgba(34,211,238,0.55)',
+      twoway:   'rgba(34,211,238,0.55)',
+      exchange: 'rgba(79,142,247,0.6)',
+      loading:  'rgba(167,139,250,0.6)',
+      lsu:      'rgba(52,211,153,0.6)',
+      full:     'rgba(52,211,153,0.5)',
+    };
+    var NODE_OSPF_STROKES = {
+      active:   'rgba(34,211,238,0.6)',
+      normal:   'rgba(120,120,140,0.25)',
+      exchange: 'rgba(79,142,247,0.6)',
+      loading:  'rgba(167,139,250,0.55)',
+      full:     'rgba(52,211,153,0.65)',
+      spf:      'rgba(245,158,11,0.6)',
+    };
+    window.renderOspfStep = function(step) {
+      var cfg = OSPF_CFG[step - 1];
+      if (!cfg) return;
+      function setNodeOspf(id, state, stateText) {
+        var el = document.getElementById('ospf-' + id);
+        if (!el) return;
+        var circle = el.querySelector('circle');
+        if (circle) circle.setAttribute('stroke', NODE_OSPF_STROKES[state] || NODE_OSPF_STROKES.normal);
+        var stEl = document.getElementById('ospf-' + id + '-state');
+        if (stEl) stEl.textContent = stateText;
+      }
+      function setLinkOspf(id, state) {
+        var el = document.getElementById('ospf-link-' + id);
+        if (!el) return;
+        el.setAttribute('stroke', LINK_OSPF_COLORS[state] || LINK_OSPF_COLORS.normal);
+        el.setAttribute('stroke-width', state === 'normal' ? '2' : '3');
+      }
+      setNodeOspf('r1', cfg.r1, cfg.r1State);
+      setNodeOspf('r2', cfg.r2, cfg.r2State);
+      setLinkOspf('r1r2', cfg.link12);
+      setLinkOspf('r1r3', cfg.link13);
+      setLinkOspf('r2r4', cfg.link24);
+      var lsdb = document.getElementById('ospf-lsdb-hint');
+      if (lsdb) lsdb.textContent = cfg.lsdb;
+      var dot = document.getElementById('ospf-hello-dot');
+      if (dot) {
+        dot.setAttribute('cx', cfg.dot.x);
+        dot.setAttribute('cy', cfg.dot.y);
+        dot.setAttribute('fill', cfg.dot.color);
+        dot.setAttribute('opacity', cfg.dot.show ? '1' : '0');
+      }
+    };
+  })();
+
+  /* ════════════════════════════════════════════
+     BGP 专属画布渲染
+  ════════════════════════════════════════════ */
+  (function() {
+    var BGP_CFG = [
+      // step1: TCP 建立
+      { r1:'connecting', r2:'connecting', r1State:'Connect', r2State:'Connect',
+        link:'tcp', routeHint:'建立 TCP 连接（端口 179）…', dot:{x:200,y:95,show:true,color:'var(--blue-400)'} },
+      // step2: OPEN 交换
+      { r1:'open', r2:'open', r1State:'OpenSent', r2State:'Active',
+        link:'open', routeHint:'交换 OPEN 报文（AS号/Hold Time）', dot:{x:220,y:95,show:true,color:'var(--purple-400)'} },
+      // step3: Established
+      { r1:'established', r2:'established', r1State:'Established ✓', r2State:'Established ✓',
+        link:'established', routeHint:'KEEPALIVE 确认，会话建立！', dot:{x:265,y:95,show:true,color:'var(--green-400)'} },
+      // step4: UPDATE 发送路由
+      { r1:'update', r2:'normal', r1State:'发送 UPDATE', r2State:'接收处理',
+        link:'update', routeHint:'UPDATE: NLRI=192.168.0.0/16, AS_PATH=65001', dot:{x:230,y:95,show:true,color:'var(--cyan-400)'} },
+      // step5: 路由决策
+      { r1:'normal', r2:'decision', r1State:'已通告', r2State:'BGP 路由决策',
+        link:'update', routeHint:'R2 运行 BGP 决策算法（Weight→LOCAL_PREF→AS_PATH）', dot:{x:265,y:95,show:false,color:'var(--cyan-400)'} },
+      // step6: KEEPALIVE 维持
+      { r1:'keepalive', r2:'keepalive', r1State:'Established', r2State:'Established',
+        link:'established', routeHint:'KEEPALIVE 心跳（30s）维持会话稳定', dot:{x:210,y:95,show:true,color:'rgba(160,160,180,0.6)'} },
+    ];
+    var LINK_BGP = {
+      normal:      'rgba(120,120,140,0.25)',
+      tcp:         'rgba(79,142,247,0.5)',
+      open:        'rgba(167,139,250,0.6)',
+      established: 'rgba(52,211,153,0.6)',
+      update:      'rgba(34,211,238,0.65)',
+    };
+    var NODE_BGP = {
+      normal:      null,
+      connecting:  'rgba(79,142,247,0.5)',
+      open:        'rgba(167,139,250,0.55)',
+      established: 'rgba(52,211,153,0.65)',
+      update:      'rgba(34,211,238,0.65)',
+      decision:    'rgba(245,158,11,0.6)',
+      keepalive:   'rgba(52,211,153,0.4)',
+    };
+    window.renderBgpStep = function(step) {
+      var cfg = BGP_CFG[step - 1];
+      if (!cfg) return;
+      function setNodeBgp(id, state, stateText) {
+        var el = document.getElementById('bgp-' + id);
+        if (!el) return;
+        var circle = el.querySelector('circle');
+        if (circle && NODE_BGP[state]) circle.setAttribute('stroke', NODE_BGP[state]);
+        var stEl = document.getElementById('bgp-' + id + '-state');
+        if (stEl) stEl.textContent = stateText;
+      }
+      setNodeBgp('r1', cfg.r1, cfg.r1State);
+      setNodeBgp('r2', cfg.r2, cfg.r2State);
+      var el = document.getElementById('bgp-ebgp-link');
+      if (el) el.setAttribute('stroke', LINK_BGP[cfg.link] || LINK_BGP.normal);
+      var rh = document.getElementById('bgp-route-hint');
+      if (rh) rh.textContent = cfg.routeHint;
+      var dot = document.getElementById('bgp-pkt-dot');
+      if (dot) {
+        dot.setAttribute('cx', cfg.dot.x);
+        dot.setAttribute('cy', cfg.dot.y);
+        dot.setAttribute('fill', cfg.dot.color);
+        dot.setAttribute('opacity', cfg.dot.show ? '1' : '0');
+      }
+    };
+  })();
+
+  /* ════════════════════════════════════════════
+     ARP 专属画布渲染
+  ════════════════════════════════════════════ */
+  (function() {
+    var ARP_CFG = [
+      // step1: 广播请求，所有主机收到
+      { hostA:'sender', hostE:'target', cacheHint:'ARP 缓存：空',
+        broadcast:true, replyShow:false,
+        pktA:true, pktB:true, pktC:true, pktD:true, pktE:true, reply:false,
+        linkA:'broad', linkB:'broad', linkC:'broad', linkD:'broad', linkE:'broad' },
+      // step2: 主机 E 单播回复
+      { hostA:'waiting', hostE:'replying', cacheHint:'主机 E 学习了 A 的 MAC',
+        broadcast:false, replyShow:true,
+        pktA:false, pktB:false, pktC:false, pktD:false, pktE:false, reply:true,
+        linkA:'reply', linkB:'normal', linkC:'normal', linkD:'normal', linkE:'reply' },
+      // step3: ARP 缓存，发送 IP 包
+      { hostA:'sending', hostE:'target', cacheHint:'ARP 缓存：.20 → FF:EE:DD:02 ✓',
+        broadcast:false, replyShow:false,
+        pktA:true, pktB:false, pktC:false, pktD:false, pktE:false, reply:false,
+        linkA:'data', linkB:'normal', linkC:'normal', linkD:'normal', linkE:'data' },
+      // step4: 缓存命中
+      { hostA:'cache', hostE:'target', cacheHint:'ARP 缓存命中（~20分钟有效）',
+        broadcast:false, replyShow:false,
+        pktA:false, pktB:false, pktC:false, pktD:false, pktE:false, reply:false,
+        linkA:'data', linkB:'normal', linkC:'normal', linkD:'normal', linkE:'data' },
+      // step5: 完成
+      { hostA:'done', hostE:'done', cacheHint:'ARP 缓存：已建立，通信正常 ✓',
+        broadcast:false, replyShow:false,
+        pktA:false, pktB:false, pktC:false, pktD:false, pktE:false, reply:false,
+        linkA:'done', linkB:'normal', linkC:'normal', linkD:'normal', linkE:'done' },
+    ];
+    var ARP_HOST_STROKES = {
+      sender:   'rgba(34,211,238,0.6)',
+      waiting:  'rgba(245,158,11,0.5)',
+      sending:  'rgba(79,142,247,0.6)',
+      cache:    'rgba(52,211,153,0.5)',
+      done:     'rgba(52,211,153,0.6)',
+      target:   'rgba(52,211,153,0.5)',
+      replying: 'rgba(250,204,21,0.6)',
+    };
+    var ARP_HOST_STATES = {
+      sender:'发起 ARP 请求', waiting:'等待回复…', sending:'发送 IP 包',
+      cache:'缓存命中', done:'通信完成 ✓', target:'目标', replying:'发送 ARP 回复',
+    };
+    var ARP_LINK_COLORS = {
+      normal:'rgba(120,120,140,0.18)', broad:'rgba(34,211,238,0.5)',
+      reply:'rgba(52,211,153,0.6)', data:'rgba(79,142,247,0.55)', done:'rgba(52,211,153,0.4)',
+    };
+    window.renderArpStep = function(step) {
+      var cfg = ARP_CFG[step - 1];
+      if (!cfg) return;
+      // 主机 A 状态
+      var ha = document.getElementById('arp-host-a');
+      if (ha) { var r = ha.querySelector('rect'); if (r) r.setAttribute('stroke', ARP_HOST_STROKES[cfg.hostA] || 'rgba(34,211,238,0.3)'); }
+      var aState = document.getElementById('arp-a-state');
+      if (aState) aState.textContent = ARP_HOST_STATES[cfg.hostA] || '';
+      // 主机 E 状态
+      var he = document.getElementById('arp-host-e');
+      if (he) { var re = he.querySelector('rect'); if (re) re.setAttribute('stroke', ARP_HOST_STROKES[cfg.hostE] || 'rgba(52,211,153,0.3)'); }
+      var eState = document.getElementById('arp-e-state');
+      if (eState) eState.textContent = ARP_HOST_STATES[cfg.hostE] || '目标';
+      // 链路颜色
+      ['a','b','c','d','e'].forEach(function(k) {
+        var el = document.getElementById('arp-link-' + k);
+        if (el) el.setAttribute('stroke', ARP_LINK_COLORS[cfg['link'+k.toUpperCase()]] || ARP_LINK_COLORS.normal);
+      });
+      // 广播扩散包：广播时显示，其余隐藏
+      ['a','b','c','d','e'].forEach(function(k) {
+        var dot = document.getElementById('arp-pkt-' + k);
+        if (dot) dot.setAttribute('opacity', cfg['pkt'+k.toUpperCase()] ? '1' : '0');
+      });
+      var reply = document.getElementById('arp-reply-dot');
+      if (reply) reply.setAttribute('opacity', cfg.reply ? '1' : '0');
+      var ch = document.getElementById('arp-cache-hint');
+      if (ch) ch.textContent = cfg.cacheHint;
+    };
+  })();
+
+  /* ════════════════════════════════════════════
+     字段面板变化高亮（步骤切换时闪烁变化项）
+  ════════════════════════════════════════════ */
+  (function() {
+    var _prevFieldValues = {};
+    window.highlightChangedFields = function() {
+      var rows = document.querySelectorAll('.field-table tbody tr');
+      rows.forEach(function(row) {
+        var nameEl = row.querySelector('.field-name');
+        var valEl  = row.querySelector('.field-val');
+        if (!nameEl || !valEl) return;
+        var key = nameEl.textContent.trim();
+        var val = valEl.textContent.trim();
+        if (_prevFieldValues[key] !== undefined && _prevFieldValues[key] !== val) {
+          row.classList.remove('field-changed');
+          void row.offsetWidth; // reflow 触发动画
+          row.classList.add('field-changed');
+        }
+        _prevFieldValues[key] = val;
+      });
+    };
+    // 切换协议时清空缓存
+    var _origSwitch = window.switchProtocol;
+    if (typeof _origSwitch === 'function') {
+      window.switchProtocol = function(pid) {
+        _prevFieldValues = {};
+        _origSwitch(pid);
+      };
+    }
   })();
 
   function toSvgX(xVal) {
