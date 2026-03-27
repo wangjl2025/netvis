@@ -60,8 +60,8 @@ protocolDB['ftp'] = {
       fields:[
         { name:'主动模式 PORT', value:'客户端监听高位端口，服务器主动连接客户端', desc:'问题：客户端在 NAT/防火墙后面时服务器无法主动连入' },
         { name:'被动模式 PASV', value:'服务器监听高位端口，客户端主动连接服务器', desc:'穿透 NAT/防火墙的解决方案，现代 FTP 客户端默认用 PASV' },
-        { name:'PASV 响应',     value:'227 Entering Passive Mode (h1,h2,h3,h4,p1,p2)', desc:'服务器告知 IP 和端口：端口号 = p1×256 + p2，例如 (192,168,1,1,6,100) = 端口 1636' },
-        { name:'端口计算',      value:'p1=6, p2=100 → 6×256+100 = 1636', desc:'FTP 用两个字节表示端口，高字节×256+低字节' },
+        { name:'PASV 响应',     value:'227 Entering Passive Mode (h1,h2,h3,h4,p1,p2)', desc:'服务器告知 IP 和端口：端口号 = p1×256 + p2，例如 (192,168,1,100,19,136) = 端口 5000（19×256+136=5000）' },
+        { name:'端口计算',      value:'p1=19, p2=136 → 19×256+136 = 5000', desc:'FTP 用两个字节表示端口，高字节×256+低字节；例题：(19,136) → 端口 5000' },
         { name:'防火墙',        value:'PASV 需要服务器开放一段高位端口范围', desc:'通常 49152~65535，防火墙需放行这段端口' },
       ],
       narration:'主动模式 vs 被动模式是 FTP 的经典考点。核心区别：数据连接由谁发起？主动模式服务器发起（PORT），但 NAT 会拦截进入的连接；被动模式客户端发起（PASV），能穿透 NAT。现代互联网环境下，几乎都用被动模式。',
@@ -74,6 +74,7 @@ protocolDB['ftp'] = {
         { name:'文件命令',    value:'RETR（下载）/ STOR（上传）/ LIST（列目录）', desc:'命令通过控制连接发送，数据通过数据连接传输' },
         { name:'传输模式',    value:'二进制（BINARY）/ ASCII 模式', desc:'二进制模式用于可执行文件；ASCII 模式会转换换行符（历史遗留）' },
         { name:'TYPE 命令',   value:'TYPE I = 二进制；TYPE A = ASCII', desc:'上传非文本文件前必须切换到 TYPE I，否则文件损坏' },
+        { name:'断点续传',    value:'REST <offset> 命令指定续传偏移量', desc:'FTP 支持断点续传：客户端发 REST 告知已接收字节数，服务器从该位置继续发送' },
       ],
       narration:'第二条 TCP 连接（数据连接）是 FTP 双通道设计的核心。每次 LIST/RETR/STOR 操作都会新建一条数据连接，传输完毕后关闭。这与 HTTP/1.1 的持久连接思路相反，导致 FTP 在频繁小文件传输时效率较低。',
     },

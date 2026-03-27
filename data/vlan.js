@@ -116,7 +116,7 @@ protocolDB['vlan'] = {
       answer: 2,
       exp:'802.1Q 标签的 TPID（Tag Protocol Identifier）固定为 0x8100，接收方靠这个值识别出这是一个带 VLAN 标签的帧，而不是普通以太网帧。' },
     { q:'三层交换机上的 SVI（Switch Virtual Interface）的主要作用是？',
-      options:['增加交换机端口数量','作为 VLAN 的默认网关，实现 VLAN 间路由','备份管理 IP 地址','镜像流量用于抓包'],
+      options:['将物理端口虚拟化为多个逻辑端口','作为 VLAN 的默认网关，实现 VLAN 间路由','为交换机提供独立的远程管理 IP','在不同 VLAN 之间透明转发二层帧'],
       answer: 1,
       exp:'SVI 是三层交换机为每个 VLAN 创建的虚拟三层接口，配置 IP 地址后作为该 VLAN 内所有主机的默认网关，实现 VLAN 间的三层路由转发。' },
   ],

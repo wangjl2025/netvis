@@ -41,7 +41,7 @@ protocolDB['ospf'] = {
         { name:'2-Way 状态',  value:'双方 Hello 包中都有对方的 Router ID', desc:'双向通信确认，广播网络在此选举 DR/BDR' },
         { name:'DR/BDR 选举', value:'Designated Router / Backup DR，只在广播网络（以太网）进行', desc:'DR 负责收集并泛洪 LSA，减少 N(N-1)/2 个邻接关系' },
       ],
-      narration:'2-Way 是 OSPF 邻接关系的重要里程碑。在以太网这类广播网络上，到达 2-Way 后要先选 DR（指定路由器）和 BDR（备份 DR）——DR 就是"班长"，负责代表所有路由器收发 LSA，避免 n 台路由器两两建立邻接的 N(N-1)/2 个关系爆炸。',
+      narration:'2-Way 是 OSPF 邻接关系的重要里程碑。在以太网这类广播网络上，到达 2-Way 后要先选 DR（指定路由器）和 BDR（备份 DR）——DR 就是"班长"，负责代表所有路由器收发 LSA，避免 n 台路由器两两建立邻接的 N(N-1)/2 个关系爆炸。注意：非 DR/BDR 的路由器之间互为 DROther，它们停在 2-Way 状态，不会进入 Full——这是正常的，不是故障！',
     },
     {
       banner:'📋 第 3 / 7 步 — 进入 ExStart/Exchange 阶段，通过 DBD 包交换 LSDB 摘要',

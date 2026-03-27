@@ -6,8 +6,8 @@
 <title>NetViz — 网络协议可视化学习平台 | TCP/IP/DNS/HTTP/TLS 动画教程</title>
 
 <!-- ══ SEO ══════════════════════════════════════════════════════════ -->
-<meta name="description" content="NetViz：中文网络协议可视化学习平台。15+ 协议步进动画（TCP握手、DNS解析、HTTP/HTTPS、TLS加密、UDP、ARP、DHCP等），覆盖 OSI 五层，附知识点详解和错误演练，适合计算机/网工专业学生和自学开发者。">
-<meta name="keywords" content="网络协议可视化,TCP三次握手,DNS解析,HTTP HTTPS对比,TLS握手,UDP,ARP,DHCP,网络协议动画,计算机网络学习,OSI模型,TCP/IP,网络工程,网络安全">
+<meta name="description" content="NetViz：中文网络协议可视化学习平台。18个协议步进动画（TCP握手、DNS解析、HTTP/HTTPS、TLS加密、UDP、ARP、DHCP、VLAN、OSPF、FTP等），覆盖 OSI 五层，附知识点详解和错误演练，适合计算机/网工专业学生和自学开发者。">
+<meta name="keywords" content="网络协议可视化,TCP三次握手,DNS解析,HTTP HTTPS对比,TLS握手,UDP,ARP,DHCP,VLAN,OSPF,FTP,网络协议动画,计算机网络学习,OSI模型,TCP/IP,网络工程,网络安全">
 <meta name="author" content="NetViz">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://wangjl2025.github.io/netvis/">
@@ -17,7 +17,7 @@
 <!-- ══ Open Graph（微信/Slack/Twitter 分享卡片）══════════════════════ -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NetViz — 网络协议可视化学习平台">
-<meta property="og:description" content="15+ 协议步进动画，TCP/DNS/HTTP/TLS/ARP 全覆盖，中文深度教学，附知识点详解和错误演练模式。">
+<meta property="og:description" content="18个协议步进动画，TCP/DNS/HTTP/TLS/VLAN/OSPF/FTP全覆盖，中文深度教学，附知识点详解和错误演练模式。">
 <meta property="og:url" content="https://wangjl2025.github.io/netvis/">
 <meta property="og:site_name" content="NetViz">
 <meta property="og:locale" content="zh_CN">
@@ -29,7 +29,7 @@
 <!-- ══ Twitter Card ══════════════════════════════════════════════════ -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="NetViz — 网络协议可视化学习平台">
-<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/ARP 等 15+ 协议步进动画，中文深度教学">
+<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/ARP/VLAN/OSPF/FTP等18个协议步进动画，中文深度教学">
 <meta name="twitter:image" content="https://wangjl2025.github.io/netvis/og-image.png">
 
 <!-- ══ JSON-LD 结构化数据 ════════════════════════════════════════════ -->
@@ -38,7 +38,7 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "NetViz 网络协议可视化学习平台",
-  "description": "中文·步进交互·深度教学的网络协议可视化平台。15+ 协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、UDP、ARP、DHCP、ICMP、NAT、IP路由、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
+  "description": "中文·步进交互·深度教学的网络协议可视化平台。18个协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、UDP、ARP、DHCP、ICMP、NAT、IP路由、VLAN、OSPF、FTP、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
   "url": "https://wangjl2025.github.io/netvis/",
   "applicationCategory": "EducationalApplication",
   "operatingSystem": "Web",
@@ -143,8 +143,8 @@ window.protocolDB = window.protocolDB || {};
   <div class="stats-bar" role="region" aria-label="平台数据">
     <div class="stats-inner">
       <div class="stat-item">
-        <div class="stat-num">22+</div>
-        <div class="stat-label">协议动画</div>
+        <div class="stat-num">18+</div>
+        <div class="stat-label">协议动画（持续更新）</div>
       </div>
       <div class="stat-item">
         <div class="stat-num">5层</div>
@@ -382,7 +382,7 @@ window.protocolDB = window.protocolDB || {};
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
         <h1 class="list-page-title">协议库</h1>
-        <p class="list-page-desc">22+ 协议动画，覆盖 OSI 五层，从入门到深入</p>
+        <p class="list-page-desc">18+ 协议动画，覆盖 OSI 五层，从入门到深入</p>
       </div>
       <button class="btn btn-primary drill-entry-btn" onclick="DrillModule && DrillModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap">
         <span style="font-size:16px">🎯</span> 错误演练
@@ -3869,12 +3869,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(function() { loadModule('modules/badge.js'); }, 500);
     // share.js：稍晚一点加载，不影响首屏和 badge
     setTimeout(function() { loadModule('modules/share.js'); }, 1200);
-    // drill.js：错误演练模式，最后加载
-    setTimeout(function() { loadModule('modules/drill.js'); }, 1800);
-    // flashcard.js：速记卡模块，延迟加载
-    setTimeout(function() { loadModule('modules/flashcard.js'); }, 2200);
-    // capture.js：抓包对照模式，最后加载
-    setTimeout(function() { loadModule('modules/capture.js'); }, 2800);
+    // drill.js：错误演练模式
+    setTimeout(function() { loadModule('modules/drill.js'); }, 2000);
+    // flashcard.js：速记卡模块
+    setTimeout(function() { loadModule('modules/flashcard.js'); }, 2000);
+    // capture.js：抓包对照模式
+    setTimeout(function() { loadModule('modules/capture.js'); }, 2000);
   });
 })();
 </script>
