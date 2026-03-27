@@ -7,7 +7,6 @@ protocolDB['ftp'] = {
     { dir:'r', color:'packet-label-purple', label:'PASV — 被动模式：服务器告知数据端口' },
     { dir:'r', color:'packet-label-green',  label:'第二条 TCP 连接（数据连接，高位端口）' },
     { dir:'l', color:'packet-label-blue',   label:'文件数据传输（数据连接）' },
-    { dir:'l', color:'packet-label-cyan',   label:'226 Transfer Complete；数据连接关闭' },
   ],
   steps: [
     { title:'建立控制连接（端口 21）', emoji:'🔌' },
@@ -111,6 +110,7 @@ protocolDB['ftp'] = {
     { label:'被动模式 PASV', value:'客户端发 PASV，服务器返回 227 + 高位端口，客户端主动连接；兼容 NAT，现代默认' },
     { label:'PASV 端口解析', value:'227 响应格式：(h1,h2,h3,h4,p1,p2)，端口号 = p1×256 + p2，IP = h1.h2.h3.h4' },
     { label:'安全替代方案',  value:'SFTP（SSH 封装，端口 22）/ FTPS（FTP+TLS，端口 990 隐式/21 显式）；原始 FTP 明文传输密码' },
+    { label:'FTP 双通道总结', value:'控制连接（TCP 21）全程保持传命令；数据连接（高位端口）按需建立传数据，完毕即关闭；主动模式服务器发起数据连接，被动模式客户端发起' },
   ],
   quiz: [
     { q:'FTP 控制连接和数据连接分别使用哪个端口（服务器端）？',

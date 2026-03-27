@@ -127,6 +127,9 @@
       { title:'💡 为什么 QUIC 基于 UDP 而不是 TCP？', body:'① <strong>消除 TCP 队头阻塞</strong>：TCP 保证全局有序，QUIC 只在流内保序；② <strong>握手加速</strong>：内嵌 TLS 1.3，1-RTT 建连，0-RTT 恢复；③ <strong>用户空间实现</strong>：TCP 在内核，升级慢；QUIC 在应用层，Chrome/Nginx 可快速迭代；④ <strong>连接迁移</strong>：Connection ID 替代四元组；⑤ <strong>UDP 部署广泛</strong>：防火墙和 NAT 普遍支持 UDP 443。' },
       { title:'💡 HTTP/1.1 → HTTP/2 → HTTP/3 演进对比', body:'<strong>HTTP/1.1</strong>：文本协议，每连接串行请求，无压缩，多连接并发（6~8 个）<br><strong>HTTP/2</strong>：二进制帧，单连接多路复用（消除应用层 HoL），HPACK 压缩，Server Push；但 TCP 层仍有 HoL<br><strong>HTTP/3</strong>：QUIC（UDP），彻底消除 HoL，0-RTT，QPACK，连接迁移，用户空间拥塞控制' },
       { title:'💡 QUIC 的现状与普及率', body:'截至 2025 年：Chrome、Firefox、Safari 全面支持；Nginx 1.25+、Caddy 2 原生支持 HTTP/3；CloudFlare、Google、Meta 已将大量流量迁移到 QUIC（Google 报告约 50% 流量走 QUIC）。HTTP/3 RFC 9114 于 2022 年发布，QUIC RFC 9000 同年发布。主要障碍：企业防火墙常封锁 UDP 443，导致部分环境回退 HTTP/2。' },
+      { title:'💡 QUIC 连接迁移原理', body:'TCP 连接由"本地IP:端口 + 远端IP:端口"唯一确定，IP 或端口变化连接立即断开。QUIC 用 <strong>64 位 Connection ID</strong> 标识连接，网络切换时通过 NEW_CONNECTION_ID + PATH_CHALLENGE/PATH_RESPONSE 验证新路径可达性，切换过程在协议层自动完成，应用层无感知。移动端 WiFi 切 4G 时语音/视频不中断。' },
+      { title:'💡 QUIC 精准 ACK 与无重传歧义', body:'TCP 重传包与原始包序号相同，ACK 到来时无法区分确认的是哪个（重传歧义），导致 RTT 采样偏差。QUIC 每次重传都用<strong>全新包号</strong>，彻底消除歧义。<strong>ACK Delay</strong> 字段让接收方主动汇报处理延迟，发送方精确区分传播延迟与处理延迟，拥塞控制（CUBIC/BBR 可插拔）更精准高效。' },
+      { title:'💡 HTTP/3 如何被浏览器发现？', body:'首次访问仍走 TCP（HTTP/1.1 或 HTTP/2）。服务端在响应头中加入 <code>Alt-Svc: h3=":443"; ma=86400</code>，告知浏览器"我的 443 端口支持 HTTP/3，有效期 1 天"。浏览器记录后，<strong>下次访问</strong>直接尝试 QUIC 连接（与 TCP 竞速）。HTTP/3 保留 HTTP/2 的帧语义，但去掉了 TCP 帧层，将传输+加密+应用合为一体。' },
     ],
     quiz:[
       { q:'QUIC 如何在 UDP 上实现可靠传输？为什么不直接用 TCP？', a:'QUIC 在 UDP 之上自行实现可靠传输：每个 QUIC 包有唯一递增的 Packet Number，接收方通过 ACK 帧确认；未被确认的包触发重传。QUIC 不用 TCP 的原因：① TCP 在内核实现，修改慢；② TCP 队头阻塞无法在协议层绕开；③ TCP 握手无法与 TLS 合并为 1 RTT；④ TCP 连接与 IP:端口绑定，无法连接迁移。' },

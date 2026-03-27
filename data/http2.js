@@ -111,6 +111,8 @@
       { title:'💡 HTTP/2 仍然存在的问题 → HTTP/3 的动机', body:'HTTP/2 基于 TCP，TCP 本身存在<strong>队头阻塞</strong>：当一个 TCP 数据包丢失，后续所有 HTTP/2 流都会等待重传，即使它们属于不同的流。HTTP/3 将 TCP 替换为 <strong>QUIC</strong>（基于 UDP），每个 QUIC 流独立，丢包只影响对应流，彻底解决了 TCP 层的队头阻塞问题。' },
       { title:'💡 为什么不能用 HTTP/2 明文（h2c）访问网站？', body:'技术上 HTTP/2 支持明文传输（h2c），但主流浏览器（Chrome/Firefox/Safari）均要求 HTTP/2 必须基于 TLS（h2）。原因：① 互联网上存在大量不兼容 HTTP/2 的中间代理，TLS 加密可以避免代理误处理；② 推动 HTTPS 普及。h2c 在内部服务间通信（如 gRPC）中仍有应用。' },
       { title:'💡 HTTP/2 帧类型速查', body:'<strong>DATA (0x0)</strong>：请求/响应正文 | <strong>HEADERS (0x1)</strong>：头部字段 | <strong>PRIORITY (0x2)</strong>：优先级 | <strong>RST_STREAM (0x3)</strong>：重置流 | <strong>SETTINGS (0x4)</strong>：参数设置 | <strong>PUSH_PROMISE (0x5)</strong>：服务端推送预告 | <strong>PING (0x6)</strong>：心跳 | <strong>GOAWAY (0x7)</strong>：关闭连接 | <strong>WINDOW_UPDATE (0x8)</strong>：流量控制' },
+      { title:'💡 Server Push 为何退出历史舞台？', body:'Server Push 存在三大问题：① <strong>缓存感知差</strong>：服务端无法知道客户端是否已有缓存，可能浪费带宽推送重复资源；② <strong>时序难以控制</strong>：Push 可能在 Service Worker 拦截之前到达，造成竞争；③ <strong>实现复杂</strong>。Chrome 于 2022 年移除了 HTTP/2 Server Push 支持，<strong>103 Early Hints</strong> 已成为更好的替代方案。' },
+      { title:'💡 HTTP/2 流控与优先级', body:'<strong>流量控制</strong>：HTTP/2 在连接级和流级都有独立的流量控制窗口（WINDOW_UPDATE 帧），防止快速发送方压垮慢速接收方。<strong>优先级</strong>：PRIORITY 帧可设置流依赖树和权重（1~256），让关键资源（如首屏 CSS）优先传输。<strong>RST_STREAM</strong>：单独取消一个流，无需断开整个连接——这是 HTTP/1.1 做不到的。' },
     ],
     quiz:[
       { q:'HTTP/2 如何解决 HTTP/1.1 的队头阻塞？底层是否还有队头阻塞？', a:'HTTP/2 通过<strong>多路复用</strong>解决了应用层的队头阻塞：多个请求被分配到不同的流，帧可交错传输，一个流的延迟不影响其他流。但 HTTP/2 基于 TCP，<strong>TCP 层仍存在队头阻塞</strong>：若某个 TCP 数据包丢失，后续所有数据（不论属于哪个 HTTP/2 流）都必须等待重传。HTTP/3 用 QUIC（基于 UDP）彻底解决了传输层队头阻塞。' },

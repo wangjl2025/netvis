@@ -109,6 +109,7 @@ protocolDB['ospf'] = {
     { label:'LSA 5 种类型',    value:'Type-1 Router LSA / Type-2 Network LSA / Type-3 Summary LSA / Type-4 ASBR Summary / Type-5 AS External LSA' },
     { label:'OSPF Cost',       value:'默认参考带宽 100Mbps，Cost = 100Mbps / 接口带宽；千兆建议改参考带宽为 10Gbps 以区分不同速率' },
     { label:'OSPF 区域',       value:'Area 0 为骨干区域，所有非骨干区域必须与 Area 0 相连；ABR 连接区域边界，ASBR 引入外部路由' },
+    { label:'SPF 算法',        value:'Dijkstra 最短路径优先，以自身为根计算到所有目标的最短路径树；Cost = 参考带宽/接口带宽；等 Cost 路径可 ECMP 负载均衡' },
   ],
   quiz: [
     { q:'OSPF Hello 包使用什么组播地址发送？',
