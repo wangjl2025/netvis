@@ -123,10 +123,10 @@ window.addEventListener('unhandledrejection', function(e) {
     <button class="nav-link active" id="nav-home"      onclick="showPage('home')">首页</button>
     <button class="nav-link"        id="nav-protocols" onclick="showPage('protocols')">协议库</button>
     <button class="nav-link"        id="nav-player"    onclick="showPage('player')">播放器</button>
+    <button class="nav-link"        id="nav-tools"     onclick="showPage('tools')">🧰 工具箱</button>
   </div>
 
   <div class="nav-right">
-    <button class="btn btn-ghost" onclick="showPage('protocols')" title="查看所有协议与学习进度">我的进度</button>
     <a class="btn btn-primary" href="https://github.com/wangjl2025/netvis" target="_blank" rel="noopener" style="text-decoration:none">⭐ GitHub</a>
   </div>
 </nav>
@@ -405,7 +405,120 @@ window.addEventListener('unhandledrejection', function(e) {
 
 
 <!-- ─────────────────────────────────────────────
-     PAGE 2 · 协议库
+     PAGE 2 · 工具箱
+───────────────────────────────────────────── -->
+<div id="page-tools" class="page">
+  <div class="list-page-header">
+    <div>
+      <h1 class="list-page-title">🧰 学习工具箱</h1>
+      <p class="list-page-desc">把这些工具练熟，笔试、面试都不慌</p>
+    </div>
+  </div>
+
+  <div class="tools-grid">
+
+    <!-- 错误演练 -->
+    <div class="tool-card" onclick="DrillModule && DrillModule.open()">
+      <div class="tool-card-icon" style="background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.22)">🎯</div>
+      <div class="tool-card-body">
+        <div class="tool-card-title">错误演练</div>
+        <div class="tool-card-desc">给你一个打乱顺序的协议步骤，自己重新排列，排完对照答案。备考、复习效果极佳。</div>
+        <div class="tool-card-tags">
+          <span class="tool-tag">21 个协议</span>
+          <span class="tool-tag">随机出题</span>
+        </div>
+      </div>
+      <div class="tool-card-cta">开始演练
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- 速记卡 -->
+    <div class="tool-card" onclick="FlashcardModule && FlashcardModule.open()">
+      <div class="tool-card-icon" style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.22)">📚</div>
+      <div class="tool-card-body">
+        <div class="tool-card-title">速记卡</div>
+        <div class="tool-card-desc">抽认卡形式快速过协议核心知识点，每张卡一个考点，正反面翻转，记忆效率翻倍。</div>
+        <div class="tool-card-tags">
+          <span class="tool-tag">翻卡模式</span>
+          <span class="tool-tag">考前速刷</span>
+        </div>
+      </div>
+      <div class="tool-card-cta">开始刷卡
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- 抓包对照 -->
+    <div class="tool-card" onclick="CaptureModule && CaptureModule.open()">
+      <div class="tool-card-icon" style="background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.22)">🔬</div>
+      <div class="tool-card-body">
+        <div class="tool-card-title">抓包对照</div>
+        <div class="tool-card-desc">把每步动画对应到真实 Wireshark 抓包字段，学完不只会看动画，能认出真实报文。</div>
+        <div class="tool-card-tags">
+          <span class="tool-tag">21 个协议</span>
+          <span class="tool-tag">真实报文</span>
+        </div>
+      </div>
+      <div class="tool-card-cta">查看报文
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- 协议对比 -->
+    <div class="tool-card" onclick="openProtocol('compare-tcp-udp')">
+      <div class="tool-card-icon" style="background:rgba(79,142,247,0.12);border:1px solid rgba(79,142,247,0.22)">⚔️</div>
+      <div class="tool-card-body">
+        <div class="tool-card-title">协议对比</div>
+        <div class="tool-card-desc">TCP vs UDP、HTTP vs HTTPS、DNS递归 vs 迭代、FTP主动 vs 被动——两个协议并排，差异一目了然。</div>
+        <div class="tool-card-tags">
+          <span class="tool-tag">4 组对比</span>
+          <span class="tool-tag">并排动画</span>
+        </div>
+      </div>
+      <div class="tool-card-cta">开始对比
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- 学习路径 -->
+    <div class="tool-card" id="toolCardLearning" onclick="typeof openLearningPanel === 'function' ? openLearningPanel() : (LearningModule && LearningModule.open ? LearningModule.open() : null)">
+      <div class="tool-card-icon" style="background:rgba(34,211,238,0.12);border:1px solid rgba(34,211,238,0.22)">🗺</div>
+      <div class="tool-card-body">
+        <div class="tool-card-title">学习路径</div>
+        <div class="tool-card-desc">根据你的目标（备考 / 开发 / 运维）和已完成情况，推荐下一步应该学哪个协议。</div>
+        <div class="tool-card-tags">
+          <span class="tool-tag">个性化推荐</span>
+          <span class="tool-tag">前置依赖图</span>
+        </div>
+      </div>
+      <div class="tool-card-cta">查看路径
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- 我的进度 -->
+    <div class="tool-card" onclick="showPage('protocols')">
+      <div class="tool-card-icon" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.22)">🏆</div>
+      <div class="tool-card-body">
+        <div class="tool-card-title">我的进度</div>
+        <div class="tool-card-desc">查看 21 个协议的完成情况、已解锁徽章和学习统计，了解自己掌握了哪些，还差哪些。</div>
+        <div class="tool-card-tags">
+          <span class="tool-tag">徽章收集</span>
+          <span class="tool-tag">本地存储</span>
+        </div>
+      </div>
+      <div class="tool-card-cta">查看进度
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+  </div><!-- /.tools-grid -->
+</div><!-- /#page-tools -->
+
+
+<!-- ─────────────────────────────────────────────
+     PAGE 3 · 协议库
 ───────────────────────────────────────────── -->
 <div id="page-protocols" class="page">
 
@@ -418,11 +531,8 @@ window.addEventListener('unhandledrejection', function(e) {
       <button class="btn btn-primary drill-entry-btn" onclick="DrillModule && DrillModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap">
         <span style="font-size:16px">🎯</span> 错误演练
       </button>
-      <button class="btn btn-ghost" onclick="FlashcardModule && FlashcardModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap;border-color:rgba(79,142,247,0.3);color:rgba(79,142,247,1)" title="翻转速记卡，快速记忆协议知识点">
-        <span style="font-size:16px">📚</span> 速记卡
-      </button>
-      <button class="btn btn-ghost" onclick="CaptureModule && CaptureModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap;border-color:rgba(52,211,153,0.3);color:rgba(52,211,153,1)" title="查看模拟抓包报文，与步进动画对照">
-        <span style="font-size:16px">🔬</span> 抓包对照
+      <button class="btn btn-ghost" onclick="showPage('tools')" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap;border-color:rgba(79,142,247,0.3);color:rgba(79,142,247,1)" title="速记卡、抓包对照、学习路径等工具">
+        <span style="font-size:16px">🧰</span> 学习工具
       </button>
     </div>
   </div>
@@ -785,18 +895,15 @@ window.addEventListener('unhandledrejection', function(e) {
         <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" id="compareToggleBtn" onclick="toggleCompare()">
           ⚡ TCP vs UDP
         </button>
+        <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" onclick="DrillModule && DrillModule.open()">
+          🎯 演练
+        </button>
         <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" onclick="shareProtocol()">
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2 L14 2 L14 14 L10 14 M6 5 L10 2 M6 11 L10 14" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>
           分享
         </button>
-        <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" onclick="DrillModule && DrillModule.open()">
-          🎯 演练
-        </button>
-        <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px" onclick="FlashcardModule && FlashcardModule.open()" title="速记卡">
-          📚 速记卡
-        </button>
-        <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px;color:rgba(52,211,153,0.9)" onclick="CaptureModule && CaptureModule.open()" title="抓包对照">
-          🔬 抓包
+        <button class="btn btn-ghost" style="font-size:12.5px;padding:5px 11px;color:rgba(79,142,247,0.9)" onclick="showPage('tools')" title="速记卡、抓包对照等工具">
+          🧰 工具箱
         </button>
       </div>
     </div>
@@ -1592,7 +1699,7 @@ function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  const idMap = { home:'nav-home', protocols:'nav-protocols', player:'nav-player' };
+  const idMap = { home:'nav-home', protocols:'nav-protocols', player:'nav-player', tools:'nav-tools' };
   const link = document.getElementById(idMap[name] || 'nav-home');
   if (link) link.classList.add('active');
   window.scrollTo({ top:0, behavior:'instant' });
