@@ -1239,6 +1239,9 @@ window.addEventListener('unhandledrejection', function(e) {
       <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-http-https',this)" title="HTTP 与 HTTPS 安全对比">🔒 HTTP vs HTTPS</button>
       <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-dns-modes',this)" title="DNS 递归与迭代查询对比">🌐 DNS 递归 vs 迭代</button>
       <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-ftp-modes',this)" title="FTP 主动模式与被动模式对比">📂 FTP 主动 vs 被动</button>
+      <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-tls-versions',this)" title="TLS 1.2 与 TLS 1.3 RTT 对比">🔐 TLS 1.2 vs 1.3</button>
+      <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-tcp-rst',this)" title="TCP 正常关闭与 RST 强制重置对比">🔁 四挥手 vs RST</button>
+      <button class="proto-tab proto-tab-compare" onclick="switchProtocol('compare-http-versions',this)" title="HTTP/1.1 与 HTTP/2 多路复用对比">🚀 HTTP/1.1 vs 2</button>
     </div>
 
     <!-- 顶栏 -->
@@ -2365,6 +2368,12 @@ window.addEventListener('unhandledrejection', function(e) {
       <button class="custom-seq-apply" onclick="applyCustomSeq()">应用 →</button>
       <span class="custom-seq-hint" id="seqHintText">修改 seq 值后点"应用"，动画标签和字段表将自动推导更新</span>
     </div>
+
+    <!-- TCP seq/ack 推导可视化面板 -->
+    <div class="seq-derive-panel" id="seqDerivePanel" style="display:none" aria-label="seq/ack 推导过程">
+      <div class="seq-derive-title">📐 seq / ack 推导过程</div>
+      <div class="seq-derive-steps" id="seqDeriveSteps"></div>
+    </div>
   </div>
 
   <!-- 右侧面板 -->
@@ -2511,13 +2520,7 @@ function _refreshFieldsTab() {
 
   const tbody = document.querySelector('.field-table tbody');
   if (tbody && data.fields && data.fields.length > 0) {
-    tbody.innerHTML = data.fields.map(f => `
-      <tr${f.highlight ? ' class="field-highlight"' : ''}>
-        <td class="field-name">${f.name}</td>
-        <td class="field-val">${f.val !== undefined ? f.val : (f.value || '')}</td>
-        <td>${f.desc || ''}${f.derive ? `<div class="field-derive">= ${f.derive}</div>` : ''}</td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = renderFieldsWithLayers(data.fields);
   }
 }
 
@@ -2657,7 +2660,45 @@ function applyCustomSeq() {
   // 重新生成步骤数据并渲染
   rebuildStepData();
   renderStep();
+  renderSeqDerivePanel();
   showToast(`✓ 已应用：客户端 ISN=${c}，服务端 ISN=${s}`, 'success');
+}
+
+/* TCP seq/ack 推导可视化面板 */
+function renderSeqDerivePanel() {
+  const panel = document.getElementById('seqDerivePanel');
+  const stepsEl = document.getElementById('seqDeriveSteps');
+  if (!panel || !stepsEl) return;
+  if (activeProtocol !== 'tcp3') { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  const c = dynClientISN, s = dynServerISN;
+  const derivesByStep = [
+    /* Step 1: SYN */
+    [
+      { label:'seq', val: c,   formula:`随机 ISN`, color:'#60a5fa', role:'client' },
+      { label:'ack', val: 0,   formula:`首次握手，未确认任何内容`, color:'var(--text-4)', role:'' },
+    ],
+    /* Step 2: SYN-ACK */
+    [
+      { label:'seq', val: s,   formula:`服务端随机 ISN`, color:'#34d399', role:'server' },
+      { label:'ack', val: c+1, formula:`客户端 seq(${c}) + 1 = ${c+1}`, color:'#f59e0b', role:'server', highlight:true },
+    ],
+    /* Step 3: ACK */
+    [
+      { label:'seq', val: c+1, formula:`${c} + 1（SYN 消耗一个序号）`, color:'#60a5fa', role:'client', highlight:true },
+      { label:'ack', val: s+1, formula:`服务端 seq(${s}) + 1 = ${s+1}`, color:'#f59e0b', role:'client', highlight:true },
+    ],
+  ];
+  const step = Math.min(currentStep, 3) - 1;
+  const derives = derivesByStep[step] || [];
+  stepsEl.innerHTML = derives.map(d => `
+    <div class="seq-derive-item${d.highlight ? ' seq-derive-highlight' : ''}">
+      <span class="seq-derive-name" style="color:${d.color}">${d.label}</span>
+      <span class="seq-derive-eq">=</span>
+      <span class="seq-derive-val" style="color:${d.color}">${d.val}</span>
+      <span class="seq-derive-formula">${d.formula}</span>
+    </div>
+  `).join('');
 }
 
 /* ════════════════════════════════════════════
@@ -2714,14 +2755,17 @@ function rebuildStepData() {
       bannerClass:'',
       fieldTitle:`当前数据包字段（SYN）`,
       fields:[
-        { name:'SYN',      val:'1',           desc:'同步序号，请求建立连接',                          highlight:false, derive:'' },
-        { name:'ACK',      val:'0',           desc:'确认位无效（首次握手）',                          highlight:false, derive:'' },
-        { name:'seq',      val:`${c}`,        desc:`客户端随机初始序列号 ISN`,                       highlight:true,  derive:`随机生成，防止序列号预测攻击` },
-        { name:'ack',      val:'0',           desc:'尚未确认，值为 0',                               highlight:false, derive:'' },
-        { name:'Window',   val:'65535',       desc:'客户端接收窗口大小（字节）',                     highlight:false, derive:'' },
-        { name:'Src Port', val:'52341',       desc:'客户端临时端口（随机）',                         highlight:false, derive:'' },
-        { name:'Dst Port', val:'443',         desc:'目标端口（HTTPS 服务）',                        highlight:false, derive:'' },
-        { name:'Checksum', val:'0x4a1f',      desc:'校验和，保证数据完整性',                         highlight:false, derive:'' },
+        { name:'SYN',      val:'1',           desc:'同步序号，请求建立连接',                          highlight:false, derive:'',  layer:'trans' },
+        { name:'ACK',      val:'0',           desc:'确认位无效（首次握手）',                          highlight:false, derive:'',  layer:'trans' },
+        { name:'seq',      val:`${c}`,        desc:`客户端随机初始序列号 ISN`,                       highlight:true,  derive:`随机生成，防止序列号预测攻击`, layer:'trans' },
+        { name:'ack',      val:'0',           desc:'尚未确认，值为 0',                               highlight:false, derive:'',  layer:'trans' },
+        { name:'Window',   val:'65535',       desc:'客户端接收窗口大小（字节）',                     highlight:false, derive:'',  layer:'trans' },
+        { name:'Src Port', val:'52341',       desc:'客户端临时端口（随机）',                         highlight:false, derive:'',  layer:'trans' },
+        { name:'Dst Port', val:'443',         desc:'目标端口（HTTPS 服务）',                        highlight:false, derive:'',  layer:'trans' },
+        { name:'Src IP',   val:'192.168.1.10',desc:'客户端 IP 地址',                                highlight:false, derive:'',  layer:'net' },
+        { name:'Dst IP',   val:'93.184.216.34',desc:'服务端 IP 地址',                               highlight:false, derive:'',  layer:'net' },
+        { name:'TTL',      val:'64',          desc:'生存时间，每跳路由器 -1',                        highlight:false, derive:'',  layer:'net' },
+        { name:'Checksum', val:'0x4a1f',      desc:'校验和，保证数据完整性',                         highlight:false, derive:'',  layer:'trans' },
       ],
     },
     {
@@ -2732,14 +2776,16 @@ function rebuildStepData() {
       bannerClass:'',
       fieldTitle:`当前数据包字段（SYN-ACK）`,
       fields:[
-        { name:'SYN',      val:'1',           desc:'同步序号，服务端请求建立连接',                   highlight:false, derive:'' },
-        { name:'ACK',      val:'1',           desc:'确认位有效',                                    highlight:false, derive:'' },
-        { name:'seq',      val:`${s}`,        desc:`服务端随机初始序列号 ISN`,                       highlight:true,  derive:`随机生成` },
-        { name:'ack',      val:`${c+1}`,      desc:`= 客户端 seq(${c}) + 1`,                       highlight:true,  derive:`${c} + 1 = ${c+1}，表示"期望下一个收到的字节编号"` },
-        { name:'Window',   val:'65535',       desc:'服务端接收窗口大小（字节）',                     highlight:false, derive:'' },
-        { name:'Src Port', val:'443',         desc:'服务端源端口（HTTPS）',                         highlight:false, derive:'' },
-        { name:'Dst Port', val:'52341',       desc:'客户端临时端口',                                 highlight:false, derive:'' },
-        { name:'Checksum', val:'0x8f2a',      desc:'校验和，保证数据完整性',                         highlight:false, derive:'' },
+        { name:'SYN',      val:'1',           desc:'同步序号，服务端请求建立连接',                   highlight:false, derive:'',  layer:'trans' },
+        { name:'ACK',      val:'1',           desc:'确认位有效',                                    highlight:false, derive:'',  layer:'trans' },
+        { name:'seq',      val:`${s}`,        desc:`服务端随机初始序列号 ISN`,                       highlight:true,  derive:`随机生成`, layer:'trans' },
+        { name:'ack',      val:`${c+1}`,      desc:`= 客户端 seq(${c}) + 1`,                       highlight:true,  derive:`${c} + 1 = ${c+1}，表示"期望下一个收到的字节编号"`, layer:'trans' },
+        { name:'Window',   val:'65535',       desc:'服务端接收窗口大小（字节）',                     highlight:false, derive:'',  layer:'trans' },
+        { name:'Src Port', val:'443',         desc:'服务端源端口（HTTPS）',                         highlight:false, derive:'',  layer:'trans' },
+        { name:'Dst Port', val:'52341',       desc:'客户端临时端口',                                 highlight:false, derive:'',  layer:'trans' },
+        { name:'Src IP',   val:'93.184.216.34',desc:'服务端 IP 地址',                               highlight:false, derive:'',  layer:'net' },
+        { name:'Dst IP',   val:'192.168.1.10',desc:'客户端 IP 地址',                                highlight:false, derive:'',  layer:'net' },
+        { name:'Checksum', val:'0x8f2a',      desc:'校验和，保证数据完整性',                         highlight:false, derive:'',  layer:'trans' },
       ],
     },
     {
@@ -2750,14 +2796,16 @@ function rebuildStepData() {
       bannerClass:'banner-success',
       fieldTitle:`当前数据包字段（ACK）`,
       fields:[
-        { name:'SYN',      val:'0',           desc:'同步位关闭（非握手阶段）',                       highlight:false, derive:'' },
-        { name:'ACK',      val:'1',           desc:'确认位有效',                                    highlight:false, derive:'' },
-        { name:'seq',      val:`${c+1}`,      desc:`客户端序号前进`,                                highlight:true,  derive:`${c} + 1 = ${c+1}（SYN 报文消耗一个序号）` },
-        { name:'ack',      val:`${s+1}`,      desc:`= 服务端 seq(${s}) + 1`,                       highlight:true,  derive:`${s} + 1 = ${s+1}，确认服务端 SYN` },
-        { name:'Window',   val:'65535',       desc:'客户端接收窗口大小（字节）',                     highlight:false, derive:'' },
-        { name:'Src Port', val:'52341',       desc:'客户端临时端口',                                 highlight:false, derive:'' },
-        { name:'Dst Port', val:'443',         desc:'目标端口（HTTPS 服务）',                        highlight:false, derive:'' },
-        { name:'Checksum', val:'0x2c8e',      desc:'校验和',                                        highlight:false, derive:'' },
+        { name:'SYN',      val:'0',           desc:'同步位关闭（非握手阶段）',                       highlight:false, derive:'',  layer:'trans' },
+        { name:'ACK',      val:'1',           desc:'确认位有效',                                    highlight:false, derive:'',  layer:'trans' },
+        { name:'seq',      val:`${c+1}`,      desc:`客户端序号前进`,                                highlight:true,  derive:`${c} + 1 = ${c+1}（SYN 报文消耗一个序号）`, layer:'trans' },
+        { name:'ack',      val:`${s+1}`,      desc:`= 服务端 seq(${s}) + 1`,                       highlight:true,  derive:`${s} + 1 = ${s+1}，确认服务端 SYN`, layer:'trans' },
+        { name:'Window',   val:'65535',       desc:'客户端接收窗口大小（字节）',                     highlight:false, derive:'',  layer:'trans' },
+        { name:'Src Port', val:'52341',       desc:'客户端临时端口',                                 highlight:false, derive:'',  layer:'trans' },
+        { name:'Dst Port', val:'443',         desc:'目标端口（HTTPS 服务）',                        highlight:false, derive:'',  layer:'trans' },
+        { name:'Src IP',   val:'192.168.1.10',desc:'客户端 IP 地址',                                highlight:false, derive:'',  layer:'net' },
+        { name:'Dst IP',   val:'93.184.216.34',desc:'服务端 IP 地址',                               highlight:false, derive:'',  layer:'net' },
+        { name:'Checksum', val:'0x2c8e',      desc:'校验和',                                        highlight:false, derive:'',  layer:'trans' },
       ],
     },
   ];
@@ -3289,7 +3337,7 @@ function switchProtocol(pid, btnEl) {
       const cc = document.getElementById('compareCanvas');
       if (cc) cc.style.display = 'flex';
       // 隐藏 tcp3 专属控件 / 异常场景按钮
-      ['compareToggleBtn','customSeqPanel'].forEach(id => {
+      ['compareToggleBtn','customSeqPanel','seqDerivePanel'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
@@ -3311,7 +3359,7 @@ function switchProtocol(pid, btnEl) {
       if (protoNameElC) protoNameElC.textContent = cfg.leftName + ' vs ' + cfg.rightName;
       const blEl = document.getElementById('breadcrumbLayer');
       if (blEl) {
-        const layerMap = { 'compare-tcp-udp':'传输层', 'compare-http-https':'应用层', 'compare-dns-modes':'应用层', 'compare-ftp-modes':'应用层' };
+        const layerMap = { 'compare-tcp-udp':'传输层', 'compare-http-https':'应用层', 'compare-dns-modes':'应用层', 'compare-ftp-modes':'应用层', 'compare-tls-versions':'安全层', 'compare-tcp-rst':'传输层', 'compare-http-versions':'应用层' };
         blEl.textContent = layerMap[pid] || '对比视图';
       }
       // 步骤圆点 & 侧边栏：以对比步骤数驱动
@@ -3387,7 +3435,7 @@ function switchProtocol(pid, btnEl) {
   });
 
   /* TCP 专属控件（ISN 自定义 / TCP vs UDP 对比）只在 tcp3 显示 */
-  const tcp3OnlyEls = ['compareToggleBtn','customSeqPanel'];
+  const tcp3OnlyEls = ['compareToggleBtn','customSeqPanel','seqDerivePanel'];
   tcp3OnlyEls.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = (pid === 'tcp3') ? '' : 'none';
@@ -3685,6 +3733,129 @@ const COMPARE_STEPS_DNS_MODES = [
   },
 ];
 
+/* ── TLS 1.2 vs TLS 1.3 对比数据 ──────────────────── */
+const COMPARE_DIFF_TLS_VERSIONS = [
+  { key:'握手 RTT',     l:'2 RTT（两个往返）',            r:'1 RTT（一个往返）' },
+  { key:'密钥交换',     l:'RSA 或 ECDHE（可选）',          r:'强制 ECDHE（前向保密）' },
+  { key:'加密算法',     l:'允许弱算法（RC4、DES、3DES）', r:'仅允许 AEAD 算法（AES-GCM 等）' },
+  { key:'证书验证',     l:'ClientKeyExchange 单独步骤',   r:'合并到 ServerHello 阶段完成' },
+  { key:'0-RTT 恢复',   l:'不支持',                       r:'支持（Session Resumption）' },
+  { key:'安全性',       l:'存在已知漏洞（BEAST/POODLE）', r:'设计现代，强制前向保密' },
+];
+
+const COMPARE_STEPS_TLS_VERSIONS = [
+  {
+    leftLabel:'ClientHello → ServerHello',  leftDir:'right',
+    rightLabel:'ClientHello（含 key_share）', rightDir:'right',
+    leftState:['发送 ClientHello','处理 ClientHello'], rightState:['发送 ClientHello','处理 ClientHello'],
+    leftDesc:'【TLS 1.2】客户端发 ClientHello（版本+随机数+密码套件），服务端回 ServerHello 选择套件并确认——这是第一个 RTT，但此时还没有密钥！',
+    rightDesc:'【TLS 1.3】ClientHello 同时携带 key_share（ECDH 公钥）。服务端看到后就能立刻开始密钥派生，不需要额外一轮——这是 1 RTT 的秘密！',
+  },
+  {
+    leftLabel:'ServerKeyExchange → 证书',   leftDir:'left',
+    rightLabel:'ServerHello + 证书 + Finished', leftDir:'left',
+    leftState:['等待服务端证书','发送证书+密钥'], rightState:['验证证书中','证书已发送+Finished'],
+    leftDesc:'【TLS 1.2】第一个 RTT 后，服务端还需要发：Certificate（证书）+ ServerKeyExchange（ECDH 公钥）+ ServerHelloDone——仍是明文！',
+    rightDesc:'【TLS 1.3】服务端在一个消息流里同时发 ServerHello（含 key_share）+ 证书 + Finished。此时双方已可派生密钥，证书本身也被加密传输！',
+  },
+  {
+    leftLabel:'ClientKeyExchange → ChangeCipherSpec', leftDir:'right',
+    rightLabel:'Finished（握手完成！）', rightDir:'right',
+    leftState:['发送客户端密钥','等待 Finished'], rightState:['握手完成','握手完成'],
+    leftDesc:'【TLS 1.2】第二个 RTT：客户端发 ClientKeyExchange（提供密钥材料）+ ChangeCipherSpec（切换加密）+ Finished。两次 RTT 结束才能传应用数据。',
+    rightDesc:'【TLS 1.3】客户端收到服务端消息后，发送自己的 Finished，握手即告完成！总计 1 RTT。若使用 Session Ticket，还可实现 0-RTT 恢复。',
+  },
+  {
+    leftLabel:'加密应用数据传输（2 RTT 后）', leftDir:'right',
+    rightLabel:'加密应用数据传输（1 RTT 后）', rightDir:'right',
+    leftState:['ESTABLISHED（2 RTT）','ESTABLISHED'], rightState:['ESTABLISHED（1 RTT）','ESTABLISHED'],
+    leftDesc:'【TLS 1.2】经过 2 RTT 握手才开始发送 HTTP 数据。在高延迟网络（如 100ms RTT 的 4G）中，这意味着 200ms 才能传第一个字节。',
+    rightDesc:'【TLS 1.3】1 RTT 后即可传数据，高延迟场景下比 TLS 1.2 快 50%。前向保密强制，即使服务器私钥泄露，历史数据也安全。',
+  },
+];
+
+/* ── TCP 四次挥手 vs RST 对比数据 ──────────────────── */
+const COMPARE_DIFF_TCP_RST = [
+  { key:'关闭方式',   l:'主动方发 FIN，对方确认',  r:'任意一方直接发 RST' },
+  { key:'数据保证',   l:'FIN 前所有数据已收到',    r:'可能丢失未读数据' },
+  { key:'TIME_WAIT',  l:'主动关闭方等 2MSL',       r:'无 TIME_WAIT，立即释放' },
+  { key:'应用通知',   l:'EOF / read() 返回 0',     r:'Connection reset 报错' },
+  { key:'触发条件',   l:'正常 close()/shutdown()', r:'崩溃/超时/异常/abort()' },
+  { key:'资源释放',   l:'慢（等 2MSL）',           r:'快（立即释放）' },
+];
+
+const COMPARE_STEPS_TCP_RST = [
+  {
+    leftLabel:'FIN（第一次挥手）', leftDir:'right',
+    rightLabel:'RST 强制重置',     rightDir:'right',
+    leftState:['FIN_WAIT_1','ESTABLISHED'], rightState:['CLOSED','CLOSED'],
+    leftDesc:'【四次挥手】主动关闭方（通常是客户端）发送 FIN，表示"我这边没有数据要发了"，但仍可以接收对方数据（半关闭）。',
+    rightDesc:'【RST】一方直接发出 RST 报文（如应用崩溃、连接超时、收到异常数据）。RST 不需要确认，接收方立即销毁连接状态。',
+  },
+  {
+    leftLabel:'ACK（第二次挥手）', leftDir:'left',
+    rightLabel:'对端收到 RST', leftDir:'left',
+    leftState:['FIN_WAIT_2','CLOSE_WAIT'], rightState:['CLOSED','收到错误'],
+    leftDesc:'【四次挥手】接收方收到 FIN，立即回 ACK，进入 CLOSE_WAIT 状态。此时接收方应用仍可继续发送残余数据（半双工）。',
+    rightDesc:'【RST】接收方收到 RST 后，如果 read() 在阻塞，会立即返回 "Connection reset by peer" 错误。任何未读数据被丢弃。',
+  },
+  {
+    leftLabel:'FIN（第三次挥手）', leftDir:'left',
+    rightLabel:'连接强制终止',     leftDir:'left',
+    leftState:['FIN_WAIT_2','LAST_ACK'], rightState:['CLOSED','CLOSED'],
+    leftDesc:'【四次挥手】接收方的应用程序关闭后，发送自己的 FIN（第三次挥手），等待对方最后确认。',
+    rightDesc:'【RST 优势】RST 比四次挥手快得多：服务器如果检测到超时连接（keepalive 失败），用 RST 批量清理，避免资源占用。',
+  },
+  {
+    leftLabel:'ACK + TIME_WAIT（第四次）', leftDir:'right',
+    rightLabel:'vs. 正常关闭对比总结',     leftDir:'right',
+    leftState:['TIME_WAIT(2MSL)','CLOSED'], rightState:['无 TIME_WAIT','已释放'],
+    leftDesc:'【四次挥手】主动关闭方发最后 ACK，进入 TIME_WAIT 状态，等待 2×MSL（约 60~120秒），确保对方收到 ACK 后才销毁连接。',
+    rightDesc:'【RST vs 挥手】高并发服务器会利用 RST 快速关闭异常连接，避免 TIME_WAIT 堆积。代价是对端可能收到错误，需应用层处理。',
+  },
+];
+
+/* ── HTTP/1.1 vs HTTP/2 对比数据 ──────────────────── */
+const COMPARE_DIFF_HTTP_VERSIONS = [
+  { key:'传输格式',       l:'文本（ASCII 明文）',      r:'二进制帧（Frame）' },
+  { key:'多路复用',       l:'❌ 队头阻塞（HOL Blocking）', r:'✅ 同一 TCP 连接多流并发' },
+  { key:'头部压缩',       l:'重复发送全部请求头',      r:'HPACK 压缩（增量更新）' },
+  { key:'服务器推送',     l:'不支持',                  r:'Server Push（主动推资源）' },
+  { key:'并发方式',       l:'多 TCP 连接（6 个/域名）', r:'1 个 TCP + 多 Stream' },
+  { key:'优先级',         l:'无',                     r:'Stream 权重+依赖树' },
+];
+
+const COMPARE_STEPS_HTTP_VERSIONS = [
+  {
+    leftLabel:'GET /index.html',       leftDir:'right',
+    rightLabel:'HEADERS frame（流 1）', rightDir:'right',
+    leftState:['发出请求','等待响应'],   rightState:['发出 Stream 1','多流处理中'],
+    leftDesc:'【HTTP/1.1】每个请求占用一条 TCP 连接，格式是纯 ASCII 文本。6 个并发请求需要 6 条 TCP 连接，增加延迟和服务器压力。',
+    rightDesc:'【HTTP/2】请求被封装为二进制 HEADERS frame，每个请求是一个独立 Stream（有 Stream ID）。多个 Stream 可以在同一 TCP 连接上同时发出！',
+  },
+  {
+    leftLabel:'等待 /index.html 响应（队头阻塞）', leftDir:'right',
+    rightLabel:'GET /style.css（流 3）同时发出',   rightDir:'right',
+    leftState:['等待响应中','处理请求中'],           rightState:['继续发新请求','并发处理'],
+    leftDesc:'【HTTP/1.1 队头阻塞】第一个请求没收到响应前，无法在同一连接上发第二个请求。这就是"队头阻塞"——就像排队等一个慢顾客。',
+    rightDesc:'【HTTP/2 多路复用】不需要等 /index.html 回来，/style.css、/app.js 可以立刻在同一 TCP 连接上并发发送，完全不阻塞！',
+  },
+  {
+    leftLabel:'收到 /index.html 响应',          leftDir:'left',
+    rightLabel:'HPACK 压缩头部（后续请求）',    leftDir:'right',
+    leftState:['收到响应','发送响应'],           rightState:['头部更小','复用头部'],
+    leftDesc:'【HTTP/1.1 头部冗余】每个请求都发完整的 HTTP 头，如 User-Agent、Accept-Language 等，几百字节重复发送，典型页面有数十个这样的请求。',
+    rightDesc:'【HTTP/2 HPACK 压缩】服务器和客户端维护共享头部索引表。重复的头字段只发一个索引号，User-Agent 从 ~500 字节压到 1-2 字节！',
+  },
+  {
+    leftLabel:'收到 /style.css（新 TCP 连接）', leftDir:'left',
+    rightLabel:'Server Push（主动推 /style.css）', leftDir:'left',
+    leftState:['新连接建立','等待请求'],           rightState:['收到推送','无需再请求'],
+    leftDesc:'【HTTP/1.1】浏览器解析 HTML 后发现需要 style.css，这时才发第二个请求。两个 RTT 白白浪费——先下 HTML，再发现依赖，再下 CSS。',
+    rightDesc:'【HTTP/2 Server Push】服务器主动推送 /style.css，无需浏览器请求！服务器知道 HTML 依赖哪些资源，提前推送，消除依赖发现延迟。',
+  },
+];
+
 /* TCP（左）和 UDP（右）每步对比内容 */
 const COMPARE_STEPS_TCP_UDP = [
   {
@@ -3742,6 +3913,27 @@ const COMPARE_REGISTRY = {
     rightName: 'FTP 被动模式', rightIcon: '📥', rightBadge: 'PASV 命令', rightCls: 'cmp-green',
     steps: () => COMPARE_STEPS_FTP_MODES,
     diff:  () => COMPARE_DIFF_FTP_MODES,
+  },
+  'compare-tls-versions': {
+    title: '🔐 TLS 1.2 vs TLS 1.3 — 握手 RTT 对比',
+    leftName: 'TLS 1.2', leftIcon: '🔒', leftBadge: '2 RTT 握手', leftCls: 'cmp-blue',
+    rightName: 'TLS 1.3', rightIcon: '⚡', rightBadge: '1 RTT 握手', rightCls: 'cmp-green',
+    steps: () => COMPARE_STEPS_TLS_VERSIONS,
+    diff:  () => COMPARE_DIFF_TLS_VERSIONS,
+  },
+  'compare-tcp-rst': {
+    title: '🔁 TCP 四次挥手 vs RST 强制重置',
+    leftName: 'TCP 四次挥手', leftIcon: '🤝', leftBadge: '优雅关闭', leftCls: 'cmp-blue',
+    rightName: 'TCP RST 重置', rightIcon: '💥', rightBadge: '强制关闭', rightCls: 'cmp-red',
+    steps: () => COMPARE_STEPS_TCP_RST,
+    diff:  () => COMPARE_DIFF_TCP_RST,
+  },
+  'compare-http-versions': {
+    title: '🚀 HTTP/1.1 vs HTTP/2 — 多路复用对比',
+    leftName: 'HTTP/1.1', leftIcon: '🐢', leftBadge: '队头阻塞', leftCls: 'cmp-blue',
+    rightName: 'HTTP/2',   rightIcon: '🚀', rightBadge: '多路复用', rightCls: 'cmp-green',
+    steps: () => COMPARE_STEPS_HTTP_VERSIONS,
+    diff:  () => COMPARE_DIFF_HTTP_VERSIONS,
   },
 };
 
@@ -4771,13 +4963,7 @@ function renderStep() {
 
   const tbody = document.querySelector('.field-table tbody');
   if (tbody && data.fields) {
-    tbody.innerHTML = data.fields.map(f => `
-      <tr${f.highlight ? ' class="field-highlight"' : ''} class="field-row${f.highlight ? ' field-highlight' : ''}">
-        <td class="field-name">${f.name}</td>
-        <td class="field-val">${f.val !== undefined ? f.val : (f.value || '')}</td>
-        <td>${f.desc}${f.derive ? `<div class="field-derive">= ${f.derive}</div>` : ''}</td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = renderFieldsWithLayers(data.fields);
     /* 字段变化高亮 */
     if (typeof highlightChangedFields === 'function') highlightChangedFields();
   }
@@ -4785,6 +4971,8 @@ function renderStep() {
   /* ── ARIA ── */
   const track = document.querySelector('.progress-track');
   if (track) track.setAttribute('aria-valuenow', currentStep);
+  /* TCP seq/ack 推导面板 */
+  if (typeof renderSeqDerivePanel === 'function') renderSeqDerivePanel();
   } catch (err) {
     logger.error('[renderStep] 渲染异常', activeProtocol, currentStep, err);
   }
@@ -5495,6 +5683,55 @@ function closeAbnormal() {
       }
     };
   })();
+
+  /* ════════════════════════════════════════════
+     字段分层渲染（OSI 分层色块标题行）
+  ════════════════════════════════════════════ */
+  const LAYER_META = {
+    app:   { label:'应用层',    color:'#a78bfa', bg:'rgba(167,139,250,0.12)' },
+    tls:   { label:'TLS / 安全层', color:'#34d399', bg:'rgba(52,211,153,0.12)' },
+    trans: { label:'传输层',    color:'#60a5fa', bg:'rgba(96,165,250,0.12)' },
+    net:   { label:'网络层',    color:'#f59e0b', bg:'rgba(245,158,11,0.12)' },
+    link:  { label:'数据链路层',color:'#fb923c', bg:'rgba(251,146,60,0.12)' },
+  };
+  function renderFieldsWithLayers(fields) {
+    /* 检查是否有任意字段携带 layer 属性 */
+    const hasLayer = fields.some(f => f.layer);
+    if (!hasLayer) {
+      /* 无分层数据 → 原始渲染 */
+      return fields.map(f => `
+        <tr class="field-row${f.highlight ? ' field-highlight' : ''}">
+          <td class="field-name">${f.name}</td>
+          <td class="field-val">${f.val !== undefined ? f.val : (f.value || '')}</td>
+          <td>${f.desc || ''}${f.derive ? `<div class="field-derive">= ${f.derive}</div>` : ''}</td>
+        </tr>
+      `).join('');
+    }
+    /* 有分层数据 → 分组渲染 */
+    let html = '';
+    let lastLayer = null;
+    fields.forEach(f => {
+      const lk = f.layer;
+      if (lk && lk !== lastLayer) {
+        const meta = LAYER_META[lk] || { label: lk, color:'var(--text-3)', bg:'rgba(255,255,255,0.04)' };
+        html += `<tr class="field-layer-header" style="background:${meta.bg}"><td colspan="3" style="padding:4px 10px;font-size:10.5px;font-weight:700;letter-spacing:0.07em;color:${meta.color};border-bottom:1px solid ${meta.color}33">${meta.label}</td></tr>`;
+        lastLayer = lk;
+      } else if (!lk && lastLayer !== '__none__') {
+        /* 没有 layer 的字段且前一段有分层 → 插入"其他"标题 */
+        if (lastLayer !== null) {
+          html += `<tr class="field-layer-header"><td colspan="3" style="padding:4px 10px;font-size:10.5px;font-weight:700;letter-spacing:0.07em;color:var(--text-4)">其他字段</td></tr>`;
+        }
+        lastLayer = '__none__';
+      }
+      html += `<tr class="field-row${f.highlight ? ' field-highlight' : ''}">
+        <td class="field-name">${f.name}</td>
+        <td class="field-val">${f.val !== undefined ? f.val : (f.value || '')}</td>
+        <td>${f.desc || ''}${f.derive ? `<div class="field-derive">= ${f.derive}</div>` : ''}</td>
+      </tr>`;
+    });
+    return html;
+  }
+  window.renderFieldsWithLayers = renderFieldsWithLayers;
 
   /* ════════════════════════════════════════════
      字段面板变化高亮（步骤切换时闪烁变化项）

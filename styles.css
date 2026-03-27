@@ -1120,6 +1120,44 @@ body {
 .field-name { font-family:var(--font-mono); color:var(--cyan-400) !important; font-weight:500; }
 .field-val  { color:var(--orange-400) !important; font-family:var(--font-mono) !important; font-weight:500; }
 
+/* 字段分层标题行 */
+.field-layer-header td {
+  border-bottom: none !important;
+  padding-top: 8px !important;
+}
+.field-layer-header:first-child td { padding-top: 4px !important; }
+
+/* TCP seq/ack 推导面板 */
+.seq-derive-panel {
+  margin: 0 0 0;
+  padding: 10px 16px 12px;
+  background: rgba(96,165,250,0.06);
+  border-top: 1px solid rgba(96,165,250,0.2);
+  border-bottom: 1px solid rgba(96,165,250,0.2);
+}
+.seq-derive-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--text-4);
+  margin-bottom: 8px;
+}
+.seq-derive-steps { display: flex; flex-direction: column; gap: 5px; }
+.seq-derive-item {
+  display: grid;
+  grid-template-columns: 32px 14px 70px 1fr;
+  align-items: center; gap: 4px;
+  padding: 4px 8px; border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+  transition: background 0.2s;
+}
+.seq-derive-item.seq-derive-highlight {
+  background: rgba(96,165,250,0.12);
+  box-shadow: 0 0 0 1px rgba(96,165,250,0.25);
+}
+.seq-derive-name { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.seq-derive-eq   { font-family: var(--font-mono); font-size: 13px; color: var(--text-4); text-align: center; }
+.seq-derive-val  { font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+.seq-derive-formula { font-size: 11px; color: var(--text-3); padding-left: 4px; }
+
 /* 相关协议 */
 .related-list { display:flex; flex-direction:column; gap:8px; }
 .related-item {
@@ -1614,6 +1652,7 @@ body {
 }
 .cmp-blue  { background:rgba(79,142,247,0.07); }
 .cmp-green { background:rgba(52,211,153,0.07); }
+.cmp-red   { background:rgba(239,68,68,0.07); }
 .compare-panel-icon { font-size:16px; }
 .compare-panel-name { font-size:13px; font-weight:700; color:var(--text-0); }
 .compare-panel-badge {
