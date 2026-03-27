@@ -19,6 +19,7 @@ protocolDB['iproute'] = {
   stepData: [
     {
       banner:'📤 第 1 / 6 步 — 主机 192.168.1.10 发出数据包',
+      fieldTitle:'IP 数据包头部字段',
       leftState:'准备发送', rightState:'等待接收',
       fields:[
         { name:'源 IP',           value:'192.168.1.10', desc:'发送方主机的 IP 地址' },
@@ -32,6 +33,7 @@ protocolDB['iproute'] = {
     },
     {
       banner:'🔍 第 2 / 6 步 — 最长前缀匹配（Longest Prefix Match）',
+      fieldTitle:'路由表最长前缀匹配',
       leftState:'发包中', rightState:'等待接收',
       fields:[
         { name:'目标 IP',         value:'10.0.3.5',  desc:'待匹配的目标地址' },
@@ -45,6 +47,7 @@ protocolDB['iproute'] = {
     },
     {
       banner:'🔀 第 3 / 6 步 — 路由器 R1 收包并转发',
+      fieldTitle:'R1 转发：TTL-1 + 查路由表 + 重封帧',
       leftState:'包到达 R1', rightState:'等待接收',
       fields:[
         { name:'入接口',          value:'eth0（192.168.1.1/24）', desc:'R1 从 eth0 接口收到数据包' },
@@ -58,6 +61,7 @@ protocolDB['iproute'] = {
     },
     {
       banner:'🔀 第 4 / 6 步 — 路由器 R2 收包并转发',
+      fieldTitle:'R2 转发：直连路由 + ARP 解析',
       leftState:'包到达 R2', rightState:'等待接收',
       fields:[
         { name:'入接口',          value:'eth0（172.16.0.2/30）',  desc:'R2 从 eth0 接口收到来自 R1 的数据包' },
@@ -71,6 +75,7 @@ protocolDB['iproute'] = {
     },
     {
       banner:'📡 第 5 / 6 步 — 直连网络最终投递（ARP + 帧封装）',
+      fieldTitle:'ARP 解析 + 最终帧封装',
       leftState:'包到达目标网络', rightState:'等待接收',
       fields:[
         { name:'ARP 广播',        value:'Who has 10.0.3.5?（全广播 FF:FF:FF:FF:FF:FF）', desc:'R2 在直连网络广播 ARP 请求' },
@@ -84,6 +89,7 @@ protocolDB['iproute'] = {
     },
     {
       banner:'✅ 第 6 / 6 步 — 数据包到达目标主机',
+      fieldTitle:'IP 路由核心总结',
       leftState:'发送完成', rightState:'已接收',
       fields:[
         { name:'目标主机',        value:'10.0.3.5', desc:'成功收到来自 192.168.1.10 的数据包' },

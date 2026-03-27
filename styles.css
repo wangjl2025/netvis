@@ -2014,3 +2014,118 @@ body {
   color: var(--green-400);
 }
 
+/* ============================================================
+   IP 路由转发 4节点专属画布
+   ============================================================ */
+
+/* 节点行：4等分（复用 dns-node，只覆盖节点宽度） */
+#iprouteDiagram .dns-nodes-row { gap:6px; }
+.iproute-node { flex:1; min-width:80px; text-align:center; }
+
+/* 活跃节点高亮 */
+.iproute-node.active-node {
+  border-color: var(--blue-400) !important;
+  box-shadow: 0 0 0 2px rgba(79,142,247,0.25), var(--shadow-sm);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+/* 进度轨道区域 */
+.iproute-track-wrap {
+  position: relative;
+  height: 32px;
+  margin: 4px 0 6px;
+  display: flex;
+  align-items: center;
+}
+/* 灰色背景基线 */
+.iproute-track-line {
+  position: absolute;
+  top: 50%; left: 12.5%; right: 12.5%;
+  height: 3px;
+  background: var(--border-1);
+  border-radius: 2px;
+  transform: translateY(-50%);
+}
+/* 各段高亮线（初始透明） */
+.iproute-seg {
+  position: absolute;
+  top: 50%; height: 3px;
+  border-radius: 2px;
+  transform: translateY(-50%);
+  background: transparent;
+  transition: background 0.3s;
+}
+#iproute-seg-0-1 { left: 12.5%; width: 25%; }
+#iproute-seg-1-2 { left: 37.5%; width: 25%; }
+#iproute-seg-2-3 { left: 62.5%; width: 25%; }
+.iproute-seg.seg-active   { background: var(--blue-400); }
+.iproute-seg.seg-done     { background: var(--green-400); }
+
+/* 数据包点 */
+.iproute-packet {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  transition: left 0.55s cubic-bezier(0.4,0,0.2,1);
+}
+.iproute-packet-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--blue-400);
+  box-shadow: 0 0 8px var(--blue-400);
+}
+.iproute-packet-label {
+  position: absolute;
+  bottom: 14px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--blue-300);
+  white-space: nowrap;
+  background: var(--bg-1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* TTL 指示条 */
+.iproute-ttl-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  margin-bottom: 4px;
+}
+.iproute-ttl-label { color: var(--text-4); }
+.iproute-ttl-val   { color: var(--orange-400); font-weight: 700; font-size: 13px; }
+.iproute-ttl-hint  { color: var(--text-4); font-size: 10.5px; }
+
+/* MAC 帧提示条 */
+.iproute-mac-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--text-3);
+  background: rgba(79,142,247,0.06);
+  border: 1px solid rgba(79,142,247,0.15);
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin-bottom: 4px;
+}
+.iproute-mac-icon { font-size: 13px; }
+
+/* 响应式：小屏横向滚动 */
+@media (max-width: 600px) {
+  #iprouteDiagram .dns-nodes-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .iproute-node { min-width: 68px; }
+}
+
+

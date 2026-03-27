@@ -1185,7 +1185,66 @@ window.addEventListener('unhandledrejection', function(e) {
         </div>
 
         <!-- ══════════════════════════════════════
-             通用协议画布（UDP/ARP/ICMP/DHCP/SMTP/WebSocket/NAT/VLAN/SSH/FTP/IP/TCP拥塞/HTTP2/QUIC/OSPF/BGP）
+             IP 路由转发专属画布（4 节点：主机→R1→R2→目标主机）
+        ══════════════════════════════════════ -->
+        <div class="dns-diagram" id="iprouteDiagram" style="display:none" role="img" aria-label="IP路由转发拓扑图">
+          <!-- 4 节点横排 -->
+          <div class="dns-nodes-row" id="iproute-nodes-row">
+            <div class="dns-node iproute-node" id="iproute-node-0" style="border-color:rgba(52,211,153,0.3)">
+              <div class="dns-node-icon">💻</div>
+              <div class="dns-node-name">主机（发送方）</div>
+              <div class="dns-node-sub">192.168.1.10</div>
+              <div class="dns-node-state state-httpready" id="iproute-state-0">准备发送</div>
+            </div>
+            <div class="dns-node iproute-node" id="iproute-node-1" style="border-color:rgba(79,142,247,0.3)">
+              <div class="dns-node-icon">🔀</div>
+              <div class="dns-node-name">路由器 R1</div>
+              <div class="dns-node-sub">192.168.1.1 / 172.16.0.1</div>
+              <div class="dns-node-state state-listen" id="iproute-state-1">转发中</div>
+            </div>
+            <div class="dns-node iproute-node" id="iproute-node-2" style="border-color:rgba(167,139,250,0.3)">
+              <div class="dns-node-icon">🔀</div>
+              <div class="dns-node-name">路由器 R2</div>
+              <div class="dns-node-sub">172.16.0.2 / 10.0.3.1</div>
+              <div class="dns-node-state state-listen" id="iproute-state-2">转发中</div>
+            </div>
+            <div class="dns-node iproute-node" id="iproute-node-3" style="border-color:rgba(34,211,238,0.3)">
+              <div class="dns-node-icon">🖥️</div>
+              <div class="dns-node-name">目标主机</div>
+              <div class="dns-node-sub">10.0.3.5</div>
+              <div class="dns-node-state state-listen" id="iproute-state-3">等待接收</div>
+            </div>
+          </div>
+          <!-- 包裹容器：进度条 + 消息箭头 -->
+          <div class="iproute-track-wrap">
+            <!-- 背景连接线 -->
+            <div class="iproute-track-line"></div>
+            <!-- 数据包点 -->
+            <div class="iproute-packet" id="iproute-packet">
+              <div class="iproute-packet-dot"></div>
+              <div class="iproute-packet-label" id="iproute-packet-label">IP Packet</div>
+            </div>
+            <!-- 各段高亮线（步骤激活时变色） -->
+            <div class="iproute-seg" id="iproute-seg-0-1"></div>
+            <div class="iproute-seg" id="iproute-seg-1-2"></div>
+            <div class="iproute-seg" id="iproute-seg-2-3"></div>
+          </div>
+          <!-- TTL 指示器 -->
+          <div class="iproute-ttl-bar">
+            <span class="iproute-ttl-label">TTL：</span>
+            <span class="iproute-ttl-val" id="iproute-ttl">64</span>
+            <span class="iproute-ttl-hint" id="iproute-ttl-hint">（初始值）</span>
+          </div>
+          <!-- MAC 帧重封装提示 -->
+          <div class="iproute-mac-bar" id="iproute-mac-bar">
+            <span class="iproute-mac-icon">🗃️</span>
+            <span id="iproute-mac-text">以太网帧：src MAC = 主机，dst MAC = R1</span>
+          </div>
+          <div class="conn-banner" id="iproute-banner" role="status" style="margin-top:10px">📤 第 1 / 6 步 — 主机发出数据包</div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             通用协议画布（UDP/ARP/ICMP/DHCP/SMTP/WebSocket/NAT/VLAN/SSH/FTP/TCP拥塞/HTTP2/QUIC/OSPF/BGP）
         ══════════════════════════════════════ -->
         <div class="tcp-diagram" id="genericDiagram" style="display:none" role="img" aria-label="协议时序图">
           <div class="node-box node-box-client">
@@ -2337,7 +2396,7 @@ function switchProtocol(pid, btnEl) {
       document.querySelectorAll('.proto-tab').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
       // 隐藏所有其他画布，显示对比画布
-      ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','congestionDiagram'].forEach(id => {
+      ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','congestionDiagram','iprouteDiagram'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
@@ -2435,7 +2494,7 @@ function switchProtocol(pid, btnEl) {
   if (btnEl) btnEl.classList.add('active');
 
   /* 隐藏所有画布 */
-  const canvases = ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram'];
+  const canvases = ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram','iprouteDiagram'];
   canvases.forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.display = 'none'; el.classList.remove('visible'); }
@@ -2467,7 +2526,7 @@ function switchProtocol(pid, btnEl) {
   totalSteps = protocolDB[pid].steps.length;
 
   /* 显示对应画布 */
-  const canvasMap = { tcp3:'tcpDiagram', tcp4:'tcp4Diagram', http:'httpDiagram', tls:'tlsDiagram', dns:'dnsCanvas', tcpcong:'congestionDiagram' };
+  const canvasMap = { tcp3:'tcpDiagram', tcp4:'tcp4Diagram', http:'httpDiagram', tls:'tlsDiagram', dns:'dnsCanvas', tcpcong:'congestionDiagram', iproute:'iprouteDiagram' };
   const canvasId = canvasMap[pid] || 'genericDiagram';
   // 先隐藏所有画布
   ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram'].forEach(id => {
@@ -2528,6 +2587,11 @@ function switchProtocol(pid, btnEl) {
     const sn = document.getElementById('stepNarration');
     if (sn) sn.style.display = 'none';
     renderCongestionChart(1);
+  } else if (canvasId === 'iprouteDiagram') {
+    /* iproute：恢复 stepNarration，调用专属渲染 */
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = '';
+    if (typeof renderIpRouteStep === 'function') renderIpRouteStep(1);
   } else {
     /* 其他协议：恢复 stepNarration */
     const sn = document.getElementById('stepNarration');
@@ -3449,6 +3513,11 @@ function renderStep() {
     renderCongestionChart(currentStep);
     return;
   }
+  /* IP 路由转发用专属渲染函数 */
+  if (activeProtocol === 'iproute') {
+    renderIpRouteStep(currentStep);
+    return;
+  }
 
   /* ── 对比视图：独立渲染路径 ── */
   if (activeProtocol.startsWith('compare-')) {
@@ -3711,6 +3780,136 @@ function closeAbnormal() {
     'fast-recovery':    '🔄 快恢复（Fast Recovery）',
     'summary':          '🎓 总结回顾',
   };
+
+  /* ───────────────────────────────────────────────────────────────
+     IP 路由转发 4节点专属渲染
+     步骤 → 活跃节点对、包位置、TTL、MAC提示
+  ─────────────────────────────────────────────────────────────── */
+  (function(){
+    // 节点在轨道上的横向位置（left%，以 iproute-track-wrap 宽度为基准）
+    var NODE_POS = ['12.5%', '37.5%', '62.5%', '87.5%'];
+
+    // 每步配置：activeNodes=高亮节点索引数组, segsDone=已通过段, segActive=当前段, ttl, macText, packetLeft, packetLabel
+    var STEP_CFG = [
+      // step 1: 主机准备发送
+      { activeNodes:[0],    segsDone:[], segActive:null, ttl:'64', ttlHint:'（初始值）',
+        macText:'以太网帧：src MAC = 主机，dst MAC = R1（网关）',
+        packetLeft:'12.5%', packetLabel:'IP Packet (TTL=64)' },
+      // step 2: 最长前缀匹配（还在主机侧）
+      { activeNodes:[0],    segsDone:[], segActive:null, ttl:'64', ttlHint:'（尚未离开主机）',
+        macText:'以太网帧：src MAC = 主机，dst MAC = R1（ARP 获取）',
+        packetLeft:'12.5%', packetLabel:'LPM 决策中…' },
+      // step 3: 包到达 R1
+      { activeNodes:[0,1],  segsDone:[], segActive:'0-1', ttl:'63', ttlHint:'（-1，经过 R1）',
+        macText:'以太网帧重封装：src MAC = R1-eth1，dst MAC = R2-eth0',
+        packetLeft:'37.5%', packetLabel:'IP Packet (TTL=63)' },
+      // step 4: 包到达 R2
+      { activeNodes:[1,2],  segsDone:['0-1'], segActive:'1-2', ttl:'62', ttlHint:'（-1，经过 R2）',
+        macText:'以太网帧重封装：src MAC = R2-eth1，dst MAC = 目标主机（ARP）',
+        packetLeft:'62.5%', packetLabel:'IP Packet (TTL=62)' },
+      // step 5: R2 ARP + 投递
+      { activeNodes:[2,3],  segsDone:['0-1','1-2'], segActive:'2-3', ttl:'62', ttlHint:'（最后投递）',
+        macText:'ARP 广播：Who has 10.0.3.5？→ 目标 MAC 回复',
+        packetLeft:'75%', packetLabel:'ARP → 封帧' },
+      // step 6: 到达目标主机
+      { activeNodes:[3],    segsDone:['0-1','1-2','2-3'], segActive:null, ttl:'62', ttlHint:'（最终，经 2 台路由器）',
+        macText:'IP 地址全程不变：src=192.168.1.10，dst=10.0.3.5',
+        packetLeft:'87.5%', packetLabel:'已到达 ✓' },
+    ];
+
+    window.renderIpRouteStep = function(step) {
+      var db = protocolDB['iproute'];
+      if (!db) return;
+      var cfg = STEP_CFG[step - 1];
+      if (!cfg) return;
+
+      // 高亮节点
+      for (var i = 0; i < 4; i++) {
+        var n = document.getElementById('iproute-node-' + i);
+        if (n) n.classList.toggle('active-node', cfg.activeNodes.indexOf(i) !== -1);
+      }
+
+      // 段颜色
+      ['0-1','1-2','2-3'].forEach(function(k){
+        var seg = document.getElementById('iproute-seg-' + k);
+        if (!seg) return;
+        seg.classList.remove('seg-active','seg-done');
+        if (cfg.segActive === k) seg.classList.add('seg-active');
+        else if (cfg.segsDone.indexOf(k) !== -1) seg.classList.add('seg-done');
+      });
+
+      // 包位置
+      var pkt = document.getElementById('iproute-packet');
+      if (pkt) pkt.style.left = cfg.packetLeft;
+      var lbl = document.getElementById('iproute-packet-label');
+      if (lbl) lbl.textContent = cfg.packetLabel;
+
+      // TTL
+      var ttlEl = document.getElementById('iproute-ttl');
+      var ttlHintEl = document.getElementById('iproute-ttl-hint');
+      if (ttlEl) ttlEl.textContent = cfg.ttl;
+      if (ttlHintEl) ttlHintEl.textContent = cfg.ttlHint;
+
+      // MAC 提示
+      var macEl = document.getElementById('iproute-mac-text');
+      if (macEl) macEl.textContent = cfg.macText;
+
+      // Banner
+      var banner = document.getElementById('iproute-banner');
+      if (banner && db.stepData[step-1]) banner.textContent = db.stepData[step-1].banner;
+
+      // 侧边面板：字段、旁白等（复用通用逻辑）
+      _renderSidePanel('iproute', step);
+    };
+
+    function _renderSidePanel(pid, step) {
+      var db = protocolDB[pid];
+      if (!db || !db.stepData) return;
+      var sd = db.stepData[step - 1];
+      if (!sd) return;
+
+      // 步骤列表高亮
+      var rows = document.querySelectorAll('#stepsPanel .step-row');
+      rows.forEach(function(r, i){
+        r.classList.remove('active','upcoming');
+        if (i === step-1) r.classList.add('active');
+        else if (i > step-1) r.classList.add('upcoming');
+      });
+
+      // 字段面板
+      var fieldTitle = document.getElementById('fieldTitle');
+      if (fieldTitle && sd.fieldTitle) fieldTitle.textContent = sd.fieldTitle;
+
+      var tbody = document.getElementById('fieldBody');
+      if (tbody && sd.fields) {
+        tbody.innerHTML = '';
+        sd.fields.forEach(function(f){
+          var tr = document.createElement('tr');
+          if (f.highlight) tr.classList.add('field-highlight');
+          tr.innerHTML = '<td>' + f.name + '</td><td><code>' + f.value + '</code>' + (f.derive ? '<div class="field-derive">→ ' + f.derive + '</div>' : '') + '</td><td class="field-desc">' + (f.desc||'') + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+
+      // 旁白
+      var narr = document.getElementById('stepNarration');
+      if (narr) {
+        if (sd.narration) {
+          narr.style.display = '';
+          var nt = narr.querySelector('.narration-text');
+          if (nt) nt.textContent = sd.narration;
+        } else {
+          narr.style.display = 'none';
+        }
+      }
+
+      // 知识点
+      if (step === 1) {
+        rebuildKnowledgePanel(pid);
+        rebuildQuizPanel(pid);
+      }
+    }
+  })();
 
   function toSvgX(xVal) {
     return PAD_L + (xVal / TOTAL_X) * CHART_W;
