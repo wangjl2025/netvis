@@ -58,6 +58,9 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   if (url.origin !== self.location.origin) return;
 
+  // 本地开发环境：直接 passthrough，不走缓存，确保每次都拿到最新文件
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return;
+
   // CDN 资源（html2canvas 等）：网络优先，失败时不兜底（在线功能）
   if (url.hostname !== self.location.hostname) return;
 
