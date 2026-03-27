@@ -128,6 +128,27 @@
       stepMap: { 1:[1], 2:[2], 3:[3], 4:[4], 5:[5], 6:[5] },
     },
 
+    stp: {
+      title: 'STP 802.1D — 模拟抓包',
+      frames: [
+        { no:1,  time:'0.000000', src:'aa:aa:aa:aa:aa:01', dst:'01:80:c2:00:00:00', proto:'STP', info:'Config BPDU  Root=32768/aa:aa:aa:aa:aa:01  Cost=0  Port=0x8001  Hello=2s',
+          detail: '配置 BPDU（SW1 初始发送，认为自己是根桥）:\n  目标 MAC: 01:80:C2:00:00:00 (STP 组播)\n  根桥 ID: 32768 / aa:aa:aa:aa:aa:01\n  根路径开销: 0 (根桥本身)\n  发送桥 ID: 32768 / aa:aa:aa:aa:aa:01\n  端口 ID: 0x8001  Hello Time: 2s  Max Age: 20s  Forward Delay: 15s' },
+        { no:2,  time:'0.001000', src:'cc:cc:cc:cc:cc:03', dst:'01:80:c2:00:00:00', proto:'STP', info:'Config BPDU  Root=32768/cc:cc:cc:cc:cc:03  Cost=0  [SW3 认为自己是根]',
+          detail: 'SW3 发送的配置 BPDU（初始阶段）:\n  根桥 ID: 32768 / cc:cc:cc:cc:cc:03 (SW3 MAC)\n  [分析] SW3 MAC > SW1 MAC，最终会承认 SW1 为根桥\n  [选举] 所有交换机交换 BPDU 后，BID 最小（MAC 最小）的 SW1 胜出' },
+        { no:3,  time:'2.000000', src:'aa:aa:aa:aa:aa:01', dst:'01:80:c2:00:00:00', proto:'STP', info:'Config BPDU  Root=aa:aa:aa:01  Cost=0  [SW1 确认为根桥，每 2s 心跳]',
+          detail: '根桥 SW1 周期性发送 Hello BPDU:\n  根桥 ID: 32768 / aa:aa:aa:aa:aa:01 (已确认)\n  根路径开销: 0\n  消息时间 (Message Age): 0\n  [注] Message Age 每经非根交换机 +1，超过 Max Age(20) 则认为根桥失效' },
+        { no:4,  time:'2.001000', src:'bb:bb:bb:bb:bb:02', dst:'01:80:c2:00:00:00', proto:'STP', info:'Config BPDU  Root=aa:aa:aa:01  Cost=4  Bridge=bb:bb  [SW2 转发，加路径开销]',
+          detail: 'SW2 转发根桥 BPDU:\n  根桥 ID: 32768 / aa:aa:aa:aa:aa:01\n  根路径开销: 4 (1Gbps 链路开销=4)\n  发送桥 ID: 32768 / bb:bb:bb:bb:bb:02 (SW2)\n  消息时间: 1' },
+        { no:5,  time:'30.100000', src:'aa:aa:aa:aa:aa:01', dst:'01:80:c2:00:00:00', proto:'STP', info:'Config BPDU  [拓扑稳定，SW3 Blocking 端口已阻塞，环路消除]',
+          detail: '拓扑稳定后状态:\n  SW1: 所有端口 Designated (Forwarding)\n  SW2: 连SW1→Root Port, 连SW3→Designated Port\n  SW3: 连SW1→Root Port, 连SW2→Alternate Port (Blocking)\n  [环路消除] SW3↔SW2 链路逻辑断开' },
+        { no:6,  time:'50.000000', src:'bb:bb:bb:bb:bb:02', dst:'01:80:c2:00:00:00', proto:'STP', info:'TCN BPDU  [SW2 端口故障，发送拓扑变更通知 → 根桥]',
+          detail: '拓扑变更通知 (TCN BPDU):\n  BPDU 类型: 0x80 (Topology Change Notification)\n  [效果] 所有交换机 MAC 老化时间从 300s 缩短为 15s，快速清除过时条目' },
+        { no:7,  time:'80.000000', src:'cc:cc:cc:cc:cc:03', dst:'01:80:c2:00:00:00', proto:'STP', info:'Config BPDU  [SW3 Blocking 端口解封，拓扑重收敛完成]',
+          detail: 'SW3 的 Alternate 端口解封后恢复转发:\n  [故障] SW1—SW2 直连链路断开\n  [恢复] SW3 原 Blocking 端口 → Forwarding\n  [收敛时间] STP: 约 30~50 秒  RSTP: <1 秒' },
+      ],
+      stepMap: { 1:[1,2], 2:[3], 3:[4], 4:[4], 5:[5], 6:[5], 7:[6,7] },
+    },
+
     ftp: {
       title: 'FTP 文件传输（被动模式）— 模拟抓包',
       frames: [
@@ -578,7 +599,7 @@
         loadCapture(activeProtocol);
         if (typeof currentStep !== 'undefined') highlightStep(currentStep);
       } else {
-        alert('当前协议暂无抓包数据，支持：TCP握手/挥手、DNS、HTTP、TLS、ARP、ICMP、VLAN、FTP、OSPF、DHCP、SMTP、SSH、NAT、WebSocket、UDP、IP路由、TCP拥塞控制、HTTP/2');
+        alert('当前协议暂无抓包数据，支持：TCP握手/挥手、DNS、HTTP、TLS、ARP、ICMP、VLAN、STP、FTP、OSPF、DHCP、SMTP、SSH、NAT、WebSocket、UDP、IP路由、TCP拥塞控制、HTTP/2、BGP、QUIC');
       }
     },
 

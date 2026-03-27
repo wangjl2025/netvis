@@ -21,6 +21,7 @@
     { id: 'nat',      name: 'NAT 地址转换',    difficulty: 2, prereqs: ['tcp3','arp'],  icon: '🔀', color: 'var(--purple-400)' },
     { id: 'iproute',  name: 'IP 路由转发',     difficulty: 2, prereqs: ['icmp'],        icon: '🗺', color: 'var(--orange-400)' },
     { id: 'vlan',     name: 'VLAN',            difficulty: 2, prereqs: ['arp'],         icon: '🔌', color: 'var(--orange-400)' },
+    { id: 'stp',      name: 'STP 生成树',      difficulty: 2, prereqs: ['arp','vlan'],  icon: '🌳', color: 'var(--orange-400)' },
     // 高级：需要进阶基础
     { id: 'tls',      name: 'TLS 1.3 握手',   difficulty: 3, prereqs: ['tcp3','http'],  icon: '🔒', color: 'var(--purple-400)' },
     { id: 'http2',    name: 'HTTP/2',          difficulty: 3, prereqs: ['tls'],          icon: '⚡', color: 'var(--cyan-400)' },
