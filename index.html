@@ -4699,7 +4699,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- 子网划分计算器 JS -->
 <script>
 (function initSubnetCalc() {
-  // 初始化前缀下拉
+  // 初始化前缀下拉，并填入默认值自动计算
   function initSelect() {
     var sel = document.getElementById('subnetPrefixInput');
     if (!sel) return;
@@ -4709,6 +4709,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (i === 24) opt.selected = true;
       sel.appendChild(opt);
     }
+    // 填入默认 IP，让页面打开就有结果
+    var ipInput = document.getElementById('subnetIpInput');
+    if (ipInput && !ipInput.value) {
+      ipInput.value = '192.168.1.0';
+    }
+    // 自动触发一次计算
+    window.subnetCalc && window.subnetCalc();
   }
 
   // 数字转点分十进制
