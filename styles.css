@@ -460,8 +460,9 @@ body {
   border-radius:10px;
   padding:10px 8px 6px;
   overflow:hidden;
+  flex-shrink:0;          /* 防止在 flex 容器内被无限拉伸 */
 }
-.cong-chart-wrap svg { display:block; width:100%; height:auto; min-height:160px; }
+.cong-chart-wrap svg { display:block; width:100%; height:auto; max-height:180px; }
 /* 阶段标签 */
 .cong-phase-label {
   font-size:10.5px; font-weight:600; letter-spacing:.4px;
