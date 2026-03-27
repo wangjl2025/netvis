@@ -75,7 +75,35 @@ window.protocolDB = window.protocolDB || {};
      JetBrains → 降级链：Fira Code / Consolas / monospace（均为常见系统字体）
      中文       → PingFang SC / Noto Sans SC / Microsoft YaHei UI（CSS 变量已包含）
 -->
-<link rel="stylesheet" href="styles.css">
+<link rel="preload" as="style" href="styles.min.css">
+<link rel="stylesheet" href="styles.min.css">
+
+<!-- ══ 安全策略 ══════════════════════════════════════════════════════ -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com;
+               style-src 'self' 'unsafe-inline';
+               img-src 'self' data: https: blob:;
+               font-src 'self' data:;
+               connect-src 'self' https:;">
+
+<!-- ══ 全局日志工具（生产环境静默，开发者可 window.DEBUG_MODE=true 开启）══ -->
+<script>
+window.DEBUG_MODE = false;
+window.logger = {
+  error: function() { if (window.DEBUG_MODE) console.error.apply(console, arguments); },
+  warn:  function() { if (window.DEBUG_MODE) console.warn.apply(console, arguments); },
+  log:   function() { if (window.DEBUG_MODE) console.log.apply(console, arguments); }
+};
+// 全局未捕获错误兜底
+window.addEventListener('error', function(e) {
+  window.logger.error('[Global Error]', e.message, e.filename + ':' + e.lineno);
+});
+window.addEventListener('unhandledrejection', function(e) {
+  window.logger.error('[Unhandled Rejection]', e.reason);
+});
+</script>
 </head>
 <body>
 
@@ -2015,7 +2043,7 @@ function openProtocol(pid) {
       openProtocol(pid);
     }).catch(function(err) {
       alert('协议数据加载失败：' + pid + '\n请确保 data/' + pid + '.js 存在');
-      console.error(err);
+      logger.error('[openProtocol] 加载失败', pid, err);
     });
     return;
   }
@@ -2023,7 +2051,11 @@ function openProtocol(pid) {
   // 等页面切换完成后再切换协议
   setTimeout(() => {
     const tab = document.querySelector(`.proto-tab[onclick*="'${pid}'"]`);
-    switchProtocol(pid, tab);
+    try {
+      switchProtocol(pid, tab);
+    } catch (err) {
+      logger.error('[openProtocol] switchProtocol 异常', pid, err);
+    }
   }, 50);
 }
 
@@ -2221,7 +2253,7 @@ function switchProtocol(pid, btnEl) {
       rebuildSidePanel();
       _forceAnim = true;
       renderStep();
-    }).catch(err => console.error('[compare] 数据加载失败', pid, err));
+    }).catch(err => logger.error('[compare] 数据加载失败', pid, err));
     return;
   }
 
@@ -2230,7 +2262,7 @@ function switchProtocol(pid, btnEl) {
     loadProtocolData(pid).then(function() {
       switchProtocol(pid, btnEl);
     }).catch(function(err) {
-      console.error('[switchProtocol] 加载失败：', pid, err);
+      logger.error('[switchProtocol] 加载失败：', pid, err);
     });
     return;
   }
@@ -2307,7 +2339,7 @@ function switchProtocol(pid, btnEl) {
   }
   // 其他协议的数据已由 data/*.js 预加载写入 protocolDB[pid]，无需再构建
   if (!protocolDB[pid]) {
-    console.error('[switchProtocol] 数据未加载：', pid, '——请检查 data/' + pid + '.js');
+    logger.error('[switchProtocol] 数据未加载：', pid, '——请检查 data/' + pid + '.js');
     return;
   }
   totalSteps = protocolDB[pid].steps.length;
@@ -2757,7 +2789,7 @@ function switchNatMode(mode, btnEl) {
   const pid = (mode === 'dnat') ? 'nat-dnat' : 'nat';
   const db  = protocolDB[pid];
   if (!db) {
-    console.error('[NAT] 数据未加载：', pid);
+    logger.error('[NAT] 数据未加载：', pid);
     return;
   }
 
@@ -2900,7 +2932,7 @@ function switchDnsMode(mode, btnEl) {
     if (mode === 'iterative') {
       const iterDB = protocolDB['dns-iter'];
       if (!iterDB) {
-        console.error('[DNS] dns-iter 数据未加载！');
+        logger.error('[DNS] dns-iter 数据未加载！');
         return;
       }
       totalSteps = iterDB.steps.length;
@@ -2930,7 +2962,7 @@ function switchDnsMode(mode, btnEl) {
     /* 尚未加载，动态加载后执行 */
     loadProtocolData('dns')
       .then(_applyDnsMode)
-      .catch(err => console.error('[DNS] 加载 dns.js 失败', err));
+      .catch(err => logger.error('[DNS] 加载 dns.js 失败', err));
   }
 }
 
@@ -3225,6 +3257,7 @@ function pulseTargetNode(row, isC2S) {
 }
 
 function renderStep() {
+  try {
   /* TCP 拥塞控制用专属渲染函数 */
   if (activeProtocol === 'tcpcong') {
     renderCongestionChart(currentStep);
@@ -3445,6 +3478,9 @@ function renderStep() {
   /* ── ARIA ── */
   const track = document.querySelector('.progress-track');
   if (track) track.setAttribute('aria-valuenow', currentStep);
+  } catch (err) {
+    logger.error('[renderStep] 渲染异常', activeProtocol, currentStep, err);
+  }
 }
 
 function seekProgress(e) {
