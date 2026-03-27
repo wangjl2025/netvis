@@ -2,95 +2,179 @@
 
 ## 项目：NetVis 网络协议可视化平台
 
-**定位**：中文 · 步进交互 · 深度教学的网络协议可视化平台，做"深而精的教学工具"，不做"大而全的模拟器"
+**定位**：中文 · 步进交互 · 深度教学，做"深而精的教学工具"，不做"大而全的模拟器"
 **目标用户**：计算机/网工专业学生、自学开发者、初中级网络工程师
-**核心机会**：中文+系统多协议+步进交互+面向学习+持续运营——同时满足这些条件的产品几乎为零
+**用户信息**：网络专业学生，正在起步阶段
 
 ## 部署与仓库
 - GitHub 仓库：https://github.com/wangjl2025/netvis
 - GitHub Pages：https://wangjl2025.github.io/netvis/
-- 本地调试：`python -m http.server 8766 --directory .` 或 `node server.js`
+- 本地调试：`node server.js`（端口 8766）
 - 邮箱：wangaihau@qq.com
 
-## 文件结构
-- `index.html`（主框架，~210KB，警戒线280KB，余量70KB）+ `styles.css`（63KB）+ `data/`（18个协议JS，懒加载）
-- `modules/badge.js`：进度/徽章系统，页面加载后500ms异步挂载，**TOTAL=18**
+## 文件结构约定
+- `index.html`（主框架，~210KB，**警戒线 280KB**）+ `styles.css`（源）+ `styles.min.css`（实际加载）
+- `data/`（20个协议 JS，懒加载）+ `modules/`（6个功能模块）
 - **约定**：新功能全部拆成 `modules/*.js`，不内联主文件；不引入 React/Vue/Chart.js/Webpack
-- **CSS 已拆出**：2026-03-27 将 63KB 内联 CSS 拆出为 `styles.css`，index.html 从 269KB 降至 210KB
+- **⚠️ 关键**：页面实际加载 `styles.min.css`（preload + link），改 `styles.css` 后**必须**重新压缩同步
 
-## 已完成协议（19个）
-- 应用层：DNS、HTTP、TLS、DHCP、WebSocket、SMTP、SSH、FTP、**HTTP/2**（Week7新增）
+## 已完成协议（20个）
+- 应用层：DNS、HTTP、TLS、DHCP、WebSocket、SMTP、SSH、FTP、HTTP/2、QUIC/HTTP3
 - 传输层：TCP三次握手、TCP四次挥手、UDP、TCP拥塞控制
 - 网络层：ICMP/Ping、NAT地址转换、IP路由转发、OSPF
 - 数据链路层：ARP、VLAN
 
-## 已完成功能（截至 2026-03-27 凌晨）
-- ✅ 步进式飞行动画（.packet-fly，切步骤触发）
-- ✅ 键盘快捷键（← → Space 1~9 Esc ? 全套）
-- ✅ DNS递归/迭代查询双模式切换
-- ✅ TCP vs UDP 对比视图（compareCanvas，6维度差异面板）
-- ✅ **对比视图扩展**：HTTP vs HTTPS（4步）+ DNS递归 vs 迭代（4步）
-  - COMPARE_REGISTRY 注册表架构，支持任意扩展
-  - switchProtocol 改为通用 compare-* 前缀处理
-  - renderStep 独立对比渲染路径（隐藏旁白/知识点/思考题）
-- ✅ 协议库页四层分组展示（应用/传输/网络/数据链路层）
-- ✅ 徽章/进度系统（localStorage，走完最后一步解锁，TOTAL=15）
-- ✅ 移动端适配（960px堆叠，640px压缩，横向滚动）
-- ✅ 系统字体栈（零外部网络请求）
-- ✅ **分享海报功能**（modules/share.js，html2canvas按需CDN加载，截图+水印+下载）
-- ✅ **NAT 双模式**：SNAT（出口NAT）+ DNAT（端口转发），模式切换条复用 dns-mode-bar CSS
-- ✅ **关于/反馈弹窗**：footer 两个链接点击弹出 info-modal-backdrop 弹窗
-- ✅ **TCP拥塞控制**（tcpcong）：专属 SVG cwnd 折线图画布，6步步进
-- ✅ **错误演练模式**（modules/drill.js）：从所有协议 quiz 自动收题，随机出题，选择题+问答题，得分统计，百分制评级；协议库页「🎯 错误演练」按钮；player顶栏「🎯 演练」按钮；懒加载1800ms
-- ✅ **IP路由转发**（iproute）：6步步进（最长前缀匹配/TTL/逐跳封帧），场景192.168.1.10→10.0.3.5经R1→R2两跳
-- ✅ **速记卡**（modules/flashcard.js）：从 protocolDB.knowledge 抽卡，翻转/导航/分组筛选/随机打乱；懒加载2200ms；入口：协议库页+player顶栏
-- ✅ **SEO优化**：title扩展关键词 / meta description+keywords / canonical / OG / Twitter Card / JSON-LD(WebApplication) / sitemap.xml / robots.txt
-- ✅ **性能优化**：preloadAll 改用 requestIdleCallback（空闲帧分批加载）；dns-prefetch cdn.jsdelivr.net；nat-dnat 纳入预加载列表
-- ✅ **抓包对照模式**（modules/capture.js）：**19协议**模拟Wireshark报文（tcp3/tcp4/dns/http/tls/arp/icmp/vlan/ftp/ospf/dhcp/smtp/ssh/nat/websocket/udp/iproute/tcpcong/http2），stepMap步骤联动高亮，字段详情展开；懒加载2800ms；入口协议库页+player顶栏；2026-03-27 commit e725b23 从7扩展至18协议全覆盖，commit ae95f2c 追加 HTTP/2 至19
-- ✅ **HTTP/2 协议**（data/http2.js，2026-03-27，commit ae95f2c）：6步步进（ALPN/SETTINGS/多路复用/HPACK/Server Push/流控），4条知识点，4道思考题，抓包8帧，badge计入，TOTAL=19
-- ✅ **README 重写**（2026-03-27，commit ae95f2c）：徽章+19协议完整表格+快速开始+项目结构+技术栈，适合 GitHub Star 转化
-- ✅ **CSS 拆分**（2026-03-27）：63KB 内联 CSS → `styles.css`，index.html 269KB→210KB，警戒线余量 70KB
-- ✅ **FTP 主动 vs 被动对比视图**（compare-ftp-modes）：4步对比+6维差异表，COMPARE_REGISTRY 第4个对比视图
-- ✅ **代码审查修复**（2026-03-27，commit 4e13e2b）：SEO元数据15+→18+、22+→18+、JSON-LD协议列表同步、VLAN quiz选项优化、FTP step5+断点续传字段、FTP PASV示例自洽、OSPF DROther说明、懒加载统一2000ms（共9项，21个验证点全通过）
-- ✅ **代码审计改进**（2026-03-27，commit b64761c）：window.logger+DEBUG_MODE（7处console.error→logger.error）、openProtocol/renderStep加try-catch、全局error/unhandledrejection监听、CSP meta头（放行cdn.jsdelivr.net+cdnjs.cloudflare.com）、X-UA-Compatible、preload styles.min.css、CSS压缩（63.2KB→48.7KB，节省23%）；20验证点全通过
-- ✅ **UI内容改进**（2026-03-27，commit 7058722）：导航栏登录/免费开始→我的进度/GitHub外链；SSH card-badge-slot位置修正（card-title→card-badges，与18协议统一）；share.js懒加载1200ms→2000ms统一；ARP/DNS/TCP握手/UDP卡片描述扩充；12/12验证点全通过
+## 已完成功能模块
+- 步进式飞行动画、键盘快捷键（← → Space 1~9 Esc ?）
+- DNS 递归/迭代双模式、NAT SNAT/DNAT 双模式
+- 对比视图（TCP/UDP、HTTP/HTTPS、DNS递归/迭代、FTP主动/被动）—— COMPARE_REGISTRY 通用架构
+- 徽章/进度系统（localStorage，TOTAL=20）
+- 错误演练模式（drill.js）、速记卡（flashcard.js）、抓包对照（capture.js，19协议）
+- 学习路径推荐（learning.js）、分享海报（share.js）
+- PWA 离线支持（sw.js + manifest.json）
+- SEO 优化（title/meta/OG/JSON-LD/sitemap.xml/robots.txt）
+- 移动端适配、系统字体栈（零外部请求）
+
+## 多模式协议架构
+- DNS：`dns`（递归）+ `dns-iter`（迭代），切换条 `dnsModeBar`，`_dnsMode` 变量
+- NAT：`nat`（SNAT）+ `nat-dnat`（DNAT），切换条 `natModeBar`，`_natMode` 变量
+- `effectivePid` 在 `rebuildSidePanel()` 和 `renderStep()` 两处都要更新
 
 ## TCP拥塞控制架构要点
-- 专属画布 `#congestionDiagram`，不用通用 genericDiagram
-- canvasMap 映射：`tcpcong → congestionDiagram`
+- 专属画布 `#congestionDiagram`，canvasMap 映射 `tcpcong → congestionDiagram`
 - renderStep() 头部特判：`if (activeProtocol === 'tcpcong') { renderCongestionChart(currentStep); return; }`
-- SVG 坐标系：PAD_L=44, W=520, H=200；toSvgX/toSvgY 函数转换
-- chartPoints 数组定义 13 个数据点（x=RTT轮次, y=cwnd MSS, phase=阶段）
-- stepHighlight 数组：每步高亮到哪个点（0-based index）
-- **⚠️ 重要踩坑**：数据文件名必须和 protocolDB key 一致！`openProtocol('tcpcong')` 调用 `loadProtocolData('tcpcong')` 会加载 `data/tcpcong.js`；如果文件名写成 `congestion.js`，点击时会 404 失败无响应。正确做法：文件名 = `data/tcpcong.js`，数据 key = `protocolDB['tcpcong']`，预加载列表 = `'tcpcong'`，三者统一
-- **⚠️ CSS display:none 覆盖 JS**：在 CSS 里给专属元素（如 `#congestionDiagram`）写 `display:none` 是危险的！JS 用 `el.style.display = ''` 清除 inline style 后，CSS 规则会接管，元素仍然隐藏。正确做法：只在 HTML inline style 里写 `display:none` 作为初始值；JS 显示时对 canvas-inner 类元素明确设 `display='flex'`
-- **⚠️ 专属画布布局方案**：`congestionDiagram` 等专属画布，不要用 `canvas-inner`（`height:100%` 在 flex 链里不稳定），而应用 `position:absolute; inset:0`（贴满父容器），JS 控制 `display:flex/none`，这是最可靠的方案
-
-## 多模式协议架构（规律）
-- DNS：`dns`（递归）+ `dns-iter`（迭代），切换条 `dnsModeBar`，`_dnsMode` 变量，`switchDnsMode()` 函数
-- NAT：`nat`（SNAT）+ `nat-dnat`（DNAT/端口转发），切换条 `natModeBar`，`_natMode` 变量，`switchNatMode()` 函数
-- 共用模式：`effectivePid` 在 `rebuildSidePanel()` 和 `renderStep()` 两处都要更新；切换协议时在 `switchProtocol()` 里控制模式条显隐
-
-## 待开发协议（10个）
-NAT、VLAN、FTP、IP路由、TCP拥塞控制、HTTP/2、QUIC/HTTP3、OSPF、BGP
-
-## 6周产品路线图
-- **Week1**（本周）：首页协议层级地图 + 徽章进度系统 ✅ 完成
-- **Week2**：分享海报 + NAT协议 + NAT双模式（SNAT+DNAT）✅ 完成
-- **Week3**：错误演练模式 + TCP拥塞控制 ✅ 完成
-- **Week4**：对比视图扩展 + IP路由 ✅ 全部完成（3组对比：TCP/UDP + HTTP/HTTPS + DNS递归/迭代；COMPARE_REGISTRY 通用架构）
-- **Week5**：速记卡 + SEO优化 ✅ 全部完成（flashcard.js + sitemap.xml + robots.txt + OG/JSON-LD）
-- **Week6**：性能审计 + 抓包对照模式初版 ✅ 全部完成（requestIdleCallback优化 + capture.js 7协议报文联动）
-
-## 关键架构规则
-- `nth-of-type` 是按标签类型（div）计数，不是按类名——筛选/选择卡片应用 `data-proto` 属性直接映射
-- CSS 游离大括号会破坏后续所有规则解析——每次写 CSS 片段要检查大括号是否配对
-- `filter-tag` 事件绑定必须在 `DOMContentLoaded` 内执行，不能在顶层脚本里直接绑
-- 每次迭代前必须备份：`backup-YYYYMMDD-HHMM/` 目录
-
-## 用户信息
-- 网络专业学生，正在起步阶段
+- SVG 坐标系：PAD_L=44, W=520, H=200；13个 chartPoints 数据点；stepHighlight 数组控制高亮
 
 ## 产品扩展方向
-**华为认证模块** - 强烈推荐,目标用户高度契合,技术实现难度可控
-**网络安全模块** - 谨慎推荐,强调"防御优先",定位"安全教育"而非"黑客工具"
+- **华为认证模块** — 强烈推荐，目标用户高度契合，技术实现难度可控
+- **网络安全模块** — 谨慎推荐，定位"安全教育"而非"黑客工具"
+
+## 6周路线图（均已完成）
+Week1: 协议层级地图+徽章 | Week2: 分享海报+NAT双模式 | Week3: 错误演练+TCP拥塞
+Week4: 对比视图+IP路由 | Week5: 速记卡+SEO | Week6: 性能优化+抓包对照
+
+---
+
+## ⚠️ 开发前必读：历史错误清单（26条）
+
+> **每次开发新功能前必须过一遍！**
+
+### 【CSS 类】
+
+**① styles.css 改了不等于生效**
+- 页面加载 `styles.min.css`，每次改 `styles.css` 后必须重新压缩同步
+- 压缩：`python -c "import re; css=open('styles.css').read(); css=re.sub(r'/\*.*?\*/', '', css, flags=re.DOTALL); css=re.sub(r'\s+', ' ', css); css=re.sub(r'\s*([{};:,>~+])\s*', r'\1', css); open('styles.min.css','w').write(css.strip())"`
+
+**② CSS 里写 `display:none` 被 JS 清空后仍隐藏**
+- `el.style.display = ''` 清空 inline style 后，CSS 规则接管，元素仍隐藏
+- 正确：初始隐藏只写 HTML inline style；JS 显示时明确设 `el.style.display = 'flex'`
+
+**③ CSS 大括号没配对，静默破坏后续所有规则**
+
+**④ 新增颜色类必须同时加到 styles.css 和 styles.min.css**
+- 已有：`packet-label-blue / purple / cyan / green`
+
+---
+
+### 【JS 对象字面量】
+
+**⑤ replace_in_file 匹配错位会破坏整个 JS 对象**
+- 全站崩溃无响应，**必做**：修改 JS 对象后验证语法
+- `node -e "eval(require('fs').readFileSync('index.html','utf8').match(/<script>([\s\S]*)<\/script>/)[1])"`
+
+**⑥ JS 对象里禁止重复 key**
+- 追加新协议后 grep 检查是否有重复
+
+---
+
+### 【协议数据文件格式】
+
+**⑦ stepData 字段名必须对齐规范**（参照 `data/ssh.js`）
+- `bannerText` → `banner`
+- `clientStateId: 'xxx'` → `leftState`（值为显示文字，不是元素 ID）
+- `serverStateId: 'xxx'` → `rightState`
+- `fields[].val` → `fields[].value`
+- `fields[].body` → `fields[].desc`（⑰ 同类错误）
+
+**⑧ 新协议必须有 `rows` 数组，且数量 = steps 数量**
+- 格式：`{ dir: 'c2s'|'s2c', color: 'packet-label-blue/purple/cyan/green', label: '...' }`
+
+**⑨ 文件名 / protocolDB key / 预加载列表 三者必须一致**
+- 任意一个不一致 → 404 无响应
+
+**⑱ knowledge 条数必须 ≥ steps 条数**
+- `knowledge[currentStep - 1]` 越界取到 undefined，历史上 7 个协议都犯过
+
+---
+
+### 【注册点遗漏】
+
+**⑩ 新协议有 8 个注册点，一个都不能漏**
+
+| 注册点 | 位置 |
+|--------|------|
+| 卡片激活（coming-soon → 可点击） | index.html |
+| preloadAll 预加载列表 | index.html |
+| PROTO_META（节点名/图标/颜色） | index.html |
+| searchIndex 搜索索引 | index.html |
+| badge.js TOTAL +1 | modules/badge.js |
+| badge.js PROTO_INFO | modules/badge.js |
+| capture.js 抓包报文 | modules/capture.js |
+| learning.js 难度/前置依赖 | modules/learning.js |
+| sitemap.xml URL 条目 | sitemap.xml |
+
+---
+
+### 【画布与布局】
+
+**⑪ 专属画布不要用 `canvas-inner` 做容器**（高度不稳定）
+- 用 `position:absolute; inset:0` 贴满父容器；tcpcong 踩过三轮
+
+**⑫ SVG 在 flex 容器里 `height:auto` 会折叠为 0**
+- 必须给父容器设 `min-height` 或 SVG 设固定 `height`
+
+**⑬ `canvas-inner` 的 `align-items:center` 会压缩子元素宽度**
+- 专属画布需覆盖：`align-items:stretch; justify-content:flex-start`
+
+**⑭ genericDiagram 行数固定 1~16，多余行必须在 switchProtocol 里隐藏**
+
+---
+
+### 【事件绑定与 DOM】
+
+**⑮ 事件绑定必须在 `DOMContentLoaded` 内**
+
+**⑯ HTML 元素必须有 `id`，JS 才能找到它**
+
+---
+
+### 【硬编码与状态重置】
+
+**⑲ 展示文字不能硬编码**，切协议不更新；一律加 `id`，在 `switchProtocol` 里更新
+
+**⑳ 旁白框、模态框切协议时必须隐藏或重置**
+
+---
+
+### 【跳转逻辑】
+
+**㉑ 协议卡片 onclick 必须用 `openProtocol(pid)`**，不能只用 `showPage`
+
+**㉒ gotoStep 里变量名用 `activeProtocol`，不是 `currentProto`**
+
+---
+
+### 【多协议同步更新】
+
+**㉓ 改协议总数时，SEO meta / JSON-LD / stats-bar 数字全部同步**
+- 改完后全局 grep 确认没有遗漏
+
+**㉔ 没有 `abnormal` 数据的协议，隐藏异常场景按钮**
+
+---
+
+### 【流程纪律】
+
+**㉕ 每次迭代前备份**：`robocopy . backup-YYYYMMDD-HHMM /E /COPYALL`
+
+**㉖ 每次修改 JS 对象字面量后必须验证语法**（见⑤）

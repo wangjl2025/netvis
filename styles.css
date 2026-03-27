@@ -886,6 +886,7 @@ body {
 .packet-label-blue   { border-color:rgba(79,142,247,0.4);  color:var(--blue-400); }
 .packet-label-purple { border-color:rgba(167,139,250,0.4); color:var(--purple-400); }
 .packet-label-cyan   { border-color:rgba(34,211,238,0.4);  color:var(--cyan-400); }
+.packet-label-green  { border-color:rgba(52,211,153,0.4);  color:#34d399; }
 
 /* ── 飞行数据包（步进触发，单次播放）── */
 .packet-fly {
