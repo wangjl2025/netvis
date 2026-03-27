@@ -2241,4 +2241,419 @@ body {
   }
 }
 
+/* ============================================================
+   HCIA 知识点地图  #page-hcia
+   ============================================================ */
+.hcia-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 8px 24px 48px;
+}
+
+.hcia-module {
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.hcia-module-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+
+.hcia-module-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hcia-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hcia-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.hcia-has-anim,
+.hcia-has-tool {
+  cursor: pointer;
+}
+
+.hcia-has-anim:hover {
+  background: rgba(79,142,247,0.07);
+  border-color: rgba(79,142,247,0.2);
+}
+
+.hcia-has-tool:hover {
+  background: rgba(52,211,153,0.07);
+  border-color: rgba(52,211,153,0.2);
+}
+
+.hcia-badge {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hcia-yes {
+  background: rgba(52,211,153,0.12);
+  color: var(--green-400);
+  border: 1px solid rgba(52,211,153,0.25);
+}
+
+.hcia-tool {
+  background: rgba(79,142,247,0.12);
+  color: var(--blue-400);
+  border: 1px solid rgba(79,142,247,0.25);
+}
+
+.hcia-no {
+  background: var(--bg-2);
+  color: var(--text-4);
+  border: 1px solid var(--border-1);
+}
+
+.hcia-name {
+  flex: 1;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.hcia-hint {
+  font-size: 11.5px;
+  color: var(--text-4);
+  white-space: nowrap;
+}
+
+.hcia-has-anim:hover .hcia-hint,
+.hcia-has-tool:hover .hcia-hint {
+  color: var(--blue-400);
+}
+
+.hcia-tip {
+  max-width: 1100px;
+  margin: 0 auto 40px;
+  padding: 14px 20px;
+  background: rgba(251,191,36,0.08);
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+@media (max-width: 600px) {
+  .hcia-grid {
+    grid-template-columns: 1fr;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .hcia-tip {
+    margin-left: 14px;
+    margin-right: 14px;
+  }
+}
+
+/* ============================================================
+   子网划分计算器  #page-subnet
+   ============================================================ */
+.subnet-calc-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 24px 48px;
+}
+
+.subnet-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.subnet-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.subnet-field label {
+  font-size: 12px;
+  color: var(--text-4);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.subnet-field input,
+.subnet-field select {
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: 9px;
+  color: var(--text-1);
+  font-size: 15px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: var(--font-mono, monospace);
+}
+
+.subnet-field input:focus,
+.subnet-field select:focus {
+  border-color: var(--blue-400);
+}
+
+.subnet-field input.input-ip {
+  width: 190px;
+}
+
+.subnet-field select.select-prefix {
+  width: 110px;
+}
+
+.subnet-calc-btn {
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.subnet-result {
+  display: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.subnet-result.visible { display: block; }
+
+.subnet-result-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--border-1);
+}
+
+.subnet-result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.subnet-result-item {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-1);
+  border-right: 1px solid var(--border-1);
+}
+
+.subnet-result-item:nth-child(even) {
+  border-right: none;
+}
+
+.subnet-result-label {
+  font-size: 11.5px;
+  color: var(--text-4);
+  margin-bottom: 4px;
+}
+
+.subnet-result-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  font-family: var(--font-mono, monospace);
+}
+
+.subnet-binary-section {
+  padding: 16px 20px;
+}
+
+.subnet-binary-title {
+  font-size: 12px;
+  color: var(--text-4);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.subnet-binary-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.subnet-binary-label {
+  color: var(--text-4);
+  width: 90px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.subnet-binary-bits {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.subnet-bit {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+}
+
+.subnet-bit-net {
+  background: rgba(79,142,247,0.2);
+  color: var(--blue-400);
+  border: 1px solid rgba(79,142,247,0.3);
+}
+
+.subnet-bit-host {
+  background: rgba(52,211,153,0.15);
+  color: var(--green-400);
+  border: 1px solid rgba(52,211,153,0.25);
+}
+
+.subnet-bit-sep {
+  width: 4px;
+  flex-shrink: 0;
+}
+
+.subnet-error {
+  display: none;
+  color: var(--red-400);
+  font-size: 13px;
+  padding: 10px 0;
+}
+
+.subnet-error.visible { display: block; }
+
+@media (max-width: 600px) {
+  .subnet-calc-wrap { padding-left: 14px; padding-right: 14px; }
+  .subnet-result-grid { grid-template-columns: 1fr; }
+  .subnet-result-item { border-right: none; }
+  .subnet-field input.input-ip { width: 150px; }
+}
+
+/* ===== 适合谁学 区块 ===== */
+.audience-section {
+  padding: 48px 0 40px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.audience-section h2 {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.audience-section .audience-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 28px;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.audience-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.audience-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.audience-card-icon,
+.audience-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.audience-card h3,
+.audience-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+}
+
+.audience-card p,
+.audience-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.audience-cta {
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .audience-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .audience-grid { grid-template-columns: 1fr; }
+}
+
+
 

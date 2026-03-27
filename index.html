@@ -363,6 +363,42 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
   </div>
 
+  <!-- 适合谁学 -->
+  <div class="section audience-section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">🎯 适合谁学？</div>
+        <div class="section-subtitle">找到你的学习路径</div>
+      </div>
+    </div>
+    <div class="audience-grid">
+      <div class="audience-card" onclick="showPage('hcia')">
+        <div class="audience-icon">🏆</div>
+        <div class="audience-title">备考华为认证</div>
+        <div class="audience-desc">HCIA-Datacom / HCIP 考生<br>动画理解 + 考点对照，效率翻倍</div>
+        <div class="audience-cta">查看 HCIA 考点 →</div>
+      </div>
+      <div class="audience-card" onclick="openProtocol('tcp3')">
+        <div class="audience-icon">💻</div>
+        <div class="audience-title">后端/全栈开发者</div>
+        <div class="audience-desc">TCP 握手、HTTP、TLS、WebSocket<br>知道怎么用，更要知道原理</div>
+        <div class="audience-cta">从 TCP 三次握手开始 →</div>
+      </div>
+      <div class="audience-card" onclick="showPage('protocols')">
+        <div class="audience-icon">📚</div>
+        <div class="audience-title">计算机专业学生</div>
+        <div class="audience-desc">22 个协议覆盖课程全范围<br>配合教材，考前突击也够用</div>
+        <div class="audience-cta">浏览全部协议 →</div>
+      </div>
+      <div class="audience-card" onclick="showPage('subnet')">
+        <div class="audience-icon">🔧</div>
+        <div class="audience-title">网络工程师</div>
+        <div class="audience-desc">OSPF / BGP / STP / NAT 动画<br>子网划分工具，工作中随时查</div>
+        <div class="audience-cta">打开子网计算器 →</div>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer" role="contentinfo">
     <div>© 2026 NetViz · 网络协议可视化学习平台</div>
     <nav aria-label="页脚链接" style="display:flex;gap:20px">
@@ -513,8 +549,323 @@ window.addEventListener('unhandledrejection', function(e) {
       </div>
     </div>
 
+    <!-- 华为认证考点 -->
+    <div class="tool-card" onclick="showPage('hcia')">
+      <div class="tool-card-icon" style="background:rgba(220,38,38,0.10);border:1px solid rgba(220,38,38,0.22)">📋</div>
+      <div class="tool-card-body">
+        <div class="tool-card-title">华为认证考点</div>
+        <div class="tool-card-desc">HCIA-Datacom 考纲逐条对照，标出哪些考点本站已有动画，点一下直跳播放器。备考神器。</div>
+        <div class="tool-card-tags">
+          <span class="tool-tag">HCIA-Datacom</span>
+          <span class="tool-tag">考点对照</span>
+        </div>
+      </div>
+      <div class="tool-card-cta">查看考点
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- 子网划分计算器 -->
+    <div class="tool-card" onclick="showPage('subnet')">
+      <div class="tool-card-icon" style="background:rgba(34,211,238,0.10);border:1px solid rgba(34,211,238,0.22)">🧮</div>
+      <div class="tool-card-body">
+        <div class="tool-card-title">子网划分计算器</div>
+        <div class="tool-card-desc">输入 IP 地址和前缀长度，立即显示网络地址、广播地址、主机范围，并可视化二进制拆分过程。</div>
+        <div class="tool-card-tags">
+          <span class="tool-tag">HCIA 必考</span>
+          <span class="tool-tag">二进制可视化</span>
+        </div>
+      </div>
+      <div class="tool-card-cta">开始计算
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
   </div><!-- /.tools-grid -->
 </div><!-- /#page-tools -->
+
+
+<!-- ─────────────────────────────────────────────
+     PAGE · 子网划分计算器
+───────────────────────────────────────────── -->
+<div id="page-subnet" class="page" style="display:none">
+  <div class="list-page-header">
+    <div>
+      <h1 class="list-page-title">🧮 子网划分计算器</h1>
+      <p class="list-page-desc">输入 IP 和前缀，立即计算并可视化二进制拆分</p>
+    </div>
+    <button class="btn btn-ghost" onclick="showPage('tools')" style="font-size:13px;padding:7px 14px;border-radius:10px;white-space:nowrap">← 返回工具箱</button>
+  </div>
+
+  <div class="subnet-calc-wrap">
+    <div class="subnet-input-row">
+      <div class="subnet-field">
+        <label>IP 地址</label>
+        <input type="text" class="input-ip" id="subnetIpInput" placeholder="192.168.1.0" maxlength="15" oninput="subnetCalc()" onkeydown="if(event.key==='Enter')subnetCalc()">
+      </div>
+      <div class="subnet-field">
+        <label>前缀长度</label>
+        <select class="select-prefix" id="subnetPrefixInput" onchange="subnetCalc()">
+          <option value="">/前缀</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="subnet-error" id="subnetError">⚠ IP 地址格式不正确，请输入如 192.168.1.0</div>
+
+    <div class="subnet-result" id="subnetResult">
+      <div class="subnet-result-title">计算结果</div>
+      <div class="subnet-result-grid">
+        <div class="subnet-result-item">
+          <div class="subnet-result-label">网络地址 (Network)</div>
+          <div class="subnet-result-val" id="srNetwork">—</div>
+        </div>
+        <div class="subnet-result-item">
+          <div class="subnet-result-label">子网掩码 (Mask)</div>
+          <div class="subnet-result-val" id="srMask">—</div>
+        </div>
+        <div class="subnet-result-item">
+          <div class="subnet-result-label">广播地址 (Broadcast)</div>
+          <div class="subnet-result-val" id="srBroadcast">—</div>
+        </div>
+        <div class="subnet-result-item">
+          <div class="subnet-result-label">可用主机数</div>
+          <div class="subnet-result-val" id="srHosts">—</div>
+        </div>
+        <div class="subnet-result-item">
+          <div class="subnet-result-label">第一个主机 IP</div>
+          <div class="subnet-result-val" id="srFirst">—</div>
+        </div>
+        <div class="subnet-result-item">
+          <div class="subnet-result-label">最后一个主机 IP</div>
+          <div class="subnet-result-val" id="srLast">—</div>
+        </div>
+      </div>
+      <div class="subnet-binary-section">
+        <div class="subnet-binary-title">二进制拆分 <span style="font-weight:400;color:var(--blue-400)">■ 网络位</span> <span style="font-weight:400;color:var(--green-400)">■ 主机位</span></div>
+        <div class="subnet-binary-row">
+          <span class="subnet-binary-label">IP 地址</span>
+          <div class="subnet-binary-bits" id="srBitsIp"></div>
+        </div>
+        <div class="subnet-binary-row">
+          <span class="subnet-binary-label">子网掩码</span>
+          <div class="subnet-binary-bits" id="srBitsMask"></div>
+        </div>
+        <div class="subnet-binary-row">
+          <span class="subnet-binary-label">网络地址</span>
+          <div class="subnet-binary-bits" id="srBitsNet"></div>
+        </div>
+      </div>
+    </div><!-- /.subnet-result -->
+  </div><!-- /.subnet-calc-wrap -->
+</div><!-- /#page-subnet -->
+
+
+<!-- ─────────────────────────────────────────────
+     PAGE · HCIA 认证考点
+───────────────────────────────────────────── -->
+<div id="page-hcia" class="page" style="display:none">
+  <div class="list-page-header">
+    <div>
+      <h1 class="list-page-title">📋 华为认证考点对照</h1>
+      <p class="list-page-desc">HCIA-Datacom 考纲逐条对照，✅ = 本站有动画，点击直跳</p>
+    </div>
+    <button class="btn btn-ghost" onclick="showPage('tools')" style="font-size:13px;padding:7px 14px;border-radius:10px;white-space:nowrap">← 返回工具箱</button>
+  </div>
+
+  <div class="hcia-grid" id="hciaGrid">
+
+    <!-- 模块一：网络基础 -->
+    <div class="hcia-module">
+      <div class="hcia-module-title">
+        <span class="hcia-module-dot" style="background:var(--cyan-400)"></span>
+        网络基础
+      </div>
+      <div class="hcia-items">
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('iproute')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">IP 编址与路由基础</span>
+          <span class="hcia-hint">IP 路由转发 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('arp')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">ARP 地址解析</span>
+          <span class="hcia-hint">ARP 动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('icmp')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">ICMP 与 Ping 机制</span>
+          <span class="hcia-hint">ICMP/Ping 动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-tool" onclick="showPage('subnet')">
+          <span class="hcia-badge hcia-tool">🔧 有工具</span>
+          <span class="hcia-name">子网划分与 VLSM</span>
+          <span class="hcia-hint">子网计算器 →</span>
+        </div>
+        <div class="hcia-item">
+          <span class="hcia-badge hcia-no">📖 理论</span>
+          <span class="hcia-name">OSI 七层模型 / TCP/IP 五层</span>
+          <span class="hcia-hint">概念题，记忆为主</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模块二：以太网与交换 -->
+    <div class="hcia-module">
+      <div class="hcia-module-title">
+        <span class="hcia-module-dot" style="background:var(--orange-400)"></span>
+        以太网与交换
+      </div>
+      <div class="hcia-items">
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('vlan')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">VLAN 划分与 802.1Q</span>
+          <span class="hcia-hint">VLAN 动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('stp')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">STP 生成树与环路消除</span>
+          <span class="hcia-hint">STP 动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('arp')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">MAC 地址学习与以太网帧</span>
+          <span class="hcia-hint">ARP 含 MAC 帧解析 →</span>
+        </div>
+        <div class="hcia-item">
+          <span class="hcia-badge hcia-no">📖 理论</span>
+          <span class="hcia-name">交换机端口安全 / 链路聚合</span>
+          <span class="hcia-hint">概念配置题</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模块三：路由协议 -->
+    <div class="hcia-module">
+      <div class="hcia-module-title">
+        <span class="hcia-module-dot" style="background:var(--purple-400)"></span>
+        路由协议
+      </div>
+      <div class="hcia-items">
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('iproute')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">静态路由与路由转发</span>
+          <span class="hcia-hint">IP 路由转发动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('ospf')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">OSPF 链路状态路由</span>
+          <span class="hcia-hint">OSPF 动画 →</span>
+        </div>
+        <div class="hcia-item">
+          <span class="hcia-badge hcia-no">📖 理论</span>
+          <span class="hcia-name">RIP 距离矢量协议</span>
+          <span class="hcia-hint">概念题，HCIA 考基础</span>
+        </div>
+        <div class="hcia-item">
+          <span class="hcia-badge hcia-no">📖 理论</span>
+          <span class="hcia-name">路由表结构与最长前缀匹配</span>
+          <span class="hcia-hint">理解性考点</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模块四：传输层 -->
+    <div class="hcia-module">
+      <div class="hcia-module-title">
+        <span class="hcia-module-dot" style="background:var(--blue-400)"></span>
+        传输层
+      </div>
+      <div class="hcia-items">
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('tcp3')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">TCP 三次握手</span>
+          <span class="hcia-hint">TCP 三次握手动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('tcp4')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">TCP 四次挥手</span>
+          <span class="hcia-hint">TCP 四次挥手动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('udp')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">UDP 无连接传输</span>
+          <span class="hcia-hint">UDP 动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('tcpcong')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">TCP 流量控制与拥塞控制</span>
+          <span class="hcia-hint">TCP 拥塞控制动画 →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模块五：应用层与网络服务 -->
+    <div class="hcia-module">
+      <div class="hcia-module-title">
+        <span class="hcia-module-dot" style="background:var(--green-400)"></span>
+        应用层与网络服务
+      </div>
+      <div class="hcia-items">
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('dns')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">DNS 域名解析</span>
+          <span class="hcia-hint">DNS 递归/迭代动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('dhcp')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">DHCP 地址自动分配</span>
+          <span class="hcia-hint">DHCP 动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('http')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">HTTP / HTTPS 应用层协议</span>
+          <span class="hcia-hint">HTTP + TLS 动画 →</span>
+        </div>
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('nat')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">NAT / PAT 地址转换</span>
+          <span class="hcia-hint">NAT SNAT/DNAT 动画 →</span>
+        </div>
+        <div class="hcia-item">
+          <span class="hcia-badge hcia-no">📖 理论</span>
+          <span class="hcia-name">FTP / Telnet / SNMP</span>
+          <span class="hcia-hint">概念识记</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模块六：网络安全基础 -->
+    <div class="hcia-module">
+      <div class="hcia-module-title">
+        <span class="hcia-module-dot" style="background:var(--red-400)"></span>
+        网络安全基础
+      </div>
+      <div class="hcia-items">
+        <div class="hcia-item hcia-has-anim" onclick="openProtocol('tls')">
+          <span class="hcia-badge hcia-yes">✅ 有动画</span>
+          <span class="hcia-name">SSL/TLS 加密传输</span>
+          <span class="hcia-hint">TLS 1.3 握手动画 →</span>
+        </div>
+        <div class="hcia-item">
+          <span class="hcia-badge hcia-no">📖 理论</span>
+          <span class="hcia-name">ACL 访问控制列表</span>
+          <span class="hcia-hint">配置题重点</span>
+        </div>
+        <div class="hcia-item">
+          <span class="hcia-badge hcia-no">📖 理论</span>
+          <span class="hcia-name">防火墙基础 / AAA 认证</span>
+          <span class="hcia-hint">概念识记</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.hcia-grid -->
+
+  <div class="hcia-tip">
+    💡 <strong>备考建议：</strong>先把所有「✅ 有动画」的考点用动画彻底理解透，再去背「📖 理论」部分——理解之后背起来快很多。
+  </div>
+</div><!-- /#page-hcia -->
 
 
 <!-- ─────────────────────────────────────────────
@@ -1711,7 +2062,7 @@ function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  const idMap = { home:'nav-home', protocols:'nav-protocols', player:'nav-player', tools:'nav-tools' };
+  const idMap = { home:'nav-home', protocols:'nav-protocols', player:'nav-player', tools:'nav-tools', hcia:'nav-tools', subnet:'nav-tools' };
   const link = document.getElementById(idMap[name] || 'nav-home');
   if (link) link.classList.add('active');
   window.scrollTo({ top:0, behavior:'instant' });
@@ -4344,6 +4695,111 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
+
+<!-- 子网划分计算器 JS -->
+<script>
+(function initSubnetCalc() {
+  // 初始化前缀下拉
+  function initSelect() {
+    var sel = document.getElementById('subnetPrefixInput');
+    if (!sel) return;
+    for (var i = 1; i <= 30; i++) {
+      var opt = document.createElement('option');
+      opt.value = i; opt.textContent = '/' + i;
+      if (i === 24) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+
+  // 数字转点分十进制
+  function toDecimal(n32) {
+    return [(n32>>>24)&255, (n32>>>16)&255, (n32>>>8)&255, n32&255].join('.');
+  }
+
+  // 解析 IP → 32 位整数（失败返回 null）
+  function parseIP(str) {
+    var parts = str.trim().split('.');
+    if (parts.length !== 4) return null;
+    var n = 0;
+    for (var i = 0; i < 4; i++) {
+      var v = parseInt(parts[i], 10);
+      if (isNaN(v) || v < 0 || v > 255) return null;
+      n = (n << 8) | v;
+    }
+    return n >>> 0;
+  }
+
+  // 渲染 32 位比特格子
+  function renderBits(containerId, n32, prefix) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    var html = '';
+    for (var i = 31; i >= 0; i--) {
+      var bit = (n32 >>> i) & 1;
+      var isNet = (31 - i) < prefix;
+      var cls = isNet ? 'subnet-bit subnet-bit-net' : 'subnet-bit subnet-bit-host';
+      html += '<span class="' + cls + '">' + bit + '</span>';
+      // 每8位加间隔（不加在末尾）
+      if (i > 0 && (i % 8 === 0)) html += '<span class="subnet-bit-sep"></span>';
+    }
+    el.innerHTML = html;
+  }
+
+  window.subnetCalc = function() {
+    var ipStr = (document.getElementById('subnetIpInput') || {}).value || '';
+    var prefix = parseInt((document.getElementById('subnetPrefixInput') || {}).value, 10);
+    var errEl = document.getElementById('subnetError');
+    var resEl = document.getElementById('subnetResult');
+
+    if (!ipStr || isNaN(prefix)) {
+      if (errEl) errEl.classList.remove('visible');
+      if (resEl) resEl.classList.remove('visible');
+      return;
+    }
+
+    var ipNum = parseIP(ipStr);
+    if (ipNum === null) {
+      if (errEl) errEl.classList.add('visible');
+      if (resEl) resEl.classList.remove('visible');
+      return;
+    }
+    if (errEl) errEl.classList.remove('visible');
+
+    // 掩码
+    var maskNum = prefix === 0 ? 0 : (0xFFFFFFFF << (32 - prefix)) >>> 0;
+    // 网络地址
+    var netNum  = (ipNum & maskNum) >>> 0;
+    // 广播地址
+    var bcastNum = (netNum | (~maskNum >>> 0)) >>> 0;
+    // 主机数
+    var hostBits = 32 - prefix;
+    var hostCount = hostBits >= 2 ? (Math.pow(2, hostBits) - 2) : (hostBits === 1 ? 0 : 1);
+    var firstNum = hostBits >= 2 ? (netNum + 1) >>> 0 : netNum;
+    var lastNum  = hostBits >= 2 ? (bcastNum - 1) >>> 0 : bcastNum;
+
+    // 填入结果
+    document.getElementById('srNetwork').textContent   = toDecimal(netNum)   + ' /' + prefix;
+    document.getElementById('srMask').textContent      = toDecimal(maskNum);
+    document.getElementById('srBroadcast').textContent = toDecimal(bcastNum);
+    document.getElementById('srHosts').textContent     = hostCount.toLocaleString() + ' 台';
+    document.getElementById('srFirst').textContent     = toDecimal(firstNum);
+    document.getElementById('srLast').textContent      = toDecimal(lastNum);
+
+    // 二进制可视化
+    renderBits('srBitsIp',   ipNum,   prefix);
+    renderBits('srBitsMask', maskNum, prefix);
+    renderBits('srBitsNet',  netNum,  prefix);
+
+    if (resEl) resEl.classList.add('visible');
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSelect);
+  } else {
+    initSelect();
+  }
+})();
+</script>
 
 <!-- 协议数据预加载（按协议首次点击时懒加载；空闲时批量预载）-->
 <!-- 所有协议数据已拆分到 data/ 目录，主 HTML 体积缩减 ~65% -->
