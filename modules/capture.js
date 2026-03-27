@@ -335,6 +335,29 @@
       stepMap: { 1:[1], 2:[2], 3:[3], 4:[4], 5:[5,6], 6:[7,8] },
     },
 
+    quic: {
+      title: 'QUIC / HTTP/3 — 模拟抓包',
+      frames: [
+        { no:1, time:'0.000000', src:'192.168.1.10',    dst:'142.250.80.46',   proto:'QUIC', info:'Initial[0]  ClientHello (CRYPTO)  ALPN: h3  版本:1',
+          detail: 'QUIC Initial 包 (Long Header):\n  Header Form: Long Header (1)\n  Fixed Bit: 1\n  Long Packet Type: Initial (0x00)\n  Reserved Bits: 00\n  Packet Number Length: 00 (1 byte)\n  Version: 0x00000001 (QUIC v1, RFC 9000)\n  Destination Connection ID: a3f2d1...(8字节随机)\n  Source Connection ID: 00\n  Token Length: 0 (首次连接无 Token)\n  Packet Number: 0\n  Payload (CRYPTO frame):\n    Frame Type: 0x06 (CRYPTO)\n    Offset: 0\n    TLS ClientHello:\n      ALPN: h3 (HTTP/3)\n      supported_versions: TLS 1.3\n      key_share: X25519 公钥\n  [注] Initial 包用固定密钥 AES-128-ECB 加密(防篡改，任何人可解密)' },
+        { no:2, time:'0.000100', src:'192.168.1.10',    dst:'142.250.80.46',   proto:'QUIC', info:'0-RTT[0]  HTTP/3 HEADERS  GET /  (0-RTT Data)',
+          detail: 'QUIC 0-RTT 包 (使用上次 PSK 密钥):\n  Long Packet Type: 0-RTT (0x01)\n  Packet Number: 0\n  Payload (STREAM frame):\n    Frame Type: 0x08 (STREAM, Stream ID=0)\n    Stream ID: 0 (客户端双向流)\n    HTTP/3 HEADERS Frame:\n      :method: GET\n      :path: /\n      :scheme: https\n      :authority: www.example.com\n  [注] 0-RTT 使用首次连接时颁发的 Session Ticket 密钥加密\n  [注] 服务端未确认前，此数据可能被重放；仅限幂等请求' },
+        { no:3, time:'0.028000', src:'142.250.80.46',   dst:'192.168.1.10',    proto:'QUIC', info:'Initial[0]  ServerHello (CRYPTO)  Handshake[0]  证书+Finished',
+          detail: 'QUIC Initial + Handshake 包:\n  [Initial 包]\n    CRYPTO Frame: TLS ServerHello\n      Version: TLS 1.3\n      selected_cipher_suite: TLS_AES_128_GCM_SHA256\n      key_share: 服务端 X25519 公钥\n  [Handshake 包] 新加密级别\n    CRYPTO Frame: TLS EncryptedExtensions + Certificate + CertVerify + Finished\n  连接 ID 分配:\n    NEW_CONNECTION_ID Frame:\n      Sequence Number: 0\n      Connection ID: 7e4b9c...(备用 ID)\n      Stateless Reset Token: ...8字节\n  SETTINGS Frame (HTTP/3):\n    MAX_FIELD_SECTION_SIZE\n    QPACK_MAX_TABLE_CAPACITY: 4096\n    QPACK_BLOCKED_STREAMS: 16' },
+        { no:4, time:'0.029000', src:'192.168.1.10',    dst:'142.250.80.46',   proto:'QUIC', info:'Handshake[0]  Client Finished  握手完成 1-RTT',
+          detail: 'QUIC Client Handshake 完成:\n  CRYPTO Frame: TLS Finished\n    Verify Data: HMAC-SHA256 摘要\n  HANDSHAKE_DONE Frame: (服务端发)\n    Frame Type: 0x1e\n    通知客户端握手已完成，可关闭 Initial/Handshake 密钥\n  至此连接从:\n    Initial密钥 → Handshake密钥 → 1-RTT密钥\n  [时序]\n    t=0.000 Client Initial\n    t=0.028 Server Initial+Handshake  (1 RTT)\n    t=0.029 Client Finished\n    总计: 1 RTT (TCP+TLS需要2 RTT)' },
+        { no:5, time:'0.028000', src:'142.250.80.46',   dst:'192.168.1.10',    proto:'QUIC', info:'1-RTT  STREAM[0]  HTTP/3 DATA  200 OK  响应 0-RTT 请求',
+          detail: '服务端响应 0-RTT 请求:\n  1-RTT 包 (Short Header):\n    Header Form: Short Header (0)\n    Fixed Bit: 1\n    Spin Bit: 0\n    Connection ID: a3f2d1...\n    Packet Number: 0\n  STREAM Frame (Stream 0):\n    HTTP/3 HEADERS Frame:\n      :status: 200\n      content-type: text/html\n      content-length: 8192\n      alt-svc: h3=":443"; ma=86400  ← 声明支持 HTTP/3\n    HTTP/3 DATA Frame:\n      <html>...\n  [注] 服务端无法提前验证 0-RTT 防重放，响应时握手同步进行' },
+        { no:6, time:'0.029500', src:'192.168.1.10',    dst:'142.250.80.46',   proto:'QUIC', info:'1-RTT  STREAM[4,8]  并发请求 GET /style.css GET /app.js  多路复用',
+          detail: 'QUIC 多路复用 — 并发请求:\n  Short Header 包 (握手完成后):\n  STREAM Frame (Stream 4, 客户端双向):\n    HTTP/3 HEADERS:\n      :method: GET\n      :path: /style.css\n      Offset: 0\n      FIN: 0\n  STREAM Frame (Stream 8):\n    HTTP/3 HEADERS:\n      :method: GET\n      :path: /app.js\n  [QUIC Stream ID 规则]\n    0,4,8...  客户端双向流 (HTTP请求)\n    1,5,9...  服务端双向流\n    2,6,10... 客户端单向流\n    3,7,11... 服务端单向流\n  [与HTTP/2对比] 此处丢包只影响对应流，不阻塞其他流' },
+        { no:7, time:'0.065000', src:'192.168.1.10',    dst:'142.250.80.46',   proto:'QUIC', info:'PATH_CHALLENGE  [网络切换 WiFi→4G]  新源 IP:10.0.0.5',
+          detail: '连接迁移 (WiFi → 4G):\n  源 IP 变化: 192.168.1.10:51234 → 10.0.0.5:62100\n  但 Connection ID 不变: a3f2d1...\n  PATH_CHALLENGE Frame:\n    Frame Type: 0x1a\n    Data: 8字节随机值 (e.g. 0x3f8a2b1c4d5e6f7a)\n  ← PATH_RESPONSE Frame:\n    Frame Type: 0x1b\n    Data: 0x3f8a2b1c4d5e6f7a  (原样回显)\n  路径验证成功，切换到新路径继续传输\n  [TCP对比] TCP四元组变化→连接断开→重新握手(~150ms)\n  [QUIC] 应用层无感知，传输中的流不中断' },
+        { no:8, time:'0.066000', src:'142.250.80.46',   dst:'10.0.0.5',        proto:'QUIC', info:'ACK  Largest=12 ACKDelay=2ms  精准 RTT 估算',
+          detail: 'QUIC ACK 帧 (精准版):\n  Frame Type: 0x02 (ACK)\n  Largest Acknowledged: 12\n  ACK Delay: 2ms  (接收方处理延迟，精确)\n  ACK Range Count: 1\n  First ACK Range: 5  (包7~12都已收)\n  Gap: 1\n  ACK Range: 2  (包4~5已收，包6未收→需重传)\n  ECN Counts: 0/0/0\n  [与TCP对比]\n    TCP: 重传包与原包同序号，ACK有歧义(Karn算法)\n    QUIC: 重传用新包号，ACK精准指向，RTT无歧义\n    QUIC ACK Delay字段让RTT估算更精确\n  包6 重传: 新 Packet Number=25 (≠原始6)' },
+      ],
+      stepMap: { 1:[1], 2:[2], 3:[3,4], 4:[4], 5:[5,6], 6:[6], 7:[7], },
+    },
+
   };
 
   /* ── 弹窗 HTML ──────────────────────────────────────────────────────── */
@@ -441,7 +464,7 @@
     DHCP: '#4ade80', SMTP: '#f97316', SSHv2: '#818cf8',
     OSPF: '#38bdf8', NAT: '#e879f9', WebSocket: '#22d3ee',
     IPv4: '#a3e635', 'FTP-DATA': '#fb7185',
-    '802.1Q': '#fde68a', HTTP2: '#60cdff',
+    '802.1Q': '#fde68a', HTTP2: '#60cdff', QUIC: '#facc15',
   };
 
   let _currentCapturePid = null;

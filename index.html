@@ -6,8 +6,8 @@
 <title>NetViz — 网络协议可视化学习平台 | TCP/IP/DNS/HTTP/TLS 动画教程</title>
 
 <!-- ══ SEO ══════════════════════════════════════════════════════════ -->
-<meta name="description" content="NetViz - 免费的中文网络协议可视化学习平台。19个协议步进动画（TCP三次握手/挥手、DNS解析、HTTP/HTTPS、TLS 1.3、HTTP/2、UDP、ARP、DHCP、VLAN、OSPF、FTP、SSH、SMTP等），覆盖 OSI 五层，中文深度教学，附字段解析、知识点详解与错误演练，适合计算机/网工专业学生和初中级网络工程师。">
-<meta name="keywords" content="网络协议可视化,TCP三次握手,DNS解析,HTTP HTTPS对比,TLS握手,UDP,ARP,DHCP,VLAN,OSPF,FTP,网络协议动画,计算机网络学习,OSI模型,TCP/IP,网络工程,网络安全">
+<meta name="description" content="NetViz - 免费的中文网络协议可视化学习平台。20个协议步进动画（TCP三次握手/挥手、DNS解析、HTTP/HTTPS、TLS 1.3、HTTP/2、QUIC/HTTP3、UDP、ARP、DHCP、VLAN、OSPF、FTP、SSH、SMTP等），覆盖 OSI 五层，中文深度教学，附字段解析、知识点详解与错误演练，适合计算机/网工专业学生和初中级网络工程师。">
+<meta name="keywords" content="网络协议可视化,TCP三次握手,DNS解析,HTTP HTTPS对比,TLS握手,UDP,ARP,DHCP,VLAN,OSPF,FTP,QUIC,HTTP3,网络协议动画,计算机网络学习,OSI模型,TCP/IP,网络工程,网络安全">
 <meta name="author" content="NetViz">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://wangjl2025.github.io/netvis/">
@@ -20,7 +20,7 @@
 <!-- ══ Open Graph（微信/Slack/Twitter 分享卡片）══════════════════════ -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NetViz — 网络协议可视化学习平台">
-<meta property="og:description" content="19个协议步进动画，TCP/DNS/HTTP/TLS/HTTP2/VLAN/OSPF/FTP全覆盖，中文深度教学，附知识点详解和错误演练模式。">
+<meta property="og:description" content="20个协议步进动画，TCP/DNS/HTTP/TLS/HTTP2/QUIC/VLAN/OSPF/FTP全覆盖，中文深度教学，附知识点详解和错误演练模式。">
 <meta property="og:url" content="https://wangjl2025.github.io/netvis/">
 <meta property="og:site_name" content="NetViz">
 <meta property="og:locale" content="zh_CN">
@@ -32,7 +32,7 @@
 <!-- ══ Twitter Card ══════════════════════════════════════════════════ -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="NetViz — 网络协议可视化学习平台">
-<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/HTTP2/ARP/VLAN/OSPF/FTP等19个协议步进动画，中文深度教学">
+<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/HTTP2/QUIC-HTTP3/ARP/VLAN/OSPF/FTP等20个协议步进动画，中文深度教学">
 <meta name="twitter:image" content="https://wangjl2025.github.io/netvis/og-image.png">
 
 <!-- ══ JSON-LD 结构化数据 ════════════════════════════════════════════ -->
@@ -41,7 +41,7 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "NetViz 网络协议可视化学习平台",
-  "description": "中文·步进交互·深度教学的网络协议可视化平台。19个协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、HTTP/2、UDP、ARP、DHCP、ICMP、NAT、IP路由、VLAN、OSPF、FTP、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
+  "description": "中文·步进交互·深度教学的网络协议可视化平台。20个协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、HTTP/2、QUIC/HTTP3、UDP、ARP、DHCP、ICMP、NAT、IP路由、VLAN、OSPF、FTP、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
   "url": "https://wangjl2025.github.io/netvis/",
   "applicationCategory": "EducationalApplication",
   "operatingSystem": "Web",
@@ -413,7 +413,7 @@ window.addEventListener('unhandledrejection', function(e) {
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
         <h1 class="list-page-title">协议库</h1>
-        <p class="list-page-desc">19+ 协议动画，覆盖 OSI 五层，从入门到深入</p>
+        <p class="list-page-desc">20 协议动画，覆盖 OSI 五层，从入门到深入</p>
       </div>
       <button class="btn btn-primary drill-entry-btn" onclick="DrillModule && DrillModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap">
         <span style="font-size:16px">🎯</span> 错误演练
@@ -568,16 +568,16 @@ window.addEventListener('unhandledrejection', function(e) {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card coming-soon" style="--card-color:var(--blue-400)" title="即将上线">
+      <div class="protocol-card" style="--card-color:var(--blue-400)" onclick="openProtocol('quic')" data-proto="quic">
         <div class="card-header">
           <div class="card-icon" style="background:var(--blue-subtle);border:1px solid rgba(79,142,247,0.22)">⚡</div>
-          <div class="card-badges"><span class="badge badge-hard">深入</span></div>
+          <div class="card-badges"><span class="badge badge-hard">深入</span><span class="card-badge-slot" data-proto="quic"></span></div>
         </div>
         <div class="card-title">QUIC / HTTP/3</div>
-        <div class="card-desc">基于 UDP 的新一代传输协议，0-RTT 建连与多路复用</div>
+        <div class="card-desc">基于 UDP 的新一代传输协议，0-RTT 建连、连接迁移与彻底无队头阻塞</div>
         <div class="card-meta">
-          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>10 步</div>
-          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>7 步</div>
+          <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
       <div class="protocol-card" style="--card-color:var(--green-400)" onclick="openProtocol('ssh')" data-proto="ssh">
@@ -1623,7 +1623,12 @@ const RELATED_MAP = {
               { id:'tcp3',     icon:'🤝', name:'TCP 三次握手',      hint:'TLS 在 TCP 之上工作' }],
   http2:     [{ id:'http',     icon:'📡', name:'HTTP/1.1',          hint:'上一代 HTTP 协议' },
               { id:'tls',      icon:'🔒', name:'TLS 1.3',           hint:'HTTP/2 通常与 TLS 结合' },
+              { id:'quic',     icon:'⚡', name:'QUIC / HTTP/3',     hint:'HTTP/2 的下一代，基于 UDP' },
               { id:'tcp3',     icon:'🤝', name:'TCP 三次握手',      hint:'HTTP/2 基于 TCP' }],
+  quic:      [{ id:'http2',    icon:'🚀', name:'HTTP/2',            hint:'QUIC 解决了 HTTP/2 的 TCP 队头阻塞' },
+              { id:'tls',      icon:'🔒', name:'TLS 1.3',           hint:'QUIC 内嵌 TLS 1.3 握手' },
+              { id:'tcp3',     icon:'🤝', name:'TCP 三次握手',      hint:'QUIC 基于 UDP 替代 TCP' },
+              { id:'udp',      icon:'📦', name:'UDP',               hint:'QUIC 在 UDP 之上构建' }],
   dns:       [{ id:'http',     icon:'📡', name:'HTTP/1.1',          hint:'DNS 解析后发起 HTTP' },
               { id:'udp',      icon:'💨', name:'UDP',               hint:'DNS 使用 UDP 查询' },
               { id:'icmp',     icon:'🏓', name:'ICMP / Ping',       hint:'网络可达性验证' }],
@@ -1913,7 +1918,7 @@ const CARD_META = {
   http:      { layer:'app',       level:'easy',   title:'http/1.1 请求 响应' },
   tls:       { layer:'app',       level:'medium', title:'tls 1.3 加密 握手' },
   http2:     { layer:'app',       level:'hard',   title:'http/2 多路复용 帧 流' },
-  dhcp:      { layer:'app',       level:'easy',   title:'dhcp ip地址' },
+  quic:      { layer:'app',       level:'hard',   title:'quic http/3 udp 0-rtt 连接迁移 队头阻塞' },      { layer:'app',       level:'easy',   title:'dhcp ip地址' },
   websocket: { layer:'app',       level:'medium', title:'websocket 握手 全双工' },
   smtp:      { layer:'app',       level:'easy',   title:'smtp 邮件 发送 电子邮件' },
   ftp:       { layer:'app',       level:'medium', title:'ftp 文件传输 被动模式' },
@@ -3304,7 +3309,7 @@ function _showCompletionBanner(protoId) {
     websocket:'WebSocket', smtp:'SMTP 邮件', ssh:'SSH 连接',
     ftp:'FTP 文件传输', nat:'NAT 地址转换', vlan:'VLAN 帧传输',
     tcpcong:'TCP 拥塞控制', iproute:'IP 路由转发', ospf:'OSPF 路由',
-    http2:'HTTP/2 多路复用',
+    http2:'HTTP/2 多路复用', quic:'QUIC / HTTP/3',
   };
   const name = NAMES[protoId] || protoId;
 
@@ -4065,7 +4070,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ['tcp4', 'http', 'tls', 'dns'].forEach(loadKey);
 
   // 第二优先级：其余协议，等浏览器空闲时分批加载
-  var remaining = ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','nat-dnat','tcpcong','iproute','vlan','ftp','ospf','http2'];
+  var remaining = ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','nat-dnat','tcpcong','iproute','vlan','ftp','ospf','http2','quic'];
 
   function loadNextIdle(deadline) {
     // timeRemaining() > 5ms 时才加载，避免抢占输入事件处理
