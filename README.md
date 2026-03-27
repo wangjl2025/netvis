@@ -4,7 +4,7 @@
 > 中文 · 步进交互 · 深度教学 · 零依赖 · 开箱即用
 
 [![GitHub Pages](https://img.shields.io/badge/在线体验-GitHub%20Pages-blue?style=flat-square&logo=github)](https://wangjl2025.github.io/netvis/)
-[![协议数量](https://img.shields.io/badge/协议覆盖-18个-green?style=flat-square)](#已支持协议)
+[![协议数量](https://img.shields.io/badge/协议覆盖-20个-green?style=flat-square)](#已支持协议)
 [![技术栈](https://img.shields.io/badge/技术栈-纯HTML%2FCSS%2FJS-orange?style=flat-square)](#技术栈)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)](LICENSE)
 
@@ -18,7 +18,7 @@
 - 🔧 Wireshark 抓到包，但不知道每个字段什么意思
 - 💻 实验环境难搭，光装系统就花半天
 
-**NetVis 的做法**：把 18 个常见协议做成交互式动画，每一步都有详细旁白、字段解析、思考题——打开浏览器就能学，手机也能用。
+**NetVis 的做法**：把 20 个常见协议做成交互式动画，每一步都有详细旁白、字段解析、思考题——打开浏览器就能学，手机也能用。
 
 ---
 
@@ -34,7 +34,7 @@
 **键盘快捷键**：← → 切步骤 · Space 播放/暂停 · `?` 查看全部快捷键
 
 ### 2. 模拟抓包对照（Wireshark 风格）
-18 个协议均提供完整的模拟报文，与动画步骤联动高亮：
+20 个协议均提供完整的模拟报文，与动画步骤联动高亮：
 - 报文列表（编号 · 时间 · 源/目 · 协议 · 描述）
 - 点击任意报文展开字段详情，字段含义逐一解释
 - 切换动画步骤时，对应报文自动高亮
@@ -59,7 +59,7 @@
 
 ---
 
-## 📡 已支持协议（18 个）
+## 📡 已支持协议（20 个）
 
 ### 应用层
 | 协议 | 步数 | 亮点 |
@@ -72,6 +72,8 @@
 | SMTP 邮件发送 | 6 | STARTTLS + AUTH + 信封 |
 | SSH 安全登录 | 6 | 算法协商 + ECDH + 加密信道 |
 | FTP 文件传输 | 6 | 主动 / 被动双模式对比 |
+| HTTP/2 | 6 | 多路复用 + HPACK 压缩 + Server Push |
+| QUIC / HTTP3 | 7 | 1-RTT 握手 + 0-RTT + 连接迁移 |
 
 ### 传输层
 | 协议 | 步数 | 亮点 |
@@ -127,7 +129,7 @@ node server.js
 netvis/
 ├── index.html          # 主框架（~210KB）
 ├── styles.css          # 全局样式（48KB 压缩版 styles.min.css）
-├── data/               # 协议数据文件（懒加载，18个）
+├── data/               # 协议数据文件（懒加载，20个）
 │   ├── tcp3.js         # TCP 三次握手
 │   ├── tcp4.js         # TCP 四次挥手
 │   ├── dns.js          # DNS（递归模式）
@@ -147,10 +149,12 @@ netvis/
 │   ├── iproute.js      # IP 路由转发
 │   ├── ospf.js         # OSPF 路由协议
 │   ├── vlan.js         # VLAN 虚拟局域网
-│   └── tcpcong.js      # TCP 拥塞控制
+│   ├── tcpcong.js      # TCP 拥塞控制
+│   ├── http2.js        # HTTP/2 多路复用
+│   └── quic.js         # QUIC / HTTP3
 ├── modules/            # 功能模块（懒加载）
 │   ├── badge.js        # 徽章/进度系统
-│   ├── capture.js      # 模拟抓包对照（18协议）
+│   ├── capture.js      # 模拟抓包对照（20协议）
 │   ├── drill.js        # 错误演练模式
 │   ├── flashcard.js    # 速记卡
 │   └── share.js        # 分享海报

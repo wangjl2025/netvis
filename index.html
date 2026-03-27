@@ -6,8 +6,8 @@
 <title>NetViz — 网络协议可视化学习平台 | TCP/IP/DNS/HTTP/TLS 动画教程</title>
 
 <!-- ══ SEO ══════════════════════════════════════════════════════════ -->
-<meta name="description" content="NetViz - 免费的中文网络协议可视化学习平台。20个协议步进动画（TCP三次握手/挥手、DNS解析、HTTP/HTTPS、TLS 1.3、HTTP/2、QUIC/HTTP3、UDP、ARP、DHCP、VLAN、OSPF、FTP、SSH、SMTP等），覆盖 OSI 五层，中文深度教学，附字段解析、知识点详解与错误演练，适合计算机/网工专业学生和初中级网络工程师。">
-<meta name="keywords" content="网络协议可视化,TCP三次握手,DNS解析,HTTP HTTPS对比,TLS握手,UDP,ARP,DHCP,VLAN,OSPF,FTP,QUIC,HTTP3,网络协议动画,计算机网络学习,OSI模型,TCP/IP,网络工程,网络安全">
+<meta name="description" content="NetViz - 免费的中文网络协议可视化学习平台。21个协议步进动画（TCP三次握手/挥手、DNS解析、HTTP/HTTPS、TLS 1.3、HTTP/2、QUIC/HTTP3、UDP、ARP、DHCP、VLAN、OSPF、BGP、FTP、SSH、SMTP等），覆盖 OSI 五层，中文深度教学，附字段解析、知识点详解与错误演练，适合计算机/网工专业学生和初中级网络工程师。">
+<meta name="keywords" content="网络协议可视化,TCP三次握手,DNS解析,HTTP HTTPS对比,TLS握手,UDP,ARP,DHCP,VLAN,OSPF,BGP,FTP,QUIC,HTTP3,网络协议动画,计算机网络学习,OSI模型,TCP/IP,网络工程,网络安全">
 <meta name="author" content="NetViz">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://wangjl2025.github.io/netvis/">
@@ -20,7 +20,7 @@
 <!-- ══ Open Graph（微信/Slack/Twitter 分享卡片）══════════════════════ -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NetViz — 网络协议可视化学习平台">
-<meta property="og:description" content="20个协议步进动画，TCP/DNS/HTTP/TLS/HTTP2/QUIC/VLAN/OSPF/FTP全覆盖，中文深度教学，附知识点详解和错误演练模式。">
+<meta property="og:description" content="21个协议步进动画，TCP/DNS/HTTP/TLS/HTTP2/QUIC/BGP/VLAN/OSPF/FTP全覆盖，中文深度教学，附知识点详解和错误演练模式。">
 <meta property="og:url" content="https://wangjl2025.github.io/netvis/">
 <meta property="og:site_name" content="NetViz">
 <meta property="og:locale" content="zh_CN">
@@ -32,7 +32,7 @@
 <!-- ══ Twitter Card ══════════════════════════════════════════════════ -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="NetViz — 网络协议可视化学习平台">
-<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/HTTP2/QUIC-HTTP3/ARP/VLAN/OSPF/FTP等20个协议步进动画，中文深度教学">
+<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/HTTP2/QUIC-HTTP3/BGP/ARP/VLAN/OSPF/FTP等21个协议步进动画，中文深度教学">
 <meta name="twitter:image" content="https://wangjl2025.github.io/netvis/og-image.png">
 
 <!-- ══ JSON-LD 结构化数据 ════════════════════════════════════════════ -->
@@ -41,7 +41,7 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "NetViz 网络协议可视化学习平台",
-  "description": "中文·步进交互·深度教学的网络协议可视化平台。20个协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、HTTP/2、QUIC/HTTP3、UDP、ARP、DHCP、ICMP、NAT、IP路由、VLAN、OSPF、FTP、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
+  "description": "中文·步进交互·深度教学的网络协议可视化平台。21个协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、HTTP/2、QUIC/HTTP3、UDP、ARP、DHCP、ICMP、NAT、IP路由、VLAN、OSPF、BGP、FTP、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
   "url": "https://wangjl2025.github.io/netvis/",
   "applicationCategory": "EducationalApplication",
   "operatingSystem": "Web",
@@ -174,7 +174,7 @@ window.addEventListener('unhandledrejection', function(e) {
   <div class="stats-bar" role="region" aria-label="平台数据">
     <div class="stats-inner">
       <div class="stat-item">
-        <div class="stat-num">19+</div>
+        <div class="stat-num">21+</div>
         <div class="stat-label">协议动画（持续更新）</div>
       </div>
       <div class="stat-item">
@@ -704,16 +704,16 @@ window.addEventListener('unhandledrejection', function(e) {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card coming-soon" style="--card-color:var(--blue-400)" title="即将上线">
+      <div class="protocol-card" style="--card-color:var(--blue-400)" onclick="openProtocol('bgp')" data-proto="bgp">
         <div class="card-header">
           <div class="card-icon" style="background:var(--blue-subtle);border:1px solid rgba(79,142,247,0.22)">🛤️</div>
-          <div class="card-badges"><span class="badge badge-hard">深入</span></div>
+          <div class="card-badges"><span class="badge badge-hard">深入</span><span class="card-badge-slot" data-proto="bgp"></span></div>
         </div>
         <div class="card-title">BGP 边界网关协议</div>
-        <div class="card-desc">互联网骨干路由，AS 间路由通告与路径选择策略</div>
+        <div class="card-desc">互联网骨干路由，AS 间路由通告与路径属性决策</div>
         <div class="card-meta">
-          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>12 步</div>
-          <div class="card-cta" style="color:var(--text-4)">即将上线 🚧</div>
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>6 步</div>
+          <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
     </div>
@@ -1648,8 +1648,11 @@ const RELATED_MAP = {
               { id:'icmp',     icon:'🏓', name:'ICMP / Ping',       hint:'Ping 依赖路由转发' },
               { id:'ospf',     icon:'🔢', name:'OSPF',              hint:'路由表如何生成' }],
   ospf:      [{ id:'iproute',  icon:'🗺',  name:'IP 路由转发',       hint:'OSPF 生成的路由表' },
-              { id:'icmp',     icon:'🏓', name:'ICMP',              hint:'验证路由连通性' },
-              { id:'vlan',     icon:'🏷️', name:'VLAN',              hint:'OSPF 跨 VLAN 路由' }],
+              { id:'bgp',      icon:'🛤️', name:'BGP 边界网关',      hint:'AS 间路由，与 OSPF 互补' },
+              { id:'icmp',     icon:'🏓', name:'ICMP',              hint:'验证路由连通性' }],
+  bgp:       [{ id:'ospf',     icon:'🔢', name:'OSPF 链路状态',     hint:'AS 内部路由协议，与 BGP 互补' },
+              { id:'iproute',  icon:'🗺',  name:'IP 路由转发',       hint:'BGP 路由的转发实现' },
+              { id:'tcp3',     icon:'🤝', name:'TCP 三次握手',      hint:'BGP 运行在 TCP 179 端口' }],
   vlan:      [{ id:'arp',      icon:'📋', name:'ARP',               hint:'VLAN 内的 ARP 广播' },
               { id:'ospf',     icon:'🔢', name:'OSPF',              hint:'VLAN 间路由' },
               { id:'nat',      icon:'🌍', name:'NAT',               hint:'VLAN 出口 NAT' }],
@@ -1932,15 +1935,13 @@ const CARD_META = {
   // 网络层
   ip:        { layer:'network',   level:'medium', title:'ip 路由转发 路由器' },
   iproute:   { layer:'network',   level:'medium', title:'ip 路由转发 最长前缀匹配 ttl 路由表 下一跳' },
-  ospf:      { layer:'network',   level:'hard',   title:'ospf 链路状态 lsa spf 最短路 邻居' },
-  // 数据链路层
-  vlan:      { layer:'datalink',  level:'medium', title:'vlan 802.1q trunk access 标签 三层路由' },
-  ospf:      { layer:'network',   level:'hard',   title:'ospf 链路状态 路由 spf' },
   icmp:      { layer:'network',   level:'easy',   title:'icmp ping traceroute 诊断' },
   nat:       { layer:'network',   level:'medium', title:'nat 地址转换 snat dnat 公网' },
-  bgp:       { layer:'network',   level:'hard',   title:'bgp 边界网关 as 路由' },
+  ospf:      { layer:'network',   level:'hard',   title:'ospf 链路状态 lsa spf 最短路 邻居' },
+  bgp:       { layer:'network',   level:'hard',   title:'bgp 边界网关协议 as 路径属性 ebgp ibgp 互联网路由' },
+  // 数据链路层
   arp:       { layer:'link',      level:'easy',   title:'arp 地址解析 mac' },
-  vlan:      { layer:'link',      level:'medium', title:'vlan 虚拟局域网 802.1q trunk' },
+  vlan:      { layer:'link',      level:'medium', title:'vlan 虚拟局域网 802.1q trunk access 标签' },
 };
 
 // 写入 data 属性（DOMContentLoaded 保证 DOM 就绪）
@@ -2301,6 +2302,11 @@ const PROTO_META = {
     title:  'QUIC / HTTP/3',
     layer:  '应用层',
     nodes:  { leftIcon:'📱', leftName:'客户端', leftSub:'Chrome / Firefox（QUIC）', rightIcon:'🖥', rightName:'Web 服务器', rightSub:'example.com:443（UDP + QUIC）' },
+  },
+  bgp: {
+    title:  'BGP 边界网关协议',
+    layer:  '网络层',
+    nodes:  { leftIcon:'🏢', leftName:'AS 65001（R1）', leftSub:'运营商路由器', rightIcon:'🏢', rightName:'AS 65002（R2）', rightSub:'对端运营商路由器' },
   },
   dns: {
     title:  'DNS 解析全过程',
@@ -3319,7 +3325,7 @@ function _showCompletionBanner(protoId) {
     websocket:'WebSocket', smtp:'SMTP 邮件', ssh:'SSH 连接',
     ftp:'FTP 文件传输', nat:'NAT 地址转换', vlan:'VLAN 帧传输',
     tcpcong:'TCP 拥塞控制', iproute:'IP 路由转发', ospf:'OSPF 路由',
-    http2:'HTTP/2 多路复用', quic:'QUIC / HTTP/3',
+    http2:'HTTP/2 多路复用', quic:'QUIC / HTTP/3', bgp:'BGP 边界网关',
   };
   const name = NAMES[protoId] || protoId;
 
@@ -4080,7 +4086,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ['tcp4', 'http', 'tls', 'dns'].forEach(loadKey);
 
   // 第二优先级：其余协议，等浏览器空闲时分批加载
-  var remaining = ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','nat-dnat','tcpcong','iproute','vlan','ftp','ospf','http2','quic'];
+  var remaining = ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','nat-dnat','tcpcong','iproute','vlan','ftp','ospf','http2','quic','bgp'];
 
   function loadNextIdle(deadline) {
     // timeRemaining() > 5ms 时才加载，避免抢占输入事件处理

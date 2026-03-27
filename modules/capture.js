@@ -358,6 +358,29 @@
       stepMap: { 1:[1], 2:[2], 3:[3,4], 4:[4], 5:[5,6], 6:[6], 7:[7], },
     },
 
+    bgp: {
+      title: 'BGP eBGP 会话建立 — 模拟抓包',
+      frames: [
+        { no:1, time:'0.000000', src:'10.0.0.1',      dst:'10.0.0.2',      proto:'TCP',  info:'SYN  Seq=0  [TCP 握手 第1步]  Src=49152  Dst=179',
+          detail: 'TCP 三次握手（BGP 基础）:\n  IP Src=10.0.0.1 (R1, AS 65001)\n  IP Dst=10.0.0.2 (R2, AS 65002)\n  TCP Src Port=49152 (随机)\n  TCP Dst Port=179 (BGP 专用端口)\n  Flags: SYN\n  Seq=0  Window=65535\n  [注] BGP 使用 TCP 179，利用 TCP 可靠传输，无需自己实现 ACK/重传' },
+        { no:2, time:'0.000500', src:'10.0.0.2',      dst:'10.0.0.1',      proto:'TCP',  info:'SYN, ACK  Seq=0  Ack=1  [TCP 握手 第2步]',
+          detail: 'TCP SYN-ACK:\n  IP Src=10.0.0.2 (R2)\n  IP Dst=10.0.0.1 (R1)\n  TCP Flags: SYN+ACK\n  Seq=0  Ack=1  Window=65535\n  [注] R2 接受连接，TCP 三次握手完成后双方进入 BGP Connect 状态' },
+        { no:3, time:'0.001000', src:'10.0.0.1',      dst:'10.0.0.2',      proto:'BGP',  info:'OPEN  MyAS=65001  HoldTime=90  BGP-ID=1.1.1.1  Version=4',
+          detail: 'BGP OPEN 报文 (R1 → R2):\n  BGP 报文类型: 1 (OPEN)\n  BGP 版本: 4\n  My Autonomous System: 65001\n  Hold Time: 90 秒\n  BGP Identifier (Router ID): 1.1.1.1\n  Optional Parameters Length: 22\n  Optional Parameters:\n    Param Type=2 (Capabilities)\n      Capability: MP-BGP (RFC 4760)\n        AFI=1 (IPv4)  SAFI=1 (Unicast)\n      Capability: Route Refresh (RFC 2918)\n      Capability: 4-Octet AS Numbers (RFC 6793)\n        AS Number: 65001\n  [状态变化] BGP 状态: Connect → OpenSent' },
+        { no:4, time:'0.002000', src:'10.0.0.2',      dst:'10.0.0.1',      proto:'BGP',  info:'OPEN  MyAS=65002  HoldTime=90  BGP-ID=2.2.2.2  + KEEPALIVE',
+          detail: 'BGP OPEN 报文 (R2 → R1) + KEEPALIVE:\n  --- OPEN ---\n  BGP 版本: 4\n  My AS: 65002\n  Hold Time: 90 秒\n  BGP Identifier: 2.2.2.2\n  Capabilities: MP-BGP / Route Refresh / 4-Octet AS\n  --- KEEPALIVE (19 字节) ---\n  BGP 报文类型: 4 (KEEPALIVE)\n  仅固定头部，无载荷\n  含义: 接受 OPEN，确认参数协商成功\n  [状态变化] R1: OpenSent → OpenConfirm\n  [注] Hold Time 协商取双方较小值，两端都是 90s，最终 Hold Time=90s，Keepalive 间隔=30s' },
+        { no:5, time:'0.002500', src:'10.0.0.1',      dst:'10.0.0.2',      proto:'BGP',  info:'KEEPALIVE  [确认 OPEN 接受，进入 Established]',
+          detail: 'BGP KEEPALIVE 报文 (R1 → R2):\n  BGP 报文类型: 4 (KEEPALIVE)\n  长度: 19 字节 (仅固定头部)\n  含义: R1 确认接受 R2 的 OPEN\n  [状态变化]\n    R1: OpenConfirm → Established\n    R2: OpenConfirm → Established\n  BGP 会话正式建立！双方现在可以交换 UPDATE 路由信息' },
+        { no:6, time:'0.010000', src:'10.0.0.1',      dst:'10.0.0.2',      proto:'BGP',  info:'UPDATE  NLRI: 192.0.2.0/24  203.0.113.0/24  AS_PATH: 65001  NEXT_HOP: 10.0.0.1',
+          detail: 'BGP UPDATE 报文 (R1 → R2):\n  BGP 报文类型: 2 (UPDATE)\n  Withdrawn Routes Length: 0 (无撤销路由)\n  Total Path Attribute Length: 48\n  Path Attributes:\n    ORIGIN: IGP (0x40, 0x01)  值=0 (IGP起源)\n    AS_PATH: AS_SEQUENCE [65001]  (R1所在AS)\n    NEXT_HOP: 10.0.0.1  (eBGP下一跳=R1接口IP)\n    LOCAL_PREF: 未携带 (LOCAL_PREF 不传给 eBGP 邻居)\n    MED: 100 (可选)\n  NLRI (新路由前缀):\n    192.0.2.0/24  (AS 65001 的前缀)\n    203.0.113.0/24  (AS 65001 的另一前缀)\n  [注] eBGP 会修改 NEXT_HOP 为本接口 IP；iBGP 保留原始 NEXT_HOP' },
+        { no:7, time:'0.011000', src:'10.0.0.2',      dst:'10.0.0.1',      proto:'BGP',  info:'UPDATE  NLRI: 198.51.100.0/24  AS_PATH: 65002  NEXT_HOP: 10.0.0.2',
+          detail: 'BGP UPDATE 报文 (R2 → R1):\n  BGP 报文类型: 2 (UPDATE)\n  Path Attributes:\n    ORIGIN: IGP\n    AS_PATH: AS_SEQUENCE [65002]\n    NEXT_HOP: 10.0.0.2\n    MED: 0\n  NLRI:\n    198.51.100.0/24  (AS 65002 的前缀)\n  [R1 收到后的路由决策]\n    WEIGHT: 0 (邻居学到，非本地生成)\n    LOCAL_PREF: 100 (默认)\n    AS_PATH 长度: 1 (最短)\n    NEXT_HOP: 10.0.0.2 (直连可达)\n  → 198.51.100.0/24 via 10.0.0.2 写入 RIB' },
+        { no:8, time:'30.000000', src:'10.0.0.1',     dst:'10.0.0.2',      proto:'BGP',  info:'KEEPALIVE  [定期心跳，维持 Hold Time 计时器]',
+          detail: 'BGP KEEPALIVE 心跳包:\n  BGP 报文类型: 4 (KEEPALIVE)\n  长度: 19 字节\n  发送间隔: 30 秒 (Hold Time 90s / 3)\n  作用: 重置对端的 Hold Time 计时器\n  [Hold Time 超时机制]\n    90 秒内未收到任何 BGP 报文 → Hold Time 超时\n    → 清除该邻居所有路由\n    → 回到 Idle 状态\n    → 等待 Connect Retry Timer 后重新连接\n  [生产建议]\n    BFD 联动：300ms 内检测链路故障，触发 BGP 快速收敛\n    Graceful Restart：重启时保留转发表，减少流量中断' },
+      ],
+      stepMap: { 1:[1,2], 2:[3,4], 3:[5], 4:[6], 5:[7], 6:[8] },
+    },
+
   };
 
   /* ── 弹窗 HTML ──────────────────────────────────────────────────────── */

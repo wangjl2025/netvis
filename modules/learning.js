@@ -31,6 +31,7 @@
     { id: 'ospf',     name: 'OSPF 路由协议',   difficulty: 3, prereqs: ['iproute'],      icon: '🕸', color: 'var(--purple-400)' },
     { id: 'tcpcong',  name: 'TCP 拥塞控制',    difficulty: 3, prereqs: ['tcp3','tcp4'],  icon: '📈', color: 'var(--blue-400)' },
     { id: 'quic',     name: 'QUIC / HTTP/3',   difficulty: 3, prereqs: ['http2','udp'],  icon: '⚡', color: 'var(--yellow-400)' },
+    { id: 'bgp',      name: 'BGP 边界网关',    difficulty: 3, prereqs: ['ospf','iproute'], icon: '🛤️', color: 'var(--blue-400)' },
   ];
 
   const DIFFICULTY_LABEL = { 1: '入门', 2: '进阶', 3: '高级' };
