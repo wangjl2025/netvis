@@ -482,7 +482,7 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
 
     <!-- 学习路径 -->
-    <div class="tool-card" id="toolCardLearning" onclick="typeof openLearningPanel === 'function' ? openLearningPanel() : (LearningModule && LearningModule.open ? LearningModule.open() : null)">
+    <div class="tool-card" id="toolCardLearning" onclick="showPage('home');setTimeout(function(){var el=document.getElementById('learning-path-section');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},120)">
       <div class="tool-card-icon" style="background:rgba(34,211,238,0.12);border:1px solid rgba(34,211,238,0.22)">🗺</div>
       <div class="tool-card-body">
         <div class="tool-card-title">学习路径</div>
@@ -2309,6 +2309,15 @@ function togglePlay() {
 
 /* 从协议库卡片跳转到播放器并切换协议 */
 function openProtocol(pid) {
+  // 对比视图：直接跳播放器并切换，不走 protocolDB 加载
+  if (pid.startsWith('compare-')) {
+    showPage('player');
+    setTimeout(() => {
+      const tab = document.querySelector(`.proto-tab[onclick*="'${pid}'"]`);
+      try { switchProtocol(pid, tab); } catch (e) {}
+    }, 50);
+    return;
+  }
   // tcp3 的数据由 rebuildStepData() 直接生成，不需要加载文件
   // 其他协议如果数据还没加载，动态加载后再跳转
   if (!protocolDB[pid] && pid !== 'tcp3') {
