@@ -3513,10 +3513,10 @@ function renderStep() {
     renderCongestionChart(currentStep);
     return;
   }
-  /* IP 路由转发用专属渲染函数 */
+  /* IP 路由转发：先渲染专属画布，不 return，继续执行通用侧边面板逻辑 */
   if (activeProtocol === 'iproute') {
     renderIpRouteStep(currentStep);
-    return;
+    /* fall through → 让通用逻辑继续处理进度条/步骤卡片/旁白/知识点/思考题 */
   }
 
   /* ── 对比视图：独立渲染路径 ── */
@@ -3854,61 +3854,11 @@ function closeAbnormal() {
       var macEl = document.getElementById('iproute-mac-text');
       if (macEl) macEl.textContent = cfg.macText;
 
-      // Banner
+      // Banner（专属 iproute-banner）
       var banner = document.getElementById('iproute-banner');
       if (banner && db.stepData[step-1]) banner.textContent = db.stepData[step-1].banner;
-
-      // 侧边面板：字段、旁白等（复用通用逻辑）
-      _renderSidePanel('iproute', step);
+      // 注意：侧边面板（步骤高亮/字段/旁白/知识点）全部由外层 renderStep 的通用逻辑处理
     };
-
-    function _renderSidePanel(pid, step) {
-      var db = protocolDB[pid];
-      if (!db || !db.stepData) return;
-      var sd = db.stepData[step - 1];
-      if (!sd) return;
-
-      // 步骤列表高亮
-      var rows = document.querySelectorAll('#stepsPanel .step-row');
-      rows.forEach(function(r, i){
-        r.classList.remove('active','upcoming');
-        if (i === step-1) r.classList.add('active');
-        else if (i > step-1) r.classList.add('upcoming');
-      });
-
-      // 字段面板
-      var fieldTitle = document.getElementById('fieldTitle');
-      if (fieldTitle && sd.fieldTitle) fieldTitle.textContent = sd.fieldTitle;
-
-      var tbody = document.getElementById('fieldBody');
-      if (tbody && sd.fields) {
-        tbody.innerHTML = '';
-        sd.fields.forEach(function(f){
-          var tr = document.createElement('tr');
-          if (f.highlight) tr.classList.add('field-highlight');
-          tr.innerHTML = '<td>' + f.name + '</td><td><code>' + f.value + '</code>' + (f.derive ? '<div class="field-derive">→ ' + f.derive + '</div>' : '') + '</td><td class="field-desc">' + (f.desc||'') + '</td>';
-          tbody.appendChild(tr);
-        });
-      }
-
-      // 旁白
-      var narr = document.getElementById('stepNarration');
-      if (narr) {
-        if (sd.narration) {
-          narr.style.display = '';
-          var nt = narr.querySelector('.narration-text');
-          if (nt) nt.textContent = sd.narration;
-        } else {
-          narr.style.display = 'none';
-        }
-      }
-
-      // 知识点
-      if (step === 1) {
-        rebuildKnowledgePanel(pid);
-        rebuildQuizPanel(pid);
-      }
-    }
   })();
 
   function toSvgX(xVal) {
