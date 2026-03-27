@@ -13,21 +13,26 @@
 - 邮箱：wangaihau@qq.com
 
 ## 文件结构
-- `index.html`（主框架，~224KB，警戒线280KB）+ `data/`（12个协议JS，懒加载）
-- `modules/badge.js`：进度/徽章系统，页面加载后500ms异步挂载
+- `index.html`（主框架，~210KB，警戒线280KB，余量70KB）+ `styles.css`（63KB）+ `data/`（18个协议JS，懒加载）
+- `modules/badge.js`：进度/徽章系统，页面加载后500ms异步挂载，**TOTAL=18**
 - **约定**：新功能全部拆成 `modules/*.js`，不内联主文件；不引入 React/Vue/Chart.js/Webpack
+- **CSS 已拆出**：2026-03-27 将 63KB 内联 CSS 拆出为 `styles.css`，index.html 从 269KB 降至 210KB
 
-## 已完成协议（15个）
-- 应用层：DNS、HTTP、TLS、DHCP、WebSocket、SMTP、SSH
+## 已完成协议（19个）
+- 应用层：DNS、HTTP、TLS、DHCP、WebSocket、SMTP、SSH、FTP、**HTTP/2**（Week7新增）
 - 传输层：TCP三次握手、TCP四次挥手、UDP、TCP拥塞控制
-- 网络层：ICMP/Ping、NAT地址转换、**IP路由转发**（Week4新增）
-- 数据链路层：ARP
+- 网络层：ICMP/Ping、NAT地址转换、IP路由转发、OSPF
+- 数据链路层：ARP、VLAN
 
-## 已完成功能（截至 2026-03-27）
+## 已完成功能（截至 2026-03-27 凌晨）
 - ✅ 步进式飞行动画（.packet-fly，切步骤触发）
 - ✅ 键盘快捷键（← → Space 1~9 Esc ? 全套）
 - ✅ DNS递归/迭代查询双模式切换
 - ✅ TCP vs UDP 对比视图（compareCanvas，6维度差异面板）
+- ✅ **对比视图扩展**：HTTP vs HTTPS（4步）+ DNS递归 vs 迭代（4步）
+  - COMPARE_REGISTRY 注册表架构，支持任意扩展
+  - switchProtocol 改为通用 compare-* 前缀处理
+  - renderStep 独立对比渲染路径（隐藏旁白/知识点/思考题）
 - ✅ 协议库页四层分组展示（应用/传输/网络/数据链路层）
 - ✅ 徽章/进度系统（localStorage，走完最后一步解锁，TOTAL=15）
 - ✅ 移动端适配（960px堆叠，640px压缩，横向滚动）
@@ -38,6 +43,17 @@
 - ✅ **TCP拥塞控制**（tcpcong）：专属 SVG cwnd 折线图画布，6步步进
 - ✅ **错误演练模式**（modules/drill.js）：从所有协议 quiz 自动收题，随机出题，选择题+问答题，得分统计，百分制评级；协议库页「🎯 错误演练」按钮；player顶栏「🎯 演练」按钮；懒加载1800ms
 - ✅ **IP路由转发**（iproute）：6步步进（最长前缀匹配/TTL/逐跳封帧），场景192.168.1.10→10.0.3.5经R1→R2两跳
+- ✅ **速记卡**（modules/flashcard.js）：从 protocolDB.knowledge 抽卡，翻转/导航/分组筛选/随机打乱；懒加载2200ms；入口：协议库页+player顶栏
+- ✅ **SEO优化**：title扩展关键词 / meta description+keywords / canonical / OG / Twitter Card / JSON-LD(WebApplication) / sitemap.xml / robots.txt
+- ✅ **性能优化**：preloadAll 改用 requestIdleCallback（空闲帧分批加载）；dns-prefetch cdn.jsdelivr.net；nat-dnat 纳入预加载列表
+- ✅ **抓包对照模式**（modules/capture.js）：**19协议**模拟Wireshark报文（tcp3/tcp4/dns/http/tls/arp/icmp/vlan/ftp/ospf/dhcp/smtp/ssh/nat/websocket/udp/iproute/tcpcong/http2），stepMap步骤联动高亮，字段详情展开；懒加载2800ms；入口协议库页+player顶栏；2026-03-27 commit e725b23 从7扩展至18协议全覆盖，commit ae95f2c 追加 HTTP/2 至19
+- ✅ **HTTP/2 协议**（data/http2.js，2026-03-27，commit ae95f2c）：6步步进（ALPN/SETTINGS/多路复用/HPACK/Server Push/流控），4条知识点，4道思考题，抓包8帧，badge计入，TOTAL=19
+- ✅ **README 重写**（2026-03-27，commit ae95f2c）：徽章+19协议完整表格+快速开始+项目结构+技术栈，适合 GitHub Star 转化
+- ✅ **CSS 拆分**（2026-03-27）：63KB 内联 CSS → `styles.css`，index.html 269KB→210KB，警戒线余量 70KB
+- ✅ **FTP 主动 vs 被动对比视图**（compare-ftp-modes）：4步对比+6维差异表，COMPARE_REGISTRY 第4个对比视图
+- ✅ **代码审查修复**（2026-03-27，commit 4e13e2b）：SEO元数据15+→18+、22+→18+、JSON-LD协议列表同步、VLAN quiz选项优化、FTP step5+断点续传字段、FTP PASV示例自洽、OSPF DROther说明、懒加载统一2000ms（共9项，21个验证点全通过）
+- ✅ **代码审计改进**（2026-03-27，commit b64761c）：window.logger+DEBUG_MODE（7处console.error→logger.error）、openProtocol/renderStep加try-catch、全局error/unhandledrejection监听、CSP meta头（放行cdn.jsdelivr.net+cdnjs.cloudflare.com）、X-UA-Compatible、preload styles.min.css、CSS压缩（63.2KB→48.7KB，节省23%）；20验证点全通过
+- ✅ **UI内容改进**（2026-03-27，commit 7058722）：导航栏登录/免费开始→我的进度/GitHub外链；SSH card-badge-slot位置修正（card-title→card-badges，与18协议统一）；share.js懒加载1200ms→2000ms统一；ARP/DNS/TCP握手/UDP卡片描述扩充；12/12验证点全通过
 
 ## TCP拥塞控制架构要点
 - 专属画布 `#congestionDiagram`，不用通用 genericDiagram
@@ -62,9 +78,9 @@ NAT、VLAN、FTP、IP路由、TCP拥塞控制、HTTP/2、QUIC/HTTP3、OSPF、BGP
 - **Week1**（本周）：首页协议层级地图 + 徽章进度系统 ✅ 完成
 - **Week2**：分享海报 + NAT协议 + NAT双模式（SNAT+DNAT）✅ 完成
 - **Week3**：错误演练模式 + TCP拥塞控制 ✅ 完成
-- **Week4**：对比视图扩展 + IP路由 ✅ IP路由完成；对比视图扩展待做
-- **Week5**：速记卡 + SEO优化
-- **Week6**：性能审计 + 抓包对照模式初版
+- **Week4**：对比视图扩展 + IP路由 ✅ 全部完成（3组对比：TCP/UDP + HTTP/HTTPS + DNS递归/迭代；COMPARE_REGISTRY 通用架构）
+- **Week5**：速记卡 + SEO优化 ✅ 全部完成（flashcard.js + sitemap.xml + robots.txt + OG/JSON-LD）
+- **Week6**：性能审计 + 抓包对照模式初版 ✅ 全部完成（requestIdleCallback优化 + capture.js 7协议报文联动）
 
 ## 关键架构规则
 - `nth-of-type` 是按标签类型（div）计数，不是按类名——筛选/选择卡片应用 `data-proto` 属性直接映射
