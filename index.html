@@ -2292,6 +2292,16 @@ const PROTO_META = {
     title:  'TCP 拥塞控制',
     layer:  '传输层',
   },
+  http2: {
+    title:  'HTTP/2 多路复用',
+    layer:  '应用层',
+    nodes:  { leftIcon:'🌐', leftName:'浏览器', leftSub:'HTTP/2 客户端', rightIcon:'🖥', rightName:'Web 服务器', rightSub:'example.com:443（TLS + h2）' },
+  },
+  quic: {
+    title:  'QUIC / HTTP/3',
+    layer:  '应用层',
+    nodes:  { leftIcon:'📱', leftName:'客户端', leftSub:'Chrome / Firefox（QUIC）', rightIcon:'🖥', rightName:'Web 服务器', rightSub:'example.com:443（UDP + QUIC）' },
+  },
   dns: {
     title:  'DNS 解析全过程',
     layer:  '应用层',
