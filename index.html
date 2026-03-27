@@ -6,7 +6,7 @@
 <title>NetViz — 网络协议可视化学习平台 | TCP/IP/DNS/HTTP/TLS 动画教程</title>
 
 <!-- ══ SEO ══════════════════════════════════════════════════════════ -->
-<meta name="description" content="NetViz：中文网络协议可视化学习平台。18个协议步进动画（TCP握手、DNS解析、HTTP/HTTPS、TLS加密、UDP、ARP、DHCP、VLAN、OSPF、FTP等），覆盖 OSI 五层，附知识点详解和错误演练，适合计算机/网工专业学生和自学开发者。">
+<meta name="description" content="NetViz：中文网络协议可视化学习平台。19个协议步进动画（TCP握手、DNS解析、HTTP/HTTPS、TLS加密、HTTP/2、UDP、ARP、DHCP、VLAN、OSPF、FTP等），覆盖 OSI 五层，附知识点详解和错误演练，适合计算机/网工专业学生和自学开发者。">
 <meta name="keywords" content="网络协议可视化,TCP三次握手,DNS解析,HTTP HTTPS对比,TLS握手,UDP,ARP,DHCP,VLAN,OSPF,FTP,网络协议动画,计算机网络学习,OSI模型,TCP/IP,网络工程,网络安全">
 <meta name="author" content="NetViz">
 <meta name="robots" content="index, follow">
@@ -17,7 +17,7 @@
 <!-- ══ Open Graph（微信/Slack/Twitter 分享卡片）══════════════════════ -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NetViz — 网络协议可视化学习平台">
-<meta property="og:description" content="18个协议步进动画，TCP/DNS/HTTP/TLS/VLAN/OSPF/FTP全覆盖，中文深度教学，附知识点详解和错误演练模式。">
+<meta property="og:description" content="19个协议步进动画，TCP/DNS/HTTP/TLS/HTTP2/VLAN/OSPF/FTP全覆盖，中文深度教学，附知识点详解和错误演练模式。">
 <meta property="og:url" content="https://wangjl2025.github.io/netvis/">
 <meta property="og:site_name" content="NetViz">
 <meta property="og:locale" content="zh_CN">
@@ -29,7 +29,7 @@
 <!-- ══ Twitter Card ══════════════════════════════════════════════════ -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="NetViz — 网络协议可视化学习平台">
-<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/ARP/VLAN/OSPF/FTP等18个协议步进动画，中文深度教学">
+<meta name="twitter:description" content="TCP握手/DNS解析/HTTP vs HTTPS/TLS/HTTP2/ARP/VLAN/OSPF/FTP等19个协议步进动画，中文深度教学">
 <meta name="twitter:image" content="https://wangjl2025.github.io/netvis/og-image.png">
 
 <!-- ══ JSON-LD 结构化数据 ════════════════════════════════════════════ -->
@@ -38,7 +38,7 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "NetViz 网络协议可视化学习平台",
-  "description": "中文·步进交互·深度教学的网络协议可视化平台。18个协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、UDP、ARP、DHCP、ICMP、NAT、IP路由、VLAN、OSPF、FTP、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
+  "description": "中文·步进交互·深度教学的网络协议可视化平台。19个协议动画（TCP握手/挥手/拥塞控制、DNS递归/迭代、HTTP、HTTPS/TLS、HTTP/2、UDP、ARP、DHCP、ICMP、NAT、IP路由、VLAN、OSPF、FTP、SSH、SMTP、WebSocket），覆盖 OSI 五层，附知识点详解、思考题、错误演练和速记卡。",
   "url": "https://wangjl2025.github.io/netvis/",
   "applicationCategory": "EducationalApplication",
   "operatingSystem": "Web",
@@ -410,7 +410,7 @@ window.addEventListener('unhandledrejection', function(e) {
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
         <h1 class="list-page-title">协议库</h1>
-        <p class="list-page-desc">18+ 协议动画，覆盖 OSI 五层，从入门到深入</p>
+        <p class="list-page-desc">19+ 协议动画，覆盖 OSI 五层，从入门到深入</p>
       </div>
       <button class="btn btn-primary drill-entry-btn" onclick="DrillModule && DrillModule.open()" style="font-size:13.5px;padding:9px 18px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap">
         <span style="font-size:16px">🎯</span> 错误演练
@@ -553,9 +553,21 @@ window.addEventListener('unhandledrejection', function(e) {
           <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
         </div>
       </div>
-      <div class="protocol-card coming-soon" style="--card-color:var(--blue-400)" title="即将上线">
+      <div class="protocol-card" style="--card-color:var(--blue-400)" onclick="openProtocol('http2')" data-proto="http2">
         <div class="card-header">
           <div class="card-icon" style="background:var(--blue-subtle);border:1px solid rgba(79,142,247,0.22)">🚀</div>
+          <div class="card-badges"><span class="badge badge-medium">进阶</span><span class="card-badge-slot" data-proto="http2"></span></div>
+        </div>
+        <div class="card-title">HTTP/2</div>
+        <div class="card-desc">多路复用、HPACK 头部压缩与服务端推送，告别队头阻塞</div>
+        <div class="card-meta">
+          <div class="card-steps"><svg class="icon" viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="2" rx="1"/><rect x="2" y="7.5" width="9" height="2" rx="1"/><rect x="2" y="11" width="11" height="2" rx="1"/></svg>6 步</div>
+          <div class="card-cta">学习 <svg class="icon" viewBox="0 0 16 16"><polygon points="4,2 13,8 4,14"/></svg></div>
+        </div>
+      </div>
+      <div class="protocol-card coming-soon" style="--card-color:var(--blue-400)" title="即将上线">
+        <div class="card-header">
+          <div class="card-icon" style="background:var(--blue-subtle);border:1px solid rgba(79,142,247,0.22)">⚡</div>
           <div class="card-badges"><span class="badge badge-hard">深入</span></div>
         </div>
         <div class="card-title">QUIC / HTTP/3</div>
@@ -3866,7 +3878,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ['tcp4', 'http', 'tls', 'dns'].forEach(loadKey);
 
   // 第二优先级：其余协议，等浏览器空闲时分批加载
-  var remaining = ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','nat-dnat','tcpcong','iproute','vlan','ftp','ospf'];
+  var remaining = ['udp','smtp','websocket','ssh','dhcp','icmp','arp','nat','nat-dnat','tcpcong','iproute','vlan','ftp','ospf','http2'];
 
   function loadNextIdle(deadline) {
     // timeRemaining() > 5ms 时才加载，避免抢占输入事件处理

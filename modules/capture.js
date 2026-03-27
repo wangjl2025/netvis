@@ -312,6 +312,29 @@
       stepMap: { 1:[1], 2:[2], 3:[3], 4:[4], 5:[5], 6:[6] },
     },
 
+    http2: {
+      title: 'HTTP/2 — 模拟抓包',
+      frames: [
+        { no:1, time:'0.000000', src:'192.168.1.10',    dst:'93.184.216.34',  proto:'TLSv1.3', info:'ClientHello  ALPN: h2, http/1.1  协商 HTTP/2',
+          detail: 'TLS ClientHello ALPN 扩展:\n  Extension: application_layer_protocol_negotiation (0x0010)\n  ALPN Protocol List:\n    Length: 12\n    Protocol: h2 (len=2)\n    Protocol: http/1.1 (len=8)\n\n  同时携带的其他 TLS 扩展:\n    supported_versions: TLS 1.3, TLS 1.2\n    key_share: X25519 公钥\n    SNI: 93.184.216.34\n\n  ALPN 在 TLS 握手内完成协商，不增加额外 RTT' },
+        { no:2, time:'0.031000', src:'93.184.216.34',   dst:'192.168.1.10',  proto:'TLSv1.3', info:'ServerHello  ALPN: h2  协议升级确认',
+          detail: 'TLS ServerHello ALPN 响应:\n  ALPN Selected Protocol: h2\n  服务端确认使用 HTTP/2\n\nTLS 握手完成后双方状态:\n  Client: 发送魔法字符串 PRI * HTTP/2.0...\n  Server: 等待魔法字符串验证\n\n魔法字符串 (24字节):\n  "PRI * HTTP/2.0\\r\\n\\r\\nSM\\r\\n\\r\\n"\n  目的: 防止不支持 HTTP/2 的代理误处理数据' },
+        { no:3, time:'0.032000', src:'192.168.1.10',    dst:'93.184.216.34',  proto:'HTTP2', info:'Magic + SETTINGS[0]  HEADER_TABLE_SIZE=4096 MAX_CONCURRENT_STREAMS=100',
+          detail: 'HTTP/2 连接前置帧:\n  [Magic] PRI * HTTP/2.0\\r\\n\\r\\nSM\\r\\n\\r\\n  (24字节)\n  [SETTINGS Frame]\n    Frame Type: 0x4 (SETTINGS)\n    Flags: 0x0\n    Stream ID: 0 (连接级)\n    Payload:\n      HEADER_TABLE_SIZE = 4096\n      ENABLE_PUSH = 1\n      MAX_CONCURRENT_STREAMS = 100\n      INITIAL_WINDOW_SIZE = 65535\n      MAX_FRAME_SIZE = 16384' },
+        { no:4, time:'0.033000', src:'93.184.216.34',   dst:'192.168.1.10',  proto:'HTTP2', info:'SETTINGS[0] + SETTINGS ACK  参数协商完成',
+          detail: 'Server SETTINGS + 双向 ACK:\n  [Server SETTINGS]\n    MAX_CONCURRENT_STREAMS = 128\n    INITIAL_WINDOW_SIZE = 131072\n  [Client SETTINGS_ACK]  Flags=0x1\n  [Server SETTINGS_ACK]  Flags=0x1\n\n连接建立完成，可以开始发送请求' },
+        { no:5, time:'0.034000', src:'192.168.1.10',    dst:'93.184.216.34',  proto:'HTTP2', info:'HEADERS[Stream1]  GET /  END_HEADERS  (HPACK压缩)',
+          detail: 'HTTP/2 HEADERS 帧 (Stream 1, GET /):\n  Frame Type: 0x1 (HEADERS)\n  Flags: 0x5 (END_STREAM | END_HEADERS)\n  Stream ID: 1\n  HPACK 解压后:\n    :method: GET         -> 静态表 idx:2\n    :path: /             -> 静态表 idx:4\n    :scheme: https       -> 静态表 idx:7\n    :authority: 93.184.216.34\n    user-agent: Mozilla/5.0 (Huffman编码)\n    accept: text/html    -> 动态表\n  原始头部约 420字节，HPACK后约 52字节 (压缩87%)' },
+        { no:6, time:'0.034100', src:'192.168.1.10',    dst:'93.184.216.34',  proto:'HTTP2', info:'HEADERS[Stream3]  GET /style.css  HEADERS[Stream5]  GET /logo.png  多路复用',
+          detail: '多路复用: 3个请求在同一TCP连接并发发送\n  Stream 1: GET /       -> 正在等待响应\n  Stream 3: GET /style.css  (新流,奇数ID)\n    Frame Type: 0x1 (HEADERS)\n    Stream ID: 3\n    :path: /style.css\n  Stream 5: GET /logo.png\n    Frame Type: 0x1 (HEADERS)\n    Stream ID: 5\n    :path: /logo.png\n\nHTTP/1.1 对比: 需要 3 个 TCP 连接，或依次等待\nHTTP/2: 单连接并发，帧交错传输' },
+        { no:7, time:'0.065000', src:'93.184.216.34',   dst:'192.168.1.10',  proto:'HTTP2', info:'HEADERS[Stream1]  200 OK  DATA[Stream1]  PUSH_PROMISE[Stream2]  /style.css',
+          detail: '服务端响应 + Server Push:\n  [HEADERS Stream 1]  :status: 200\n    content-type: text/html; charset=utf-8\n    content-length: 8192\n  [PUSH_PROMISE Stream 2]  (服务端推送 CSS)\n    Promised Stream ID: 2 (偶数，服务端发起)\n    :method: GET\n    :path: /style.css\n    :scheme: https\n  [DATA Stream 1]  HTML 内容\n    Frame Type: 0x0 (DATA)\n    Flags: 0x0 (还有更多帧)\n    Payload: <html>...' },
+        { no:8, time:'0.066000', src:'93.184.216.34',   dst:'192.168.1.10',  proto:'HTTP2', info:'DATA[Stream2]  /style.css内容  WINDOW_UPDATE  流量控制',
+          detail: 'Server Push 推送数据 + 流量控制:\n  [DATA Stream 2]  CSS 内容\n    Stream ID: 2 (服务端推送的流)\n    Payload: body { margin: 0; }...\n    Flags: 0x1 (END_STREAM)\n  [WINDOW_UPDATE]\n    Frame Type: 0x8\n    Stream ID: 0 (连接级)\n    Window Size Increment: 65535\n    接收方告知发送方可继续发送的字节数\n\n如果客户端已有 /style.css 缓存:\n  发送 RST_STREAM (0x3) 取消 Stream 2' },
+      ],
+      stepMap: { 1:[1], 2:[2], 3:[3], 4:[4], 5:[5,6], 6:[7,8] },
+    },
+
   };
 
   /* ── 弹窗 HTML ──────────────────────────────────────────────────────── */
@@ -418,7 +441,7 @@
     DHCP: '#4ade80', SMTP: '#f97316', SSHv2: '#818cf8',
     OSPF: '#38bdf8', NAT: '#e879f9', WebSocket: '#22d3ee',
     IPv4: '#a3e635', 'FTP-DATA': '#fb7185',
-    '802.1Q': '#fde68a',
+    '802.1Q': '#fde68a', HTTP2: '#60cdff',
   };
 
   let _currentCapturePid = null;
@@ -509,7 +532,7 @@
         loadCapture(activeProtocol);
         if (typeof currentStep !== 'undefined') highlightStep(currentStep);
       } else {
-        alert('当前协议暂无抓包数据，支持：TCP握手/挥手、DNS、HTTP、TLS、ARP、ICMP、VLAN、FTP、OSPF、DHCP、SMTP、SSH、NAT、WebSocket、UDP、IP路由、TCP拥塞控制');
+        alert('当前协议暂无抓包数据，支持：TCP握手/挥手、DNS、HTTP、TLS、ARP、ICMP、VLAN、FTP、OSPF、DHCP、SMTP、SSH、NAT、WebSocket、UDP、IP路由、TCP拥塞控制、HTTP/2');
       }
     },
 
