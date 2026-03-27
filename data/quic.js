@@ -54,7 +54,7 @@
         activeRow: 3,
         fieldTitle: 'QUIC STREAM 帧字段',
         fields:[
-          { name:'Stream ID',   value:'0, 4, 8（偶数）',  desc:'客户端双向流 ID 为 4n+0（0,4,8...），服务端双向流为 4n+1，单向流另两类', highlight:true },
+          { name:'Stream ID',   value:'0, 4, 8（4 的倍数）',  desc:'客户端双向流 ID 为 4n+0（0,4,8...），服务端双向流为 4n+1，客户端单向流为 4n+2，服务端单向流为 4n+3', highlight:true },
           { name:'Offset',      value:'字节偏移量',        desc:'流内数据偏移，用于重组乱序数据；独立于其他流，不同流的乱序互不影响', highlight:true },
           { name:'FIN bit',     value:'1=流结束',         desc:'类比 TCP FIN，置 1 表示本端该流已发完，流半关闭', highlight:false },
           { name:'vs HTTP/2',   value:'TCP 层无此能力',   desc:'HTTP/2 也有多路复用，但 TCP 层一个包丢失会阻塞所有流；QUIC 每个流独立重传，丢包只影响对应流', highlight:true },

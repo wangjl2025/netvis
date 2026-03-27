@@ -49,7 +49,7 @@ protocolDB['stp'] = {
       leftState:'计算路径开销', rightState:'确认根端口',
       fields:[
         { name:'根端口定义',   value:'到根桥路径开销（Root Path Cost）最小的端口', desc:'每台非根交换机有且仅有一个根端口，用于转发流量' },
-        { name:'路径开销',     value:'100Mbps=19, 1Gbps=4, 10Gbps=2（IEEE 802.1D-1998修订版）', desc:'链路速率越高，开销越小，越优先被选为根端口' },
+        { name:'路径开销',     value:'100Mbps=19, 1Gbps=4, 10Gbps=2（IEEE 802.1D-1998旧版标准）', desc:'注意：IEEE 802.1D-2004新版采用更大数值（如1Gbps=20000），两套标准并存，旧版更常见于教材和认证考试' },
         { name:'SW2 根端口',   value:'连接 SW1 的端口（直连开销=4，1G链路）', desc:'直连根桥，开销最小' },
         { name:'SW3 根端口',   value:'连接 SW1 的端口（直连开销=4，1G链路）', desc:'若 SW3 也有直连 SW1 的路径，选直连；否则选经 SW2 的路径' },
         { name:'平局处理',     value:'先比对端 Bridge ID，再比端口 ID', desc:'路径开销相同时，用这两个指标打破平局' },

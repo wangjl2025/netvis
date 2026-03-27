@@ -46,7 +46,7 @@ protocolDB['tcpcong'] = {
       fields: [
         { name:'初始 cwnd',   value:'1 MSS',         desc:'连接建立后，拥塞窗口从 1 个最大报文段开始' },
         { name:'增长规律',    value:'每 RTT 翻倍',    desc:'每收到一个 ACK，cwnd += 1 MSS；一个 RTT 内 cwnd 翻倍' },
-        { name:'ssthresh',    value:'初始 = 16 MSS（示例）', desc:'慢启动阈值，cwnd 超过它后切换到拥塞避免' },
+        { name:'ssthresh',    value:'初始 = 8 MSS（示例）', desc:'慢启动阈值，cwnd 超过它后切换到拥塞避免' },
         { name:'本例增长',    value:'1→2→4→8 MSS',   desc:'3 个 RTT 内窗口翻 3 倍，快速探测可用带宽' },
         { name:'停止条件',    value:'cwnd ≥ ssthresh 或检测到丢包', desc:'本例在 cwnd=8=ssthresh 时切换到拥塞避免' },
       ],

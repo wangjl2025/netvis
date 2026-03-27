@@ -28,17 +28,17 @@ protocolDB['arp'] = {
       narration:'ARP 的工作原理：发送方知道目标 IP，但不知道 MAC 地址，无法封装以太网帧。ARP 广播就像在教室喊"IP 是 192.168.1.20 的同学，你的座位号（MAC）是多少？"——全班都能听到。',
     },
     {
-      banner:'📬 第 2 / 5 步 — 主机 B 识别请求，发送 ARP 单播回复',
+      banner:'📬 第 2 / 5 步 — 目标主机识别请求，发送 ARP 单播回复',
       leftState:'等待回复', rightState:'发送回复',
       fields:[
         { name:'操作码',     value:'2（Reply）', desc:'回复操作，只发给请求方' },
-        { name:'发送方 MAC', value:'FF:EE:DD:CC:BB:AA', desc:'主机 B 的真实 MAC 地址' },
-        { name:'发送方 IP',  value:'192.168.1.20', desc:'主机 B 的 IP 地址' },
+        { name:'发送方 MAC', value:'FF:EE:DD:CC:BB:AA', desc:'目标主机的真实 MAC 地址' },
+        { name:'发送方 IP',  value:'192.168.1.20', desc:'目标主机的 IP 地址' },
         { name:'目标 MAC',   value:'AA:BB:CC:DD:EE:01', desc:'回复给主机 A' },
         { name:'目标 IP',    value:'192.168.1.10', desc:'主机 A 的 IP 地址' },
         { name:'以太网目标', value:'AA:BB:CC:DD:EE:01', desc:'单播帧，只有主机 A 接收' },
       ],
-      narration:'只有 IP 匹配的主机 B 才回应，而且回复是单播（只发给 A）。同时主机 B 也会把 A 的 IP-MAC 映射缓存起来，方便以后直接通信——双向学习。',
+      narration:'只有 IP 匹配的目标主机才回应，而且回复是单播（只发给 A）。同时目标主机也会把 A 的 IP-MAC 映射缓存起来，方便以后直接通信——双向学习。',
     },
     {
       banner:'📦 第 3 / 5 步 — 主机 A 缓存 ARP 结果，封装以太网帧发送 IP 包',

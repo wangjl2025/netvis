@@ -2,11 +2,11 @@ protocolDB['iproute'] = {
   /* 动画包（左→右=出发，右→左=回程，这里全程单向） */
   rows: [
     { dir:'r', color:'packet-label-blue',   label:'IP 数据包（src=192.168.1.10 → dst=10.0.3.5）' },
-    { dir:'r', color:'packet-label-blue',   label:'IP 数据包（最长前缀匹配 → 默认路由 0.0.0.0/0）' },
+    { dir:'r', color:'packet-label-blue',   label:'IP 数据包（最长前缀匹配 → 精确路由 10.0.3.0/24 胜出）' },
     { dir:'r', color:'packet-label-green',  label:'IP 数据包（TTL=63，到达 R1，查转发表）' },
     { dir:'r', color:'packet-label-purple', label:'IP 数据包（TTL=62，到达 R2，再次查转发表）' },
     { dir:'r', color:'packet-label-green',  label:'IP 数据包（直连网络，ARP 获取 MAC）' },
-    { dir:'r', color:'packet-label-blue',   label:'IP 数据包（TTL=61，到达目标主机）' },
+    { dir:'r', color:'packet-label-blue',   label:'IP 数据包（TTL=62，到达目标主机）' },
   ],
   steps: [
     { title:'主机发包，查路由表', emoji:'📤' },

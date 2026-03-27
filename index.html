@@ -1891,6 +1891,151 @@ window.addEventListener('unhandledrejection', function(e) {
         </div>
 
         <!-- ══════════════════════════════════════
+             NAT 专属画布（三节点：内网主机→NAT路由器→公网服务器）
+        ══════════════════════════════════════ -->
+        <div class="dns-diagram" id="natDiagram" style="display:none" role="img" aria-label="NAT地址转换拓扑图">
+          <!-- 三节点横排 -->
+          <div class="dns-nodes-row" id="nat-nodes-row">
+            <div class="dns-node iproute-node" id="nat-node-0" style="border-color:rgba(52,211,153,0.3)">
+              <div class="dns-node-icon">💻</div>
+              <div class="dns-node-name" id="nat-node0-name">内网主机</div>
+              <div class="dns-node-sub" id="nat-node0-sub">192.168.1.100:5000</div>
+              <div class="dns-node-state state-httpready" id="nat-state-0">发出请求</div>
+            </div>
+            <div class="dns-node iproute-node" id="nat-node-1" style="border-color:rgba(251,191,36,0.3)">
+              <div class="dns-node-icon">🔀</div>
+              <div class="dns-node-name">NAT 路由器</div>
+              <div class="dns-node-sub" id="nat-node1-sub">203.0.113.1</div>
+              <div class="dns-node-state state-listen" id="nat-state-1">等待</div>
+            </div>
+            <div class="dns-node iproute-node" id="nat-node-2" style="border-color:rgba(167,139,250,0.3)">
+              <div class="dns-node-icon">🌐</div>
+              <div class="dns-node-name" id="nat-node2-name">公网服务器</div>
+              <div class="dns-node-sub" id="nat-node2-sub">8.8.8.8:80</div>
+              <div class="dns-node-state state-listen" id="nat-state-2">等待连接</div>
+            </div>
+          </div>
+          <!-- 包裹容器：进度条 + 数据包 -->
+          <div class="iproute-track-wrap">
+            <div class="iproute-track-line"></div>
+            <div class="iproute-packet" id="nat-packet">
+              <div class="iproute-packet-dot" id="nat-packet-dot" style="background:var(--cyan-400)"></div>
+              <div class="iproute-packet-label" id="nat-packet-label">192.168.1.100</div>
+            </div>
+            <div class="iproute-seg" id="nat-seg-0-1"></div>
+            <div class="iproute-seg" id="nat-seg-1-2"></div>
+          </div>
+          <!-- NAT 转换表显示 -->
+          <div class="iproute-mac-bar" id="nat-table-bar" style="justify-content:center;gap:14px;flex-wrap:wrap">
+            <span class="iproute-mac-icon">📋</span>
+            <span id="nat-table-text" style="font-size:12px;color:var(--text-2)">NAT 转换表：空</span>
+          </div>
+          <!-- 地址变化指示器 -->
+          <div class="iproute-ttl-bar" style="gap:10px;flex-wrap:wrap;justify-content:center">
+            <span class="iproute-ttl-label">当前数据包：</span>
+            <span id="nat-addr-before" style="font-size:12px;color:var(--cyan-400);font-family:monospace">src=192.168.1.100:5000</span>
+            <span id="nat-arrow-indicator" style="color:var(--text-4);font-size:12px">→</span>
+            <span id="nat-addr-after" style="font-size:12px;color:var(--green-400);font-family:monospace;opacity:0">...</span>
+          </div>
+          <div class="conn-banner" id="nat-banner" role="status" style="margin-top:10px">📤 第 1 / 5 步 — 内网主机发出请求</div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             VLAN 专属画布（交换机+主机拓扑，802.1Q Tag 可视化）
+        ══════════════════════════════════════ -->
+        <div class="stp-diagram" id="vlanDiagram" style="display:none" role="img" aria-label="VLAN虚拟局域网拓扑图">
+          <svg id="vlan-svg" viewBox="0 0 420 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:420px;margin:0 auto;display:block">
+            <!-- 连接线（先画在节点下面） -->
+            <!-- PC1 → SW1 -->
+            <line id="vlan-link-pc1" x1="55" y1="72" x2="140" y2="115" stroke="rgba(120,120,140,0.25)" stroke-width="2"/>
+            <!-- PC2 → SW1 -->
+            <line id="vlan-link-pc2" x1="55" y1="165" x2="140" y2="135" stroke="rgba(120,120,140,0.25)" stroke-width="2"/>
+            <!-- SW1 → SW2（Trunk） -->
+            <line id="vlan-link-trunk" x1="180" y1="125" x2="240" y2="125" stroke="rgba(79,142,247,0.3)" stroke-width="3" stroke-dasharray="6,3"/>
+            <text x="210" y="117" font-size="8" fill="rgba(79,142,247,0.5)" text-anchor="middle" font-family="monospace">Trunk</text>
+            <!-- SW2 → PC3 -->
+            <line id="vlan-link-pc3" x1="280" y1="115" x2="365" y2="72" stroke="rgba(120,120,140,0.25)" stroke-width="2"/>
+            <!-- SW2 → PC4 -->
+            <line id="vlan-link-pc4" x1="280" y1="135" x2="365" y2="165" stroke="rgba(120,120,140,0.25)" stroke-width="2"/>
+            <!-- 路由器连线（第5-6步时显示） -->
+            <line id="vlan-link-router1" x1="160" y1="108" x2="210" y2="55" stroke="rgba(52,211,153,0.0)" stroke-width="2" stroke-dasharray="4,3"/>
+            <line id="vlan-link-router2" x1="260" y1="108" x2="210" y2="55" stroke="rgba(52,211,153,0.0)" stroke-width="2" stroke-dasharray="4,3"/>
+
+            <!-- 数据帧动画点 -->
+            <circle id="vlan-pkt" cx="55" cy="72" r="6" fill="var(--cyan-400)" opacity="0" style="transition:cx 0.5s ease,cy 0.5s ease,opacity 0.3s ease"/>
+
+            <!-- 802.1Q Tag 标签（中间浮现） -->
+            <g id="vlan-tag-badge" opacity="0" style="transition:opacity 0.4s ease">
+              <rect x="178" y="100" width="44" height="16" rx="4" fill="rgba(79,142,247,0.8)"/>
+              <text id="vlan-tag-text" x="200" y="112" font-size="9" fill="white" text-anchor="middle" font-weight="600">VID=10</text>
+            </g>
+
+            <!-- 三层路由器（第5步出现） -->
+            <g id="vlan-router" opacity="0" style="transition:opacity 0.4s ease">
+              <rect x="183" y="30" width="54" height="32" rx="6" fill="rgba(30,30,45,0.95)" stroke="rgba(52,211,153,0.5)" stroke-width="1.5"/>
+              <text x="210" y="45" font-size="10" text-anchor="middle">🔀</text>
+              <text x="210" y="57" font-size="7.5" fill="var(--text-3)" text-anchor="middle">三层路由</text>
+            </g>
+
+            <!-- SW1（左交换机） -->
+            <g id="vlan-sw1">
+              <rect x="130" y="108" width="60" height="34" rx="6" fill="rgba(30,30,45,0.95)" stroke="rgba(120,120,140,0.3)" stroke-width="1.5"/>
+              <text x="160" y="123" font-size="10" text-anchor="middle">🔀</text>
+              <text x="160" y="135" font-size="8" fill="var(--text-3)" text-anchor="middle">SW1</text>
+            </g>
+            <text id="vlan-sw1-state" x="160" y="150" font-size="8" fill="rgba(120,120,140,0.5)" text-anchor="middle">接入层</text>
+
+            <!-- SW2（右交换机） -->
+            <g id="vlan-sw2">
+              <rect x="230" y="108" width="60" height="34" rx="6" fill="rgba(30,30,45,0.95)" stroke="rgba(120,120,140,0.3)" stroke-width="1.5"/>
+              <text x="260" y="123" font-size="10" text-anchor="middle">🔀</text>
+              <text x="260" y="135" font-size="8" fill="var(--text-3)" text-anchor="middle">SW2</text>
+            </g>
+            <text id="vlan-sw2-state" x="260" y="150" font-size="8" fill="rgba(120,120,140,0.5)" text-anchor="middle">接入层</text>
+
+            <!-- PC1（左上，VLAN 10） -->
+            <g id="vlan-pc1">
+              <rect x="12" y="48" width="86" height="48" rx="6" fill="rgba(30,30,45,0.95)" stroke="rgba(34,211,238,0.3)" stroke-width="1.5"/>
+              <text x="55" y="68" font-size="11" text-anchor="middle">💻</text>
+              <text x="55" y="79" font-size="8.5" fill="var(--text-1)" text-anchor="middle" font-weight="600">PC1</text>
+              <text x="55" y="89" font-size="7" fill="rgba(34,211,238,0.6)" text-anchor="middle">VLAN 10</text>
+            </g>
+            <text id="vlan-pc1-state" x="55" y="104" font-size="7.5" fill="rgba(34,211,238,0.5)" text-anchor="middle">192.168.10.1</text>
+
+            <!-- PC2（左下，VLAN 20） -->
+            <g id="vlan-pc2">
+              <rect x="12" y="143" width="86" height="48" rx="6" fill="rgba(30,30,45,0.9)" stroke="rgba(251,191,36,0.3)" stroke-width="1.5"/>
+              <text x="55" y="162" font-size="11" text-anchor="middle">💻</text>
+              <text x="55" y="173" font-size="8.5" fill="var(--text-1)" text-anchor="middle" font-weight="600">PC2</text>
+              <text x="55" y="183" font-size="7" fill="rgba(251,191,36,0.6)" text-anchor="middle">VLAN 20</text>
+            </g>
+            <text id="vlan-pc2-state" x="55" y="198" font-size="7.5" fill="rgba(251,191,36,0.5)" text-anchor="middle">192.168.20.1</text>
+
+            <!-- PC3（右上，VLAN 10） -->
+            <g id="vlan-pc3">
+              <rect x="322" y="48" width="86" height="48" rx="6" fill="rgba(30,30,45,0.95)" stroke="rgba(34,211,238,0.3)" stroke-width="1.5"/>
+              <text x="365" y="68" font-size="11" text-anchor="middle">💻</text>
+              <text x="365" y="79" font-size="8.5" fill="var(--text-1)" text-anchor="middle" font-weight="600">PC3</text>
+              <text x="365" y="89" font-size="7" fill="rgba(34,211,238,0.6)" text-anchor="middle">VLAN 10</text>
+            </g>
+            <text id="vlan-pc3-state" x="365" y="104" font-size="7.5" fill="rgba(34,211,238,0.5)" text-anchor="middle">192.168.10.3</text>
+
+            <!-- PC4（右下，VLAN 20） -->
+            <g id="vlan-pc4">
+              <rect x="322" y="143" width="86" height="48" rx="6" fill="rgba(30,30,45,0.9)" stroke="rgba(251,191,36,0.3)" stroke-width="1.5"/>
+              <text x="365" y="162" font-size="11" text-anchor="middle">💻</text>
+              <text x="365" y="173" font-size="8.5" fill="var(--text-1)" text-anchor="middle" font-weight="600">PC4</text>
+              <text x="365" y="183" font-size="7" fill="rgba(251,191,36,0.6)" text-anchor="middle">VLAN 20</text>
+            </g>
+            <text id="vlan-pc4-state" x="365" y="198" font-size="7.5" fill="rgba(251,191,36,0.5)" text-anchor="middle">192.168.20.4</text>
+
+            <!-- VLAN 隔离提示（中下方） -->
+            <text id="vlan-status-text" x="210" y="220" font-size="8.5" fill="rgba(120,120,140,0.45)" text-anchor="middle">VLAN 10 ≠ VLAN 20（广播域隔离）</text>
+          </svg>
+          <div class="conn-banner" id="vlan-banner" role="status" style="margin-top:6px">💻 第 1 / 6 步 — PC1 发出普通以太网帧</div>
+        </div>
+
+        <!-- ══════════════════════════════════════
              ARP 专属画布（广播扩散 + 局域网多主机）
         ══════════════════════════════════════ -->
         <div class="arp-diagram" id="arpDiagram" style="display:none" role="img" aria-label="ARP地址解析协议拓扑图">
@@ -3137,7 +3282,7 @@ function switchProtocol(pid, btnEl) {
       document.querySelectorAll('.proto-tab').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
       // 隐藏所有其他画布，显示对比画布
-      ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','congestionDiagram','iprouteDiagram','stpDiagram','ospfDiagram','bgpDiagram','arpDiagram'].forEach(id => {
+      ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','congestionDiagram','iprouteDiagram','stpDiagram','ospfDiagram','bgpDiagram','arpDiagram','natDiagram','vlanDiagram'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
@@ -3267,10 +3412,10 @@ function switchProtocol(pid, btnEl) {
   totalSteps = protocolDB[pid].steps.length;
 
   /* 显示对应画布 */
-  const canvasMap = { tcp3:'tcpDiagram', tcp4:'tcp4Diagram', http:'httpDiagram', tls:'tlsDiagram', dns:'dnsCanvas', tcpcong:'congestionDiagram', iproute:'iprouteDiagram', stp:'stpDiagram', ospf:'ospfDiagram', bgp:'bgpDiagram', arp:'arpDiagram' };
+  const canvasMap = { tcp3:'tcpDiagram', tcp4:'tcp4Diagram', http:'httpDiagram', tls:'tlsDiagram', dns:'dnsCanvas', tcpcong:'congestionDiagram', iproute:'iprouteDiagram', stp:'stpDiagram', ospf:'ospfDiagram', bgp:'bgpDiagram', arp:'arpDiagram', nat:'natDiagram', vlan:'vlanDiagram' };
   const canvasId = canvasMap[pid] || 'genericDiagram';
   // 先隐藏所有画布
-  ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram'].forEach(id => {
+  ['tcpDiagram','udpDiagram','tcp4Diagram','httpDiagram','tlsDiagram','dnsCanvas','genericDiagram','compareCanvas','congestionDiagram','natDiagram','vlanDiagram'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -3349,6 +3494,14 @@ function switchProtocol(pid, btnEl) {
     const sn = document.getElementById('stepNarration');
     if (sn) sn.style.display = '';
     if (typeof renderArpStep === 'function') renderArpStep(1);
+  } else if (canvasId === 'natDiagram') {
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = '';
+    if (typeof renderNatStep === 'function') renderNatStep(1);
+  } else if (canvasId === 'vlanDiagram') {
+    const sn = document.getElementById('stepNarration');
+    if (sn) sn.style.display = '';
+    if (typeof renderVlanStep === 'function') renderVlanStep(1);
   } else {
     /* 其他协议：恢复 stepNarration */
     const sn = document.getElementById('stepNarration');
@@ -4287,6 +4440,12 @@ function renderStep() {
   if (activeProtocol === 'arp') {
     if (typeof renderArpStep === 'function') renderArpStep(currentStep);
   }
+  if (activeProtocol === 'nat') {
+    if (typeof renderNatStep === 'function') renderNatStep(currentStep);
+  }
+  if (activeProtocol === 'vlan') {
+    if (typeof renderVlanStep === 'function') renderVlanStep(currentStep);
+  }
 
   /* ── 对比视图：独立渲染路径 ── */
   if (activeProtocol.startsWith('compare-')) {
@@ -4333,7 +4492,7 @@ function renderStep() {
   document.getElementById('stepLabel').textContent = `第 ${currentStep} 步 / 共 ${totalSteps} 步`;
 
   /* ── 连接状态横幅 ── */
-  const bannerId = {tcp3:'conn-banner',tcp4:'tcp4-banner',http:'http-banner',tls:'tls-banner',dns:'dns-banner',iproute:'iproute-banner',stp:'stp-banner',ospf:'ospf-banner',bgp:'bgp-banner',arp:'arp-banner'}[activeProtocol] || 'gen-banner';
+  const bannerId = {tcp3:'conn-banner',tcp4:'tcp4-banner',http:'http-banner',tls:'tls-banner',dns:'dns-banner',iproute:'iproute-banner',stp:'stp-banner',ospf:'ospf-banner',bgp:'bgp-banner',arp:'arp-banner',nat:'nat-banner',vlan:'vlan-banner'}[activeProtocol] || 'gen-banner';
   // 对 tcp3，用 .conn-banner 查找（因为图里可能有多个）
   let banner;
   if (activeProtocol === 'tcp3') {
@@ -4363,6 +4522,128 @@ function renderStep() {
   if (data.serverStateId) {
     const ss = document.getElementById(data.serverStateId);
     if (ss) { ss.textContent = data.serverState; ss.className = 'node-state ' + data.serverClass; }
+  }
+
+  /* ── TLS 专属：握手完成后节点绿色光晕 + 🔒图标 ── */
+  if (activeProtocol === 'tls') {
+    const tlsClient = document.querySelector('#tlsDiagram .node-box-client');
+    const tlsServer = document.querySelector('#tlsDiagram .node-box-server');
+    const isEncrypted = currentStep >= 3;
+    if (tlsClient) {
+      tlsClient.style.borderColor = isEncrypted ? 'rgba(16,185,129,0.55)' : 'rgba(34,211,238,0.18)';
+      const icon = tlsClient.querySelector('.node-icon');
+      if (icon) icon.textContent = isEncrypted ? '🔒' : '💻';
+    }
+    if (tlsServer) {
+      tlsServer.style.borderColor = isEncrypted ? 'rgba(16,185,129,0.55)' : 'rgba(34,211,238,0.18)';
+      const icon = tlsServer.querySelector('.node-icon');
+      if (icon) icon.textContent = isEncrypted ? '🔒' : '🔐';
+    }
+    /* 第4步：加密行的箭头变绿 */
+    const row4 = document.getElementById('tls-row-4');
+    if (row4) {
+      const arrow = row4.querySelector('.arrow-line');
+      if (arrow) { arrow.style.borderColor = currentStep >= 4 ? 'rgba(16,185,129,0.7)' : ''; }
+      const lbl = row4.querySelector('.packet-label');
+      if (lbl) { lbl.style.borderColor = currentStep >= 4 ? 'rgba(16,185,129,0.5)' : ''; lbl.style.color = currentStep >= 4 ? 'var(--green-400)' : ''; }
+    }
+  }
+
+  /* ── SSH 专属：加密信道建立（第4步）后箭头变绿 ── */
+  if (activeProtocol === 'ssh') {
+    for (let i = 1; i <= 6; i++) {
+      const row = document.getElementById('gen-row-' + i);
+      if (!row) continue;
+      const arrow = row.querySelector('.arrow-line');
+      const lbl = row.querySelector('.packet-label');
+      if (i >= 4 && currentStep >= 4) {
+        if (arrow) arrow.style.borderColor = 'rgba(16,185,129,0.6)';
+        if (lbl) { lbl.style.color = 'var(--green-400)'; lbl.style.borderColor = 'rgba(16,185,129,0.4)'; }
+      } else {
+        if (arrow) arrow.style.borderColor = '';
+        if (lbl) { lbl.style.color = ''; lbl.style.borderColor = ''; }
+      }
+    }
+    /* 第4步：gen-right-state 变绿，加🔐 */
+    const leftState  = document.getElementById('gen-left-state');
+    const rightState = document.getElementById('gen-right-state');
+    if (currentStep >= 4) {
+      if (leftState)  leftState.style.color = 'var(--green-400)';
+      if (rightState) rightState.style.color = 'var(--green-400)';
+    } else {
+      if (leftState)  leftState.style.color = '';
+      if (rightState) rightState.style.color = '';
+    }
+  }
+
+  /* ── DHCP 专属：广播步骤（step1 Discover / step3 Request）显示广播光晕 ── */
+  if (activeProtocol === 'dhcp') {
+    const leftNode = document.querySelector('#genericDiagram .node-box-client');
+    const isBroadcastStep = (currentStep === 1 || currentStep === 3);
+    if (leftNode) {
+      leftNode.style.boxShadow = isBroadcastStep
+        ? '0 0 0 3px rgba(34,211,238,0.25), 0 0 16px rgba(34,211,238,0.15), 0 0 32px rgba(34,211,238,0.08)'
+        : '';
+      leftNode.style.borderColor = isBroadcastStep ? 'rgba(34,211,238,0.6)' : '';
+      /* 在图标旁边显示"📢"广播标识 */
+      const icon = leftNode.querySelector('.node-icon');
+      if (icon) icon.textContent = isBroadcastStep ? '📢' : '💻';
+    }
+    /* 广播步骤时把目标标签也改一下 */
+    const label1 = document.getElementById('gen-label-' + currentStep);
+    if (label1 && isBroadcastStep) {
+      label1.style.boxShadow = '0 0 8px rgba(34,211,238,0.3)';
+    }
+    /* 非广播步骤清除 */
+    if (!isBroadcastStep) {
+      for (let i = 1; i <= 4; i++) {
+        const lbl = document.getElementById('gen-label-' + i);
+        if (lbl) lbl.style.boxShadow = '';
+      }
+    }
+  } else {
+    /* 切走 DHCP 时清理残留样式 */
+    if (activeProtocol !== 'dhcp') {
+      const leftNode = document.querySelector('#genericDiagram .node-box-client');
+      if (leftNode) {
+        leftNode.style.boxShadow = '';
+        leftNode.style.borderColor = '';
+        const icon = leftNode.querySelector('.node-icon');
+        if (icon && icon.textContent === '📢') icon.textContent = '💻';
+      }
+    }
+  }
+
+  /* ── HTTP 专属：飞行数据包标签显示请求行/状态码 ── */
+  if (activeProtocol === 'http') {
+    const HTTP_PACKET_DETAIL = [
+      'GET /index.html HTTP/1.1',
+      'HTTP/1.1 200 OK',
+      'GET /style.css HTTP/1.1',
+      'HTTP/1.1 200 OK (CSS)',
+      'GET /logo.png HTTP/1.1',
+    ];
+    const activeLabel = document.getElementById('gen-label-' + currentStep);
+    if (activeLabel) {
+      const detail = HTTP_PACKET_DETAIL[currentStep - 1];
+      if (detail) {
+        /* 在原来标签下方加一行小字报文行 */
+        if (!activeLabel.querySelector('.http-req-line')) {
+          const small = document.createElement('span');
+          small.className = 'http-req-line';
+          small.style.cssText = 'display:block;font-size:10px;font-family:monospace;opacity:0.75;margin-top:2px;letter-spacing:0';
+          activeLabel.appendChild(small);
+        }
+        const reqLine = activeLabel.querySelector('.http-req-line');
+        if (reqLine) reqLine.textContent = detail;
+      }
+    }
+    /* 清除其他行的小字 */
+    for (let i = 1; i <= 5; i++) {
+      if (i === currentStep) continue;
+      const lbl = document.getElementById('gen-label-' + i);
+      if (lbl) { const rl = lbl.querySelector('.http-req-line'); if (rl) rl.remove(); }
+    }
   }
   /* 通用画布：leftState / rightState */
   if (data.leftState !== undefined) {
@@ -4968,6 +5249,250 @@ function closeAbnormal() {
       if (reply) reply.setAttribute('opacity', cfg.reply ? '1' : '0');
       var ch = document.getElementById('arp-cache-hint');
       if (ch) ch.textContent = cfg.cacheHint;
+    };
+  })();
+
+  /* ════════════════════════════════════════════
+     NAT 专属画布渲染（三节点：内网主机→NAT路由器→公网服务器）
+  ════════════════════════════════════════════ */
+  (function() {
+    // 每步配置：节点状态/颜色，数据包位置（0=左端,50%=中，100%=右端），地址显示
+    var NAT_CFG = [
+      // step1: 内网主机发出私网包（包停在左侧→中间路上）
+      { n0State:'发出请求', n1State:'等待', n2State:'等待连接',
+        n0Color:'rgba(52,211,153,0.6)', n1Color:'rgba(120,120,140,0.3)', n2Color:'rgba(120,120,140,0.3)',
+        pktLeft:'12%', pktColor:'var(--cyan-400)', pktLabel:'私网包',
+        seg01:'', seg12:'',
+        addrBefore:'src=192.168.1.100:5000', addrAfter:'（公网不可路由）', arrowColor:'rgba(120,120,140,0.4)',
+        tableText:'NAT 转换表：空' },
+      // step2: NAT网关替换源地址（包在中间，颜色变化）
+      { n0State:'路过网关', n1State:'替换地址', n2State:'等待响应',
+        n0Color:'rgba(34,211,238,0.3)', n1Color:'rgba(251,191,36,0.7)', n2Color:'rgba(120,120,140,0.3)',
+        pktLeft:'50%', pktColor:'var(--yellow-400,#f59e0b)', pktLabel:'SNAT',
+        seg01:'active', seg12:'',
+        addrBefore:'src=192.168.1.100:5000', addrAfter:'src=203.0.113.1:40001', arrowColor:'var(--yellow-400,#f59e0b)',
+        tableText:'NAT 表：40001 → 192.168.1.100:5000' },
+      // step3: 公网服务器响应（包从右往左飞）
+      { n0State:'等待', n1State:'转发响应', n2State:'发送响应',
+        n0Color:'rgba(120,120,140,0.3)', n1Color:'rgba(167,139,250,0.5)', n2Color:'rgba(167,139,250,0.7)',
+        pktLeft:'75%', pktColor:'var(--purple-400,#a78bfa)', pktLabel:'响应包',
+        seg01:'', seg12:'active',
+        addrBefore:'src=8.8.8.8:80', addrAfter:'dst=203.0.113.1:40001', arrowColor:'rgba(167,139,250,0.7)',
+        tableText:'NAT 表：查端口 40001 → 内网 192.168.1.100' },
+      // step4: NAT还原后转发给内网主机
+      { n0State:'收到响应', n1State:'还原地址', n2State:'完成',
+        n0Color:'rgba(52,211,153,0.7)', n1Color:'rgba(251,191,36,0.5)', n2Color:'rgba(52,211,153,0.3)',
+        pktLeft:'20%', pktColor:'var(--green-400)', pktLabel:'还原包',
+        seg01:'active', seg12:'',
+        addrBefore:'dst=203.0.113.1:40001', addrAfter:'→ dst=192.168.1.100:5000', arrowColor:'var(--green-400)',
+        tableText:'NAT 还原：目标地址已改回内网 IP' },
+      // step5: 多设备共享
+      { n0State:'多设备', n1State:'统一出口', n2State:'公网服务',
+        n0Color:'rgba(34,211,238,0.5)', n1Color:'rgba(251,191,36,0.6)', n2Color:'rgba(167,139,250,0.5)',
+        pktLeft:'50%', pktColor:'var(--cyan-400)', pktLabel:'共享 IP',
+        seg01:'active', seg12:'active',
+        addrBefore:'A→:40001 / B→:40002 / C→:40003', addrAfter:'共享 203.0.113.1', arrowColor:'var(--cyan-400)',
+        tableText:'NAT 表：多条目 — 端口区分不同内网连接' },
+    ];
+    window.renderNatStep = function(step) {
+      var db = protocolDB['nat'];
+      if (!db) return;
+      // DNAT 模式数据不同，但画布一样
+      var effectivePid = (window._natMode === 'dnat') ? 'nat-dnat' : 'nat';
+      var cfg = NAT_CFG[step - 1];
+      if (!cfg) return;
+
+      // 节点边框颜色 & 状态文字
+      function setNode(idx, color, stateText) {
+        var nd = document.getElementById('nat-node-' + idx);
+        if (nd) { var r = nd.querySelector('div'); /* dns-node 是 div，不需要 rect */ }
+        // 用 border 更新颜色
+        var nodeEl = document.getElementById('nat-node-' + idx);
+        if (nodeEl) nodeEl.style.borderColor = color;
+        var stEl = document.getElementById('nat-state-' + idx);
+        if (stEl) stEl.textContent = stateText;
+      }
+      setNode(0, cfg.n0Color, cfg.n0State);
+      setNode(1, cfg.n1Color, cfg.n1State);
+      setNode(2, cfg.n2Color, cfg.n2State);
+
+      // DNAT 模式时调整节点显示文字
+      if (window._natMode === 'dnat') {
+        var n0n = document.getElementById('nat-node0-name'); if (n0n) n0n.textContent = '公网客户端';
+        var n0s = document.getElementById('nat-node0-sub');  if (n0s) n0s.textContent = '1.2.3.4:54321';
+        var n2n = document.getElementById('nat-node2-name'); if (n2n) n2n.textContent = '内网服务器';
+        var n2s = document.getElementById('nat-node2-sub');  if (n2s) n2s.textContent = '192.168.1.10:8080';
+      } else {
+        var n0n = document.getElementById('nat-node0-name'); if (n0n) n0n.textContent = '内网主机';
+        var n0s = document.getElementById('nat-node0-sub');  if (n0s) n0s.textContent = '192.168.1.100:5000';
+        var n2n = document.getElementById('nat-node2-name'); if (n2n) n2n.textContent = '公网服务器';
+        var n2s = document.getElementById('nat-node2-sub');  if (n2s) n2s.textContent = '8.8.8.8:80';
+      }
+
+      // 数据包位置
+      var pkt = document.getElementById('nat-packet');
+      if (pkt) pkt.style.left = cfg.pktLeft;
+      var pktDot = document.getElementById('nat-packet-dot');
+      if (pktDot) pktDot.style.background = cfg.pktColor;
+      var pktLbl = document.getElementById('nat-packet-label');
+      if (pktLbl) pktLbl.textContent = cfg.pktLabel;
+
+      // 段颜色
+      var seg01 = document.getElementById('nat-seg-0-1');
+      var seg12 = document.getElementById('nat-seg-1-2');
+      if (seg01) { seg01.className = 'iproute-seg' + (cfg.seg01 === 'active' ? ' seg-active' : cfg.seg01 === 'done' ? ' seg-done' : ''); }
+      if (seg12) { seg12.className = 'iproute-seg' + (cfg.seg12 === 'active' ? ' seg-active' : cfg.seg12 === 'done' ? ' seg-done' : ''); }
+
+      // 地址变化指示
+      var before = document.getElementById('nat-addr-before');
+      var after  = document.getElementById('nat-addr-after');
+      var arrow  = document.getElementById('nat-arrow-indicator');
+      if (before) before.textContent = cfg.addrBefore;
+      if (after)  { after.textContent = cfg.addrAfter; after.style.opacity = '1'; after.style.color = cfg.arrowColor; }
+      if (arrow)  arrow.style.color = cfg.arrowColor;
+
+      // NAT 转换表
+      var tableEl = document.getElementById('nat-table-text');
+      if (tableEl) tableEl.textContent = cfg.tableText;
+
+      // banner
+      var bnr = document.getElementById('nat-banner');
+      if (bnr) {
+        var db2 = protocolDB[effectivePid];
+        if (db2 && db2.stepData[step-1]) {
+          var txt = db2.stepData[step-1].banner || db2.stepData[step-1].bannerText || '';
+          bnr.textContent = txt;
+        }
+      }
+    };
+  })();
+
+  /* ════════════════════════════════════════════
+     VLAN 专属画布渲染（交换机+主机拓扑，802.1Q Tag 可视化）
+  ════════════════════════════════════════════ */
+  (function() {
+    var VLAN_CFG = [
+      // step1: PC1 发出普通以太网帧，到 SW1 Access 口
+      { pktX:55, pktY:72, pktOpacity:1, pktColor:'var(--cyan-400)',
+        tagShow:false, tagText:'', routerShow:false,
+        pc1Active:true, pc2Active:false, pc3Active:false, pc4Active:false,
+        sw1Border:'rgba(34,211,238,0.5)', sw2Border:'rgba(120,120,140,0.3)',
+        link01:'broad', trunk:'normal', link23:'normal', link24:'normal',
+        statusText:'PC1 发出普通以太网帧（无 VLAN 标签）' },
+      // step2: Access 口打上 VLAN 10 标签
+      { pktX:160, pktY:125, pktOpacity:1, pktColor:'var(--cyan-400)',
+        tagShow:true, tagText:'VID=10', routerShow:false,
+        pc1Active:false, pc2Active:false, pc3Active:false, pc4Active:false,
+        sw1Border:'rgba(34,211,238,0.7)', sw2Border:'rgba(120,120,140,0.3)',
+        link01:'broad', trunk:'normal', link23:'normal', link24:'normal',
+        statusText:'SW1 Access 口打上 802.1Q 标签 VID=10' },
+      // step3: Trunk 口跨交换机传输（带标签）
+      { pktX:210, pktY:125, pktOpacity:1, pktColor:'var(--blue-400,#60a5fa)',
+        tagShow:true, tagText:'VID=10', routerShow:false,
+        pc1Active:false, pc2Active:false, pc3Active:false, pc4Active:false,
+        sw1Border:'rgba(79,142,247,0.5)', sw2Border:'rgba(79,142,247,0.5)',
+        link01:'normal', trunk:'active', link23:'normal', link24:'normal',
+        statusText:'Trunk 链路传输（802.1Q 标签保留，多 VLAN 共存）' },
+      // step4: 目标 Access 口剥离标签
+      { pktX:365, pktY:72, pktOpacity:1, pktColor:'var(--cyan-400)',
+        tagShow:false, tagText:'', routerShow:false,
+        pc1Active:false, pc2Active:false, pc3Active:true, pc4Active:false,
+        sw1Border:'rgba(120,120,140,0.3)', sw2Border:'rgba(34,211,238,0.5)',
+        link01:'normal', trunk:'done', link23:'active', link24:'normal',
+        statusText:'SW2 Access 口剥离标签，PC3 收到普通帧（PC4 VLAN 20 隔离，收不到）' },
+      // step5: VLAN 间路由（三层交换机）
+      { pktX:210, pktY:55, pktOpacity:1, pktColor:'var(--green-400)',
+        tagShow:false, tagText:'', routerShow:true,
+        pc1Active:true, pc2Active:false, pc3Active:false, pc4Active:true,
+        sw1Border:'rgba(52,211,153,0.4)', sw2Border:'rgba(52,211,153,0.4)',
+        link01:'normal', trunk:'normal', link23:'normal', link24:'normal',
+        statusText:'VLAN 间通信：必须经三层路由（SVI 接口，不同 VLAN 才能互通）' },
+      // step6: 总结
+      { pktX:210, pktY:125, pktOpacity:0.3, pktColor:'var(--cyan-400)',
+        tagShow:false, tagText:'', routerShow:false,
+        pc1Active:false, pc2Active:false, pc3Active:false, pc4Active:false,
+        sw1Border:'rgba(120,120,140,0.3)', sw2Border:'rgba(120,120,140,0.3)',
+        link01:'normal', trunk:'normal', link23:'normal', link24:'normal',
+        statusText:'VLAN 总结：逻辑隔离（广播域）+ Access/Trunk 端口 + 三层路由跨 VLAN' },
+    ];
+    window.renderVlanStep = function(step) {
+      var cfg = VLAN_CFG[step - 1];
+      if (!cfg) return;
+
+      // 数据包
+      var pkt = document.getElementById('vlan-pkt');
+      if (pkt) {
+        pkt.setAttribute('cx', cfg.pktX);
+        pkt.setAttribute('cy', cfg.pktY);
+        pkt.setAttribute('opacity', cfg.pktOpacity);
+        pkt.setAttribute('fill', cfg.pktColor);
+      }
+
+      // 802.1Q Tag 标签
+      var tagBadge = document.getElementById('vlan-tag-badge');
+      var tagText  = document.getElementById('vlan-tag-text');
+      if (tagBadge) tagBadge.style.opacity = cfg.tagShow ? '1' : '0';
+      if (tagText)  tagText.textContent = cfg.tagText;
+
+      // 三层路由器
+      var router = document.getElementById('vlan-router');
+      var rl1 = document.getElementById('vlan-link-router1');
+      var rl2 = document.getElementById('vlan-link-router2');
+      if (router) router.style.opacity = cfg.routerShow ? '1' : '0';
+      if (rl1) rl1.setAttribute('stroke', cfg.routerShow ? 'rgba(52,211,153,0.5)' : 'rgba(52,211,153,0.0)');
+      if (rl2) rl2.setAttribute('stroke', cfg.routerShow ? 'rgba(52,211,153,0.5)' : 'rgba(52,211,153,0.0)');
+
+      // 主机激活状态（高亮边框）
+      function setHostActive(id, active, baseColor) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var r = el.querySelector('rect');
+        if (r) r.setAttribute('stroke', active ? baseColor : 'rgba(120,120,140,0.2)');
+        r && r.setAttribute('stroke-width', active ? '2' : '1.2');
+      }
+      setHostActive('vlan-pc1', cfg.pc1Active, 'rgba(34,211,238,0.8)');
+      setHostActive('vlan-pc2', cfg.pc2Active, 'rgba(251,191,36,0.8)');
+      setHostActive('vlan-pc3', cfg.pc3Active, 'rgba(34,211,238,0.8)');
+      setHostActive('vlan-pc4', cfg.pc4Active, 'rgba(251,191,36,0.8)');
+
+      // 交换机边框
+      function setSwBorder(id, color) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var r = el.querySelector('rect');
+        if (r) r.setAttribute('stroke', color);
+      }
+      setSwBorder('vlan-sw1', cfg.sw1Border);
+      setSwBorder('vlan-sw2', cfg.sw2Border);
+
+      // 链路颜色
+      var LINK_COLOR = { normal:'rgba(120,120,140,0.25)', active:'rgba(79,142,247,0.7)', broad:'rgba(34,211,238,0.6)', done:'rgba(52,211,153,0.5)' };
+      var LINK_WIDTH = { normal:'2', active:'3', broad:'2.5', done:'2.5' };
+      function setLink(id, state) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('stroke', LINK_COLOR[state] || LINK_COLOR.normal);
+        el.setAttribute('stroke-width', LINK_WIDTH[state] || '2');
+      }
+      setLink('vlan-link-pc1', cfg.link01);
+      setLink('vlan-link-pc2', cfg.link01);
+      setLink('vlan-link-trunk', cfg.trunk);
+      setLink('vlan-link-pc3', cfg.link23);
+      setLink('vlan-link-pc4', cfg.link24);
+
+      // 状态文字
+      var st = document.getElementById('vlan-status-text');
+      if (st) st.textContent = cfg.statusText;
+
+      // banner
+      var bnr = document.getElementById('vlan-banner');
+      if (bnr) {
+        var db = protocolDB['vlan'];
+        if (db && db.stepData[step-1]) {
+          var txt = db.stepData[step-1].banner || db.stepData[step-1].bannerText || '';
+          bnr.textContent = txt;
+        }
+      }
     };
   })();
 
