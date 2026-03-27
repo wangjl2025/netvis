@@ -1,14 +1,14 @@
 /**
  * sw.js — NetViz Service Worker（PWA 离线支持）
- * 策略：Cache First（核心资源） + Network First（协议数据）
+ * 策略：Stale-While-Revalidate（核心资源） + Network First（协议数据）
  * 版本号更新后会自动清理旧缓存
  */
 
-const CACHE_VERSION = 'netvis-v1';
+const CACHE_VERSION = 'netvis-v20260327';
 const CORE_CACHE = CACHE_VERSION + '-core';
 const DATA_CACHE = CACHE_VERSION + '-data';
 
-// 核心资源：安装时预缓存（Cache First）
+// 核心资源：安装时预缓存（Stale-While-Revalidate）
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -65,30 +65,37 @@ self.addEventListener('fetch', event => {
     // 协议数据：Network First（保证最新），失败时从缓存取
     event.respondWith(networkFirstStrategy(event.request, DATA_CACHE));
   } else {
-    // 核心资源：Cache First（极速离线），后台更新
-    event.respondWith(cacheFirstStrategy(event.request, CORE_CACHE));
+    // 核心资源：Stale-While-Revalidate（立刻从缓存响应，后台异步更新缓存）
+    event.respondWith(staleWhileRevalidate(event.request, CORE_CACHE));
   }
 });
 
 // ── 策略函数 ──────────────────────────────────────────────────────────
 
-/** Cache First：从缓存取，取不到再走网络并缓存结果 */
-async function cacheFirstStrategy(request, cacheName) {
-  const cached = await caches.match(request);
-  if (cached) return cached;
-  try {
-    const response = await fetch(request);
+/** Stale-While-Revalidate：有缓存立刻返回，同时后台更新；无缓存则走网络 */
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+
+  // 后台异步更新缓存（不阻塞当前响应）
+  const fetchPromise = fetch(request).then(response => {
     if (response.ok) {
-      const cache = await caches.open(cacheName);
       cache.put(request, response.clone());
     }
     return response;
-  } catch {
-    // 彻底离线且缓存里也没有：返回简单的离线提示页
-    return new Response(offlinePage(), {
-      headers: { 'Content-Type': 'text/html; charset=utf-8' }
-    });
-  }
+  }).catch(() => null);
+
+  // 有缓存：立刻返回，后台已在更新，下次访问即是新版
+  if (cached) return cached;
+
+  // 无缓存：等待网络结果
+  const response = await fetchPromise;
+  if (response) return response;
+
+  // 彻底离线且无缓存：返回离线提示页
+  return new Response(offlinePage(), {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
 }
 
 /** Network First：先走网络并更新缓存，网络失败则取缓存 */
@@ -122,3 +129,4 @@ h1{font-size:2rem;margin-bottom:.5rem}p{color:#8b949e}</style></head>
 <p style="margin-top:1.5rem"><a href="./" style="color:#4f8ef7">重新加载</a></p>
 </div></body></html>`;
 }
+
