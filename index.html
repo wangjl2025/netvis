@@ -1918,11 +1918,11 @@ const CARD_META = {
   http:      { layer:'app',       level:'easy',   title:'http/1.1 请求 响应' },
   tls:       { layer:'app',       level:'medium', title:'tls 1.3 加密 握手' },
   http2:     { layer:'app',       level:'hard',   title:'http/2 多路复용 帧 流' },
-  quic:      { layer:'app',       level:'hard',   title:'quic http/3 udp 0-rtt 连接迁移 队头阻塞' },      { layer:'app',       level:'easy',   title:'dhcp ip地址' },
+  quic:      { layer:'app',       level:'hard',   title:'quic http/3 udp 0-rtt 连接迁移 队头阻塞' },
+  dhcp:      { layer:'app',       level:'easy',   title:'dhcp ip地址' },
   websocket: { layer:'app',       level:'medium', title:'websocket 握手 全双工' },
   smtp:      { layer:'app',       level:'easy',   title:'smtp 邮件 发送 电子邮件' },
   ftp:       { layer:'app',       level:'medium', title:'ftp 文件传输 被动模式' },
-  quic:      { layer:'app',       level:'hard',   title:'quic http/3 udp 0-rtt' },
   ssh:       { layer:'app',       level:'medium', title:'ssh 安全 登录 密钥' },
   // 传输层
   tcp3:      { layer:'transport', level:'easy',   title:'tcp 三次握手 syn' },
